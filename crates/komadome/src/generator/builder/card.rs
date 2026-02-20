@@ -12,16 +12,52 @@ pub fn build_card_context(card: &CardData, _masters: &Masters) -> Result<Value> 
         "bg-sky-50"
     };
 
+    // First author ID for header nav link
+    let first_author_id = card.authors.first().map(|a| a.id).unwrap_or(card.person_id);
+
+    // Find XHTML workfile URL for "いますぐXHTML版で読む" link
+    let xhtml_url = card.workfiles.iter()
+        .find(|f| f.is_html)
+        .and_then(|f| {
+            if let Some(url) = f.url.as_deref() {
+                if !url.is_empty() {
+                    return Some(url.to_string());
+                }
+            }
+            f.filename.as_deref().map(|fname| format!("./files/{}", fname))
+        });
+
+    // Format bibclasses as comma-separated string
+    let bibclasses_text = card.bibclasses.iter().map(|b| {
+        match b.note.as_deref() {
+            Some(note) if !note.is_empty() => format!("{}{} {}", b.name, b.num, note),
+            _ => format!("{} {}", b.name, b.num),
+        }
+    }).collect::<Vec<_>>().join(", ");
+
+    // External link URLs for LinkComponent
+    let booklog_url = format!("http://booklog.jp/item/7/{}", card.work_id);
+    let voyger_url = format!("http://aozora.binb.jp/reader/main.html?cid={}", card.work_id);
+    let airzoshi_url = format!("https://www.satokazzz.com/airzoshi/reader.php?action=aozora&id={}", card.work_id);
+    let rodoku_url = format!("https://www.google.co.jp/search?hl=ja&source=hp&q=青空文庫+朗読+{}", card.title);
+
     let ctx = json!({
         "page_title": format!("図書カード：{} | 青空文庫", card.title),
         "bgcolor": bgcolor,
         "work_id": card.work_id,
         "person_id": card.person_id,
+        "first_author_id": first_author_id,
         "title": &card.title,
+        "booklog_url": booklog_url,
+        "voyger_url": voyger_url,
+        "airzoshi_url": airzoshi_url,
+        "rodoku_url": rodoku_url,
         "title_kana": card.title_kana.as_deref().unwrap_or(""),
         "subtitle": card.subtitle.as_deref().unwrap_or(""),
         "subtitle_kana": card.subtitle_kana.as_deref().unwrap_or(""),
         "original_title": card.original_title.as_deref().unwrap_or(""),
+        "collection": card.collection.as_deref().unwrap_or(""),
+        "collection_kana": card.collection_kana.as_deref().unwrap_or(""),
         "kana_type": card.kana_type.as_deref().unwrap_or(""),
         "started_on": card.started_on.as_deref().unwrap_or(""),
         "note": card.note.as_ref().map(|n| cleanup_note(n)).unwrap_or_default(),
@@ -29,6 +65,8 @@ pub fn build_card_context(card: &CardData, _masters: &Masters) -> Result<Value> 
         "description": card.description.as_deref().unwrap_or(""),
         "has_copyright": card.has_copyright(),
         "card_path": card.card_path(),
+        "xhtml_url": xhtml_url,
+        "bibclasses_text": bibclasses_text,
 
         "authors": card.authors.iter().map(|a| json!({
             "id": a.id,
@@ -49,20 +87,36 @@ pub fn build_card_context(card: &CardData, _masters: &Masters) -> Result<Value> 
             "name_kana": &e.name_kana,
         })).collect::<Vec<_>>(),
 
-        "workfiles": card.workfiles.iter().map(|f| json!({
-            "id": f.id,
-            "filename": f.filename.as_deref().unwrap_or(""),
-            "filesize": f.filesize,
-            "filetype": f.filetype.as_deref().unwrap_or(""),
-            "filetype_id": f.filetype_id,
-            "compresstype": f.compresstype.as_deref().unwrap_or(""),
-            "charset": f.charset.as_deref().unwrap_or(""),
-            "file_encoding": f.file_encoding.as_deref().unwrap_or(""),
-            "url": f.url.as_deref().unwrap_or(""),
-            "last_updated_on": f.last_updated_on.as_deref().unwrap_or(""),
-        })).collect::<Vec<_>>(),
+        "workfiles": card.workfiles.iter().map(|f| {
+            let download_filename = f.filename.as_deref().unwrap_or("");
+            json!({
+                "id": f.id,
+                "filename": download_filename,
+                "filesize": f.filesize,
+                "filetype": f.filetype.as_deref().unwrap_or(""),
+                "filetype_id": f.filetype_id,
+                "is_html": f.is_html,
+                "compresstype": f.compresstype.as_deref().unwrap_or(""),
+                "charset": f.charset.as_deref().unwrap_or(""),
+                "file_encoding": f.file_encoding.as_deref().unwrap_or(""),
+                "url": f.url.as_deref().unwrap_or(""),
+                "download_url": if f.url.as_deref().map_or(true, |u| u.is_empty()) {
+                    format!("./files/{}", download_filename)
+                } else {
+                    f.url.as_deref().unwrap_or("").to_string()
+                },
+                "download_display": if f.url.as_deref().map_or(true, |u| u.is_empty()) {
+                    download_filename.to_string()
+                } else {
+                    f.url.as_deref().unwrap_or("").to_string()
+                },
+                "registered_on": f.registered_on.as_deref().unwrap_or(""),
+                "last_updated_on": f.last_updated_on.as_deref().unwrap_or(""),
+            })
+        }).collect::<Vec<_>>(),
 
-        "original_books": card.original_books.iter().map(|b| json!({
+        "original_books": card.original_books.iter().enumerate().map(|(i, b)| json!({
+            "is_first": i == 0,
             "title": &b.title,
             "publisher": b.publisher.as_deref().unwrap_or(""),
             "first_pubdate": b.first_pubdate.as_deref().unwrap_or(""),
@@ -81,6 +135,19 @@ pub fn build_card_context(card: &CardData, _masters: &Masters) -> Result<Value> 
             "name": &b.name,
             "num": &b.num,
             "note": b.note.as_deref().unwrap_or(""),
+        })).collect::<Vec<_>>(),
+
+        "work_people_details": card.work_people_details.iter().enumerate().map(|(i, wp)| json!({
+            "index": i,
+            "is_first": i == 0,
+            "role_name": &wp.role_name,
+            "person_id": wp.person_id,
+            "name": &wp.name,
+            "name_kana": &wp.name_kana,
+            "name_en": wp.name_en.as_deref().unwrap_or(""),
+            "born_on": wp.born_on.as_deref().unwrap_or(""),
+            "died_on": wp.died_on.as_deref().unwrap_or(""),
+            "description": wp.description.as_deref().unwrap_or(""),
         })).collect::<Vec<_>>(),
 
         "sites": card.sites.iter().map(|s| json!({

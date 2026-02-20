@@ -74,10 +74,14 @@ pub struct WorkfileInfo {
     pub filesize: Option<i32>,
     pub filetype: Option<String>,
     pub filetype_id: i64,
+    #[serde(default)]
+    pub is_html: bool,
     pub compresstype: Option<String>,
     pub charset: Option<String>,
     pub file_encoding: Option<String>,
     pub url: Option<String>,
+    #[serde(default)]
+    pub registered_on: Option<String>,
     pub last_updated_on: Option<String>,
 }
 
@@ -115,6 +119,19 @@ pub struct SiteInfo {
     pub url: Option<String>,
 }
 
+/// Work person detail info (for 作家データ section)
+#[derive(Debug, Clone, Deserialize)]
+pub struct WorkPersonDetail {
+    pub role_name: String,
+    pub person_id: i64,
+    pub name: String,
+    pub name_kana: String,
+    pub name_en: Option<String>,
+    pub born_on: Option<String>,
+    pub died_on: Option<String>,
+    pub description: Option<String>,
+}
+
 /// Card data (pre-joined for efficient page generation)
 /// From cards.jsonl
 #[derive(Debug, Clone, Deserialize)]
@@ -126,6 +143,10 @@ pub struct CardData {
     pub subtitle: Option<String>,
     pub subtitle_kana: Option<String>,
     pub original_title: Option<String>,
+    #[serde(default)]
+    pub collection: Option<String>,
+    #[serde(default)]
+    pub collection_kana: Option<String>,
     pub kana_type: Option<String>,
     pub started_on: Option<String>,
     pub note: Option<String>,
@@ -139,6 +160,8 @@ pub struct CardData {
     pub work_workers: Vec<WorkWorkerInfo>,
     pub bibclasses: Vec<BibclassInfo>,
     pub sites: Vec<SiteInfo>,
+    #[serde(default)]
+    pub work_people_details: Vec<WorkPersonDetail>,
 }
 
 impl CardData {

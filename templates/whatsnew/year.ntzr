@@ -64,7 +64,7 @@
         </tr>
         {[-#each entries as entry-]}
         <tr>
-          <td class="bg-white border-double border-2 border-gray-800"><span>{[ entry.started_on ]}</span></td>
+          <td class="bg-white border-double border-2 border-gray-800">{[ entry.started_on ]}</td>
           <td class="bg-white border-double border-2 border-gray-800">
             <a href="/cards/{[ entry.card_person_dir ]}/card{[ entry.work_id ]}.html" class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline">{[ entry.title ]}</a>
             {[-#if entry.subtitle-]}

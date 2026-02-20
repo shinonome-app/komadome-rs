@@ -15,6 +15,8 @@ struct CardData {
     subtitle: Option<String>,
     subtitle_kana: Option<String>,
     original_title: Option<String>,
+    collection: Option<String>,
+    collection_kana: Option<String>,
     kana_type: Option<String>,
     started_on: Option<String>,
     note: Option<String>,
@@ -28,6 +30,7 @@ struct CardData {
     work_workers: Vec<WorkWorkerInfo>,
     bibclasses: Vec<BibclassInfo>,
     sites: Vec<SiteInfo>,
+    work_people_details: Vec<WorkPersonDetailInfo>,
 }
 
 #[derive(Serialize)]
@@ -52,11 +55,25 @@ struct WorkfileInfo {
     filesize: Option<i32>,
     filetype: Option<String>,
     filetype_id: i64,
+    is_html: bool,
     compresstype: Option<String>,
     charset: Option<String>,
     file_encoding: Option<String>,
     url: Option<String>,
+    registered_on: Option<String>,
     last_updated_on: Option<String>,
+}
+
+#[derive(Serialize, Clone)]
+struct WorkPersonDetailInfo {
+    role_name: String,
+    person_id: i64,
+    name: String,
+    name_kana: String,
+    name_en: Option<String>,
+    born_on: Option<String>,
+    died_on: Option<String>,
+    description: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -98,6 +115,8 @@ struct WorkRow {
     subtitle: Option<String>,
     subtitle_kana: Option<String>,
     original_title: Option<String>,
+    collection: Option<String>,
+    collection_kana: Option<String>,
     kana_type_name: Option<String>,
     started_on: Option<chrono::NaiveDate>,
     note: Option<String>,
@@ -110,8 +129,13 @@ struct WorkPersonRow {
     work_id: i64,
     person_id: i64,
     role_id: i64,
+    role_name: String,
     person_name: String,
     person_name_kana: String,
+    person_name_en: Option<String>,
+    born_on: Option<String>,
+    died_on: Option<String>,
+    person_description: Option<String>,
     copyright_flag: bool,
 }
 
@@ -123,10 +147,12 @@ struct WorkfileRow {
     filesize: Option<i32>,
     filetype_name: Option<String>,
     filetype_id: i64,
+    is_html: bool,
     compresstype_name: Option<String>,
     charset_name: Option<String>,
     file_encoding_name: Option<String>,
     url: Option<String>,
+    registered_on: Option<chrono::NaiveDate>,
     last_updated_on: Option<chrono::NaiveDate>,
 }
 
@@ -173,7 +199,8 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     let works: Vec<WorkRow> = sqlx::query_as(
         r#"
         SELECT w.id, w.title, w.title_kana, w.subtitle, w.subtitle_kana,
-               w.original_title, kt.name AS kana_type_name,
+               w.original_title, w.collection, w.collection_kana,
+               kt.name AS kana_type_name,
                w.started_on, w.note, w.first_appearance, w.description
         FROM works w
         LEFT JOIN kana_types kt ON kt.id = w.kana_type_id
@@ -198,11 +225,18 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     let work_people: Vec<WorkPersonRow> = sqlx::query_as(
         r#"
         SELECT wp.work_id, wp.person_id, wp.role_id,
+               r.name AS role_name,
                CONCAT_WS(' ', p.last_name, p.first_name) AS person_name,
                CONCAT_WS(' ', p.last_name_kana, p.first_name_kana) AS person_name_kana,
+               CASE WHEN p.last_name_en IS NOT NULL OR p.first_name_en IS NOT NULL
+                    THEN CONCAT_WS(', ', p.last_name_en, p.first_name_en)
+                    ELSE NULL END AS person_name_en,
+               p.born_on, p.died_on,
+               p.description AS person_description,
                p.copyright_flag
         FROM work_people wp
         JOIN people p ON p.id = wp.person_id
+        JOIN roles r ON r.id = wp.role_id
         WHERE wp.work_id = ANY($1)
         ORDER BY wp.work_id, wp.role_id, wp.person_id
         "#,
@@ -215,10 +249,11 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
         r#"
         SELECT wf.id, wf.work_id, wf.filename, wf.filesize,
                ft.name AS filetype_name, wf.filetype_id,
+               COALESCE(ft.is_html, false) AS is_html,
                ct.name AS compresstype_name,
                cs.name AS charset_name,
                fe.name AS file_encoding_name,
-               wf.url, wf.last_updated_on
+               wf.url, wf.registered_on, wf.last_updated_on
         FROM workfiles wf
         LEFT JOIN filetypes ft ON ft.id = wf.filetype_id
         LEFT JOIN compresstypes ct ON ct.id = wf.compresstype_id
@@ -359,10 +394,12 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
                 filesize: wf.filesize,
                 filetype: wf.filetype_name.clone(),
                 filetype_id: wf.filetype_id,
+                is_html: wf.is_html,
                 compresstype: wf.compresstype_name.clone(),
                 charset: wf.charset_name.clone(),
                 file_encoding: wf.file_encoding_name.clone(),
                 url: wf.url.clone(),
+                registered_on: wf.registered_on.map(|d| d.to_string()),
                 last_updated_on: wf.last_updated_on.map(|d| d.to_string()),
             })
             .collect();
@@ -419,6 +456,20 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
 
         let note = work.note.as_deref().map(remove_link_tag);
 
+        let work_people_details: Vec<WorkPersonDetailInfo> = people
+            .iter()
+            .map(|wp| WorkPersonDetailInfo {
+                role_name: wp.role_name.clone(),
+                person_id: wp.person_id,
+                name: wp.person_name.clone(),
+                name_kana: wp.person_name_kana.clone(),
+                name_en: wp.person_name_en.clone(),
+                born_on: wp.born_on.clone(),
+                died_on: wp.died_on.clone(),
+                description: wp.person_description.clone(),
+            })
+            .collect();
+
         // One card per related person
         for person_id in &all_person_ids {
             let card = CardData {
@@ -429,6 +480,8 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
                 subtitle: work.subtitle.clone(),
                 subtitle_kana: work.subtitle_kana.clone(),
                 original_title: work.original_title.clone(),
+                collection: work.collection.clone(),
+                collection_kana: work.collection_kana.clone(),
                 kana_type: work.kana_type_name.clone(),
                 started_on: work.started_on.map(|d| d.to_string()),
                 note: note.clone(),
@@ -442,6 +495,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
                 work_workers: ww_list.clone(),
                 bibclasses: bc_list.clone(),
                 sites: site_list.clone(),
+                work_people_details: work_people_details.clone(),
             };
 
             serde_json::to_writer(&mut file, &card)?;
@@ -495,10 +549,12 @@ impl Clone for WorkfileInfo {
             filesize: self.filesize,
             filetype: self.filetype.clone(),
             filetype_id: self.filetype_id,
+            is_html: self.is_html,
             compresstype: self.compresstype.clone(),
             charset: self.charset.clone(),
             file_encoding: self.file_encoding.clone(),
             url: self.url.clone(),
+            registered_on: self.registered_on.clone(),
             last_updated_on: self.last_updated_on.clone(),
         }
     }

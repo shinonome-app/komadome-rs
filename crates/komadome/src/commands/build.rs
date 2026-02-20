@@ -1078,7 +1078,7 @@ fn copy_assets(config: &Config) -> Result<()> {
     let output_dir = &config.output.directory;
     let mut copied = 0usize;
 
-    // Copy CSS files
+    // Copy CSS files and create fingerprint-free aliases
     if let Some(css_dir) = &assets_config.css_dir {
         if css_dir.exists() {
             let assets_out = output_dir.join("assets");
@@ -1088,8 +1088,18 @@ fn copy_assets(config: &Config) -> Result<()> {
                 let path = entry.path();
                 if path.is_file() {
                     let filename = path.file_name().unwrap();
-                    fs::copy(&path, assets_out.join(filename))?;
+                    let dest = assets_out.join(filename);
+                    fs::copy(&path, &dest)?;
                     copied += 1;
+
+                    // Create fingerprint-free alias (e.g., tailwind-abc123.css -> tailwind.css)
+                    let fname = filename.to_string_lossy();
+                    if let Some(base) = strip_fingerprint(&fname) {
+                        let alias = assets_out.join(base);
+                        if !alias.exists() {
+                            fs::copy(&dest, &alias)?;
+                        }
+                    }
                 }
             }
         } else {
@@ -1142,6 +1152,15 @@ fn copy_assets(config: &Config) -> Result<()> {
         println!("Copied {} asset files", copied);
     }
     Ok(())
+}
+
+/// Strip Rails asset fingerprint from filename.
+/// e.g., "tailwind-ffccb42b.css" -> "tailwind.css"
+///       "inter-font-8c3e82af.css" -> "inter-font.css"
+fn strip_fingerprint(filename: &str) -> Option<String> {
+    // Match pattern: name-hexhash.ext (hash is 8+ hex chars)
+    let re = regex::Regex::new(r"^(.+)-[0-9a-f]{8,}(\.css(?:\.gz)?|\.js(?:\.gz)?)$").unwrap();
+    re.captures(filename).map(|caps| format!("{}{}", &caps[1], &caps[2]))
 }
 
 fn copy_dir_recursive(src: &std::path::Path, dst: &std::path::Path, count: &mut usize) -> Result<()> {

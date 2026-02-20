@@ -1,8 +1,3 @@
-  <footer class="mt-8 py-4 border-t border-gray-300 text-center text-sm text-gray-600">
-    <p>
-      <a href="https://www.aozora.gr.jp/" class="underline text-blue-700">青空文庫</a>
-    </p>
-  </footer>
-</div>
-</body>
+    </main>
+  </body>
 </html>

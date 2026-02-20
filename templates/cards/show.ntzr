@@ -1,172 +1,334 @@
-{[!include /shared/header ]}
+{[!include /shared/header ]}      <div id="app" class="container mx-auto max-w-5xl">
+  <div id="top" name="top">&nbsp;</div>
 
-<h1 class="flex justify-center py-3 text-2xl font-semibold bg-yellow-100 border border-y-gray-500">図書カード：No.{[ work_id ]}</h1>
+  <header class="flex items-center justify-between">
+    <a href="/" class="md:hidden flex justify-between px-2">
+      <img src="/images/top_logo.png" alt="Logo" class="h-8 w-8">
+    </a>
+    <span class="hidden md:flex">&nbsp;</span>
+    <nav class="flex justify-end">
+      <div class="md:flex justify-end py-3 hidden">
+        <div class="px-2">
+          ●
+          <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline"
+             href="/index.html">トップ</a>
+        </div>
+        <div class="px-2">
+          ●
+          <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline"
+             href="/index_pages/index_top.html">インデックス</a>
+          ／
+          <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline"
+             href="/index_pages/index_all.html">全</a>
+        </div>
+        <div class="px-2">
+          ●
+          <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/person{[ first_author_id ]}.html">作家別作品リスト</a>
+        </div>
+        <div class="px-2">●<span class="current font-bold text-red-500">図書カード</span></div>
 
-<div class="p-4">
-  <table summary="タイトルデータ" class="w-full">
-    <tr>
-      <th class="text-left text-red-800 w-1/6">作品名：</th>
-      <td><span class="text-2xl">{[ title ]}</span></td>
-    </tr>
-    {[#if title_kana]}
-    <tr>
-      <th class="text-left text-red-800 w-1/6">作品名読み：</th>
-      <td>{[ title_kana ]}</td>
-    </tr>
-    {[/if]}
-    {[#if original_title]}
-    <tr>
-      <th class="text-left text-red-800 w-1/6">原題：</th>
-      <td>{[ original_title ]}</td>
-    </tr>
-    {[/if]}
-    {[#if subtitle]}
-    <tr>
-      <th class="text-left text-red-800 w-1/6">副題：</th>
-      <td>{[ subtitle ]}</td>
-    </tr>
-    {[/if]}
-    {[#if subtitle_kana]}
-    <tr>
-      <th class="text-left text-red-800 w-1/6">副題読み：</th>
-      <td>{[ subtitle_kana ]}</td>
-    </tr>
-    {[/if]}
-    <tr>
-      <th class="text-left text-red-800 w-1/6">著者名：</th>
-      <td>
-        {[#each authors as author]}
-        <a href="/index_pages/person{[ author.id ]}.html"
-           class="underline text-blue-700 text-1xl">{[ author.name ]}</a>
-        {[/each]}
-      </td>
-    </tr>
-    {[#if translators]}
-    <tr>
-      <th class="text-left text-red-800 w-1/6">翻訳者名：</th>
-      <td>
-        {[#each translators as translator]}
-        <a href="/index_pages/person{[ translator.id ]}.html"
-           class="underline text-blue-700">{[ translator.name ]}</a>
-        {[/each]}
-      </td>
-    </tr>
-    {[/if]}
-    {[#if editors]}
-    <tr>
-      <th class="text-left text-red-800 w-1/6">編者名：</th>
-      <td>
-        {[#each editors as editor]}
-        <a href="/index_pages/person{[ editor.id ]}.html"
-           class="underline text-blue-700">{[ editor.name ]}</a>
-        {[/each]}
-      </td>
-    </tr>
-    {[/if]}
-  </table>
-</div>
+      </div>
 
-{[#if has_copyright]}
-<div class="mx-4 p-2 text-red-500 font-bold">＊著作権存続＊</div>
-{[/if]}
+      <div class="flex md:hidden items-center space-x-3 py-3 px-3">
+        <!--
+            <button>
+              <svg class="h-6 w-6 fill-current" viewBox="0 0 24 24">
+                <path d="M24 6h-24v-4h24v4zm0 4h-24v4h24v-4zm0 8h-24v4h24v-4z"/>
+              </svg>
+            </button>
+            -->
+            <button class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline">[メニュー]</button>
+      </div>
+    </nav>
+  </header>
 
-<div class="p-4">
-  <h2 class="text-xl font-semibold bg-gray-100 p-2 mb-2">ファイル情報</h2>
-  <table class="w-full">
-    {[#each workfiles as file]}
-    <tr class="border-b">
-      <td class="py-2">
-        <a href="{[ file.url ]}" class="underline text-blue-700">{[ file.filename ]}</a>
-        <span class="text-sm text-gray-600">
-          ({[ file.filetype ]}{[#if file.compresstype]}、{[ file.compresstype ]}{[/if]}{[#if file.charset]}、{[ file.charset ]}{[/if]})
-        </span>
-        {[#if file.filesize]}
-        <span class="text-sm text-gray-500">{[ file.filesize ]}バイト</span>
-        {[/if]}
-      </td>
-    </tr>
-    {[/each]}
-  </table>
-</div>
+  <h1 class="flex justify-center py-3 text-2xl font-semibold bg-yellow-100 border border-y-gray-500">図書カード：No.{[ work_id ]}</h1>
 
-{[#if original_books]}
-<div class="p-4">
-  <h2 class="text-xl font-semibold bg-gray-100 p-2 mb-2">底本情報</h2>
-  {[#each original_books as book]}
-  <div class="mb-4 p-2 border-l-4 border-gray-300">
-    {[#if book.booktype]}
-    <div class="text-sm text-gray-600">{[ book.booktype ]}</div>
-    {[/if]}
-    <div class="font-semibold">{[ book.title ]}</div>
-    {[#if book.publisher]}
-    <div>{[ book.publisher ]}</div>
-    {[/if]}
-    {[#if book.first_pubdate]}
-    <div class="text-sm">初版発行：{[ book.first_pubdate ]}</div>
-    {[/if]}
-    {[#if book.input_edition]}
-    <div class="text-sm">入力に使用：{[ book.input_edition ]}</div>
-    {[/if]}
-    {[#if book.proof_edition]}
-    <div class="text-sm">校正に使用：{[ book.proof_edition ]}</div>
-    {[/if]}
+  <div class="p-4">
+    <table summary="タイトルデータ" class="w-full">
+      <tr>
+        <th class="text-left text-red-800 w-1/6">作品名：</th>
+        <td><span class="text-2xl">{[ title ]}</span></td>
+      </tr>
+      <tr>
+        <th class="text-left text-red-800 w-1/6">作品名読み：</th>
+        <td>{[ title_kana ]}</td>
+      </tr>{[-#if original_title]}
+      <tr>
+        <th class="text-left text-red-800 w-1/6">原題：</th>
+        <td>{[ original_title ]}</td>
+      </tr>{[/if]}{[-#if subtitle]}
+      <tr>
+        <th class="text-left text-red-800 w-1/6">副題：</th>
+        <td>{[ subtitle ]}</td>
+      </tr>{[/if]}{[-#if subtitle_kana]}
+      <tr>
+        <th class="text-left text-red-800 w-1/6">副題読み：</th>
+        <td>{[ subtitle_kana ]}</td>
+      </tr>{[/if]}{[-#if collection]}
+      <tr>
+        <th class="text-left text-red-800 w-1/6">作品集名：</th>
+        <td>{[ collection ]}</td>
+      </tr>{[/if]}{[-#if collection_kana]}
+      <tr>
+        <th class="text-left text-red-800 w-1/6">作品集名読み：</th>
+        <td>{[ collection_kana ]}</td>
+      </tr>{[/if]}
+      <tr>
+        <th class="text-left text-red-800 w-1/6">著者名：</th>
+        <td>{[-#each authors as author]}
+          <a class="underline text-blue-700 text-1xl" href="/index_pages/person{[ author.id ]}.html">{[ author.name ]}</a>{[/each]}
+        </td>
+      </tr>
+    </table>{[-#if has_copyright]}
+    <div class="bg-white my-2 py-1">
+      <span class="text-red-500 font-bold">＊著作権存続＊</span>
+      　作品の取り扱いについては「
+      <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="https://www.aozora.gr.jp/guide/kijyunn.html">
+        ファイル取り扱い規準
+      </a>
+      」を御覧ください。
+    </div>{[/if]}
   </div>
-  {[/each]}
-</div>
-{[/if]}
 
-{[#if work_workers]}
-<div class="p-4">
-  <h2 class="text-xl font-semibold bg-gray-100 p-2 mb-2">工作員</h2>
-  <table class="w-full">
-    {[#each work_workers as worker]}
-    <tr>
-      <td class="py-1 w-1/6">{[ worker.role ]}：</td>
-      <td>{[ worker.name ]}</td>
-    </tr>
-    {[/each]}
-  </table>
-</div>
-{[/if]}
+  <hr class="border-gray-400">
 
-{[#if bibclasses]}
-<div class="p-4">
-  <h2 class="text-xl font-semibold bg-gray-100 p-2 mb-2">分類</h2>
-  <ul class="list-disc ml-6">
-    {[#each bibclasses as bibclass]}
-    <li>{[ bibclass.name ]}{[ bibclass.num ]}{[#if bibclass.note]}（{[ bibclass.note ]}）{[/if]}</li>
-    {[/each]}
-  </ul>
-</div>
-{[/if]}
+  <div class="text-right py-4">
+    ［
+    <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="#download">ファイルのダウンロード</a>{[-#if xhtml_url]}
+    ｜
+    <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="{[ xhtml_url ]}">いますぐXHTML版で読む</a>{[/if]}
+    ］
+  </div>
 
-{[#if note]}
-<div class="p-4">
-  <h2 class="text-xl font-semibold bg-gray-100 p-2 mb-2">備考</h2>
-  <div class="prose">{[!unsecure note ]}</div>
-</div>
-{[/if]}
+  <h2 class="flex py-1 px-5 text-2xl font-semibold bg-gray-300 border border-y-gray-500"><a name="sakuhin_list_1">作品データ</a></h2>
 
-{[#if first_appearance]}
-<div class="p-4">
-  <h2 class="text-xl font-semibold bg-gray-100 p-2 mb-2">初出</h2>
-  <div>{[ first_appearance ]}</div>
-</div>
-{[/if]}
+  <div class="p-4">
+    <table summary="作品データ">{[-#if bibclasses_text]}
+      <tr>
+        <th class="text-left text-red-800 w-1/6 align-top">分類：</th>
+        <td>{[ bibclasses_text ]}</td>
+      </tr>{[/if]}{[-#if description]}
+      <tr>
+        <th class="text-left text-red-800 align-top break-keep">作品について：</th>
+        <td class="[&_img]:inline [&_img]:align-middle">
+          {[!unsecure description ]}
+        </td>
+      </tr>{[/if]}{[-#if first_appearance]}
+      <tr>
+        <th class="text-left text-red-800 align-top">初出：</th>
+        <td>
+          {[!unsecure first_appearance ]}
+        </td>
+      </tr>{[/if]}
 
-{[#if sites]}
-<div class="p-4">
-  <h2 class="text-xl font-semibold bg-gray-100 p-2 mb-2">関連サイト</h2>
-  <ul class="list-disc ml-6">
-    {[#each sites as site]}
-    <li><a href="{[ site.url ]}" class="underline text-blue-700">{[ site.name ]}</a></li>
-    {[/each]}
-  </ul>
+      <tr>
+        <th class="text-left text-red-800 align-top break-keep">文字遣い種別：</th>
+        <td>{[ kana_type ]}</td>
+      </tr>
+      <tr>
+        <th class="text-left text-red-800 align-top">備考：</th>
+        <td>
+          {[!unsecure note ]}
+          <div class="link">
+  <span class="inline-flex items-center">
+    <a href="{[ voyger_url ]}"><img src="/images/aib.png" alt="青空inBrowsersで縦書き表示" width="155" height="31"></a>
+    「<a href="{[ voyger_url ]}">青空 in Browsersで縦書き表示。PC、スマホ、タブレット対応</a>」
+  </span>
+  <form method="post" action="{[ airzoshi_url ]}"><input type="submit" value="えあ草紙・青空図書館" class="bg-gray-200 hover:bg-gray-100 border border-gray-800 px-1 rounded shadow">
+    「スマホ＆タブレットで動く青空文庫縦書き対応汎用電子書籍リーダー」
+  </form>
+  <span class="inline-flex items-center">
+    <a href="{[ booklog_url ]}">
+      <img src="/images/booklog_88_31.gif" alt="本の感想を書き込もう　web本棚サービスブクログ" width="88" height="31">
+    </a>
+    「<a href="{[ booklog_url ]}">ブクログでレビューを読む、書く。</a>」
+  </span>
+  <div>
+    <a href="{[ rodoku_url ]}" class="bg-gray-200 hover:bg-gray-100 border border-gray-800 px-1 rounded shadow">この作品の朗読</a>を Google で検索する
+  </div>
+  <span class="inline-flex items-center">
+    <a href="https://twitter.com/share" class="twitter-share-button" data-lang="ja" data-text="{[ title ]}" data-hashtags="青空文庫" data-dnt="true">ツイート</a>この作品を twitter でつぶやく
+  </span><br>
+  <span class="inline-flex items-center">
+    <div class="fb-like" data-layout="standard" data-action="like" data-show-faces="false" data-share="true"></div>
+  </span>
 </div>
-{[/if]}
+<script>
+!function(d,s,id){
+var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');
 
-<div class="p-4 text-sm text-gray-600">
-  公開：{[ started_on ]}
+(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/ja_JP/sdk.js#xfbml=1&version=v2.5";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+</script>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <h2 class="flex py-1 px-5 text-2xl font-semibold bg-gray-300 border border-y-gray-500"><a name="sakuhin_list_2">作家データ</a></h2>
+
+  <div class="p-4">{[-#each work_people_details as wp]}{[-#unless wp.is_first]}
+    <hr class="border-gray-400 my-2">{[/unless]}
+    <table class="table-fixed w-full" summary="作家データ">
+      <tr><th class="text-left text-red-800 w-1/6 align-top">分類：</th><td>{[ wp.role_name ]}</td></tr>
+      <tr>
+        <th class="text-left text-red-800 w-1/6 align-top">作家名：</th>
+        <td><a class="underline text-blue-700" href="/index_pages/person{[ wp.person_id ]}.html">{[ wp.name ]}</a></td>
+      </tr>
+      <tr><th class="text-left text-red-800 w-1/6 align-top">作家名読み：</th><td>{[ wp.name_kana ]}</td></tr>
+      <tr><th class="text-left text-red-800 w-1/6 align-top">ローマ字表記：</th><td>{[ wp.name_en ]}</td></tr>
+      <tr><th class="text-left text-red-800 w-1/6 align-top">生年：</th><td>{[ wp.born_on ]}</td></tr>
+      <tr><th class="text-left text-red-800 w-1/6 align-top">没年：</th><td>{[ wp.died_on ]}</td></tr>
+      <tr>
+        <th class="text-left text-red-800 w-1/6 align-top">人物について：</th>
+        <td class="[&_img]:inline [&_img]:align-middle">
+          {[!unsecure wp.description ]}
+        </td>
+      </tr>
+    </table>{[/each]}
+  </div>
+
+  <h2 class="flex py-1 px-5 text-2xl font-semibold bg-gray-300 border border-y-gray-500"><a name="sakuhin_list_2">底本データ</a></h2>
+
+  <div class="p-4">{[-#each original_books as book]}{[-#unless book.is_first]}
+    <hr class="border-gray-400 my-2">{[/unless]}
+    <table summary="底本データ" class="w-full">
+      <tr><th class="text-left text-red-800 w-1/6">{[ book.booktype ]}：</th><td>{[ book.title ]}</td></tr>
+      <tr><th class="text-left text-red-800">出版社：</th><td>{[ book.publisher ]}</td></tr>
+      <tr><th class="text-left text-red-800">初版発行日：</th><td>{[ book.first_pubdate ]}</td></tr>{[-#if book.input_edition]}
+      <tr><th class="text-left text-red-800">入力に使用：</th><td>{[ book.input_edition ]}</td></tr>{[/if]}{[-#if book.proof_edition]}
+      <tr><th class="text-left text-red-800">校正に使用：</th><td>{[ book.proof_edition ]}</td></tr>{[/if]}
+    </table>{[/each]}
+  </div>
+
+  <h2 class="flex py-1 px-5 text-2xl font-semibold bg-gray-300 border border-y-gray-500"><a name="sakuhin_list_2">耕作員データ</a></h2>
+  <div class="p-4">
+    <table summary="耕作員データ" class="w-full">{[-#each work_workers as worker]}
+      <tr>
+        <th class="text-left text-red-800 w-1/6">{[ worker.role ]}：</th>
+        <td>{[ worker.name ]}</td>
+      </tr>{[/each]}
+    </table>
+  </div>
+
+  <h2 class="flex py-1 px-5 text-2xl font-semibold bg-gray-300 border border-y-gray-500"><a name="download">ファイルのダウンロード</a></h2>
+  <div class="p-4">
+    <table class="border-double border-2 border-gray-800 w-full" summary="ダウンロードデータ">
+      <tr class="w-770 border-double border-2 border-gray-800">
+        <th class="w-100 font-normal bg-black border-double border-2 border-gray-800 text-white">ファイル種別</th>
+        <th class="w-100 font-normal bg-black border-double border-2 border-gray-800 text-white">圧縮</th>
+        <th class="w-100 font-normal bg-black border-double border-2 border-gray-800 text-white">ファイル名（リンク）</th>
+        <th class="w-100 font-normal bg-black border-double border-2 border-gray-800 text-white">文字集合／符号化方式</th>
+        <th class="w-100 font-normal bg-black border-double border-2 border-gray-800 text-white">サイズ</th>
+        <th class="w-100 font-normal bg-black border-double border-2 border-gray-800 text-white">初登録日</th>
+        <th class="w-100 font-normal bg-black border-double border-2 border-gray-800 text-white">最終更新日</th>
+      </tr>{[-#each workfiles as file]}
+      <tr class="border-double border-2 border-gray-800 bg-white">
+        <td class="px-2">
+          <div class="flex flex-row">{[-#if file.is_html]}
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path></svg>{[/if]}{[-#unless file.is_html]}
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>{[/unless]}
+            {[ file.filetype ]}
+          </div>
+        </td>
+
+        <td class="px-2">
+          {[ file.compresstype ]}
+        </td>
+        <td class="px-2">
+          <a class="underline text-blue-700" href="{[ file.download_url ]}">
+            {[ file.download_display ]}
+          </a>
+        </td>
+        <td class="px-2">
+          {[ file.charset ]}
+          ／
+          {[ file.file_encoding ]}
+        </td>
+        <td class="px-2">
+          {[ file.filesize ]}
+        </td>
+        <td class="px-2">
+          {[ file.registered_on ]}
+        </td>
+        <td class="px-2">
+          {[ file.last_updated_on ]}
+        </td>
+      </tr>{[/each]}
+    </table>
+    <div align="right">●<a class="underline text-blue-700" href="/guide/download.html">ファイルのダウンロード方法・解凍方法</a></div>
+  </div>
+
+  <h2 class="flex py-1 px-5 text-2xl font-semibold bg-gray-300 border border-y-gray-500">関連サイトデータ</h2>
+  <div class="p-4">
+    <table summary="関連サイト">{[-#each sites as site]}
+      <tr>
+        <th class="text-left text-red-800 w-1/6">サイト名：</th>
+        <td>{[ site.name ]}</td>
+      </tr>
+      <tr>
+        <th class="text-left text-red-800 w-1/6">URL：</th>
+        <td><a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="{[ site.url ]}">{[ site.url ]}</a></td>
+      </tr>{[/each]}
+    </table>
+  </div>
+
+  <div class="text-right py-4">
+    <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="#top">▲</a>
+  </div>
+
+  <hr class="border-gray-400">
+
+  <div>
+    <span>●作家リスト：公開中　</span>
+    <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/person_a.html">[あ]</a>
+    <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/person_ka.html">[か]</a>
+    <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/person_sa.html">[さ]</a>
+    <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/person_ta.html">[た]</a>
+    <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/person_na.html">[な]</a>
+    <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/person_ha.html">[は]</a>
+    <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/person_ma.html">[ま]</a>
+    <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/person_ya.html">[や]</a>
+    <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/person_ra.html">[ら]</a>
+    <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/person_wa.html">[わ]</a>
+    <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/person_zz.html">[他]</a>
+  </div>
+  <div>
+    <span>●作家リスト：全　　　</span>
+    <span>
+      <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/person_all_a.html">[あ]</a>
+      <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/person_all_ka.html">[か]</a>
+      <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/person_all_sa.html">[さ]</a>
+      <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/person_all_ta.html">[た]</a>
+      <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/person_all_na.html">[な]</a>
+      <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/person_all_ha.html">[は]</a>
+      <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/person_all_ma.html">[ま]</a>
+      <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/person_all_ya.html">[や]</a>
+      <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/person_all_ra.html">[ら]</a>
+      <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/person_all_wa.html">[わ]</a>
+      <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/person_all_zz.html">[他]</a>
+    </span>
+  </div>
+
+  <div>
+    ●
+    <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline"
+       href="/index.html">トップ</a>
+    ●
+    <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline"
+       href="/index_pages/index_top.html">インデックス</a>
+    ／
+    <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline"
+       href="/index_pages/index_all.html">全</a>
+    ●
+    <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/person{[ first_author_id ]}.html">作家別作品リスト</a>
+  </div>
 </div>
 
 {[!include /shared/footer ]}

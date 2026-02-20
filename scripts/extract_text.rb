@@ -4,7 +4,12 @@
 #
 # Usage: ruby extract_text.rb <html_file>
 
-require "nokogiri"
+begin
+  require "nokogiri"
+rescue LoadError
+  $stderr.puts "ERROR: nokogiri gem is required. Install with: gem install nokogiri"
+  exit 1
+end
 
 file = ARGV[0]
 unless file
@@ -12,7 +17,7 @@ unless file
   exit 1
 end
 
-html = File.read(file, encoding: "UTF-8")
+html = File.read(file, encoding: "utf-8")
 doc = Nokogiri::HTML(html)
 
 # Remove script and style elements
