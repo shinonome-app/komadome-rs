@@ -1,0 +1,48 @@
+{[!include /shared/header ]}
+
+<h1 class="flex justify-center py-3 text-2xl font-semibold bg-yellow-100 border border-y-gray-500">人物インデックス：{[ display_char ]}行</h1>
+
+<div class="p-4">
+  <nav class="flex flex-wrap gap-2 mb-4">
+    {[-#each columns as col-]}
+      {[-#if col.is_current-]}
+      <span class="px-3 py-1 bg-blue-700 text-white rounded">{[ col.display ]}</span>
+      {[-/if-]}
+      {[-#unless col.is_current-]}
+      <a href="/index_pages/person_{[ col.symbol ]}.html" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded">{[ col.display ]}</a>
+      {[-/unless-]}
+    {[-/each-]}
+  </nav>
+
+  <table class="w-full">
+    <thead>
+      <tr class="bg-gray-50 border-b">
+        <th class="text-left p-2">名前</th>
+        <th class="text-left p-2">読み</th>
+        <th class="text-left p-2 text-center">作品数</th>
+        <th class="text-left p-2 text-center">著作権</th>
+      </tr>
+    </thead>
+    <tbody>
+      {[-#each people as person-]}
+      <tr class="border-b hover:bg-gray-50">
+        <td class="p-2">
+          <a href="{[ person.person_path ]}" class="underline text-blue-700">{[ person.name ]}</a>
+        </td>
+        <td class="p-2 text-sm text-gray-600">{[ person.name_kana ]}</td>
+        <td class="p-2 text-center">{[ person.work_count ]}</td>
+        <td class="p-2 text-center">
+          {[-#if person.copyright_flag-]}
+          <span class="text-red-500">存続</span>
+          {[-/if-]}
+          {[-#unless person.copyright_flag-]}
+          <span class="text-green-600">消滅</span>
+          {[-/unless-]}
+        </td>
+      </tr>
+      {[-/each-]}
+    </tbody>
+  </table>
+</div>
+
+{[!include /shared/footer ]}

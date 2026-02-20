@@ -1,0 +1,84 @@
+{[!include /shared/header ]}
+
+<h1 class="flex justify-center py-3 text-2xl font-semibold bg-yellow-100 border border-y-gray-500">作家別作品リスト：{[ full_name ]}</h1>
+
+<div class="p-4">
+  <table summary="作家情報" class="w-full">
+    <tr>
+      <th class="text-left text-red-800 w-1/6">名前：</th>
+      <td><span class="text-xl">{[ full_name ]}</span></td>
+    </tr>
+    {[#if full_name_kana]}
+    <tr>
+      <th class="text-left text-red-800 w-1/6">名前読み：</th>
+      <td>{[ full_name_kana ]}</td>
+    </tr>
+    {[/if]}
+    {[#if born_on]}
+    <tr>
+      <th class="text-left text-red-800 w-1/6">生年：</th>
+      <td>{[ born_on ]}</td>
+    </tr>
+    {[/if]}
+    {[#if died_on]}
+    <tr>
+      <th class="text-left text-red-800 w-1/6">没年：</th>
+      <td>{[ died_on ]}</td>
+    </tr>
+    {[/if]}
+  </table>
+</div>
+
+{[#if copyright_flag]}
+<div class="mx-4 p-2 text-red-500 font-bold">＊著作権存続＊</div>
+{[/if]}
+
+{[#if description]}
+<div class="p-4">
+  <h2 class="text-xl font-semibold bg-gray-100 p-2 mb-2">人物について</h2>
+  <div class="prose">{[ description ]}</div>
+</div>
+{[/if]}
+
+{[#if works]}
+<div class="p-4">
+  <h2 class="text-xl font-semibold bg-gray-100 p-2 mb-2">公開中の作品</h2>
+  <table class="w-full">
+    <thead>
+      <tr class="bg-gray-50">
+        <th class="text-left p-2">作品名</th>
+        <th class="text-left p-2">読み</th>
+        <th class="text-left p-2">役割</th>
+        <th class="text-left p-2">文字遣い</th>
+      </tr>
+    </thead>
+    <tbody>
+      {[#each works as work]}
+      <tr class="border-b hover:bg-gray-50">
+        <td class="p-2">
+          <a href="/cards/{[ work.id ]}/card{[ work.id ]}.html" class="underline text-blue-700">
+            {[ work.title ]}{[#if work.subtitle]} {[ work.subtitle ]}{[/if]}
+          </a>
+        </td>
+        <td class="p-2 text-sm text-gray-600">{[ work.title_kana ]}</td>
+        <td class="p-2 text-sm">{[ work.role ]}</td>
+        <td class="p-2 text-sm">{[ work.kana_type ]}</td>
+      </tr>
+      {[/each]}
+    </tbody>
+  </table>
+</div>
+{[/if]}
+
+{[#if sites]}
+<div class="p-4">
+  <h2 class="text-xl font-semibold bg-gray-100 p-2 mb-2">関連サイト</h2>
+  <ul class="list-disc ml-6">
+    {[#each sites as site]}
+    <li><a href="{[ site.url ]}" class="underline text-blue-700">{[ site.name ]}</a></li>
+    {[/each]}
+  </ul>
+</div>
+{[/if]}
+
+{[!include /shared/footer ]}

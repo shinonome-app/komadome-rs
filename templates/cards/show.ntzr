@@ -1,0 +1,172 @@
+{[!include /shared/header ]}
+
+<h1 class="flex justify-center py-3 text-2xl font-semibold bg-yellow-100 border border-y-gray-500">図書カード：No.{[ work_id ]}</h1>
+
+<div class="p-4">
+  <table summary="タイトルデータ" class="w-full">
+    <tr>
+      <th class="text-left text-red-800 w-1/6">作品名：</th>
+      <td><span class="text-2xl">{[ title ]}</span></td>
+    </tr>
+    {[#if title_kana]}
+    <tr>
+      <th class="text-left text-red-800 w-1/6">作品名読み：</th>
+      <td>{[ title_kana ]}</td>
+    </tr>
+    {[/if]}
+    {[#if original_title]}
+    <tr>
+      <th class="text-left text-red-800 w-1/6">原題：</th>
+      <td>{[ original_title ]}</td>
+    </tr>
+    {[/if]}
+    {[#if subtitle]}
+    <tr>
+      <th class="text-left text-red-800 w-1/6">副題：</th>
+      <td>{[ subtitle ]}</td>
+    </tr>
+    {[/if]}
+    {[#if subtitle_kana]}
+    <tr>
+      <th class="text-left text-red-800 w-1/6">副題読み：</th>
+      <td>{[ subtitle_kana ]}</td>
+    </tr>
+    {[/if]}
+    <tr>
+      <th class="text-left text-red-800 w-1/6">著者名：</th>
+      <td>
+        {[#each authors as author]}
+        <a href="/index_pages/person{[ author.id ]}.html"
+           class="underline text-blue-700 text-1xl">{[ author.name ]}</a>
+        {[/each]}
+      </td>
+    </tr>
+    {[#if translators]}
+    <tr>
+      <th class="text-left text-red-800 w-1/6">翻訳者名：</th>
+      <td>
+        {[#each translators as translator]}
+        <a href="/index_pages/person{[ translator.id ]}.html"
+           class="underline text-blue-700">{[ translator.name ]}</a>
+        {[/each]}
+      </td>
+    </tr>
+    {[/if]}
+    {[#if editors]}
+    <tr>
+      <th class="text-left text-red-800 w-1/6">編者名：</th>
+      <td>
+        {[#each editors as editor]}
+        <a href="/index_pages/person{[ editor.id ]}.html"
+           class="underline text-blue-700">{[ editor.name ]}</a>
+        {[/each]}
+      </td>
+    </tr>
+    {[/if]}
+  </table>
+</div>
+
+{[#if has_copyright]}
+<div class="mx-4 p-2 text-red-500 font-bold">＊著作権存続＊</div>
+{[/if]}
+
+<div class="p-4">
+  <h2 class="text-xl font-semibold bg-gray-100 p-2 mb-2">ファイル情報</h2>
+  <table class="w-full">
+    {[#each workfiles as file]}
+    <tr class="border-b">
+      <td class="py-2">
+        <a href="{[ file.url ]}" class="underline text-blue-700">{[ file.filename ]}</a>
+        <span class="text-sm text-gray-600">
+          ({[ file.filetype ]}{[#if file.compresstype]}、{[ file.compresstype ]}{[/if]}{[#if file.charset]}、{[ file.charset ]}{[/if]})
+        </span>
+        {[#if file.filesize]}
+        <span class="text-sm text-gray-500">{[ file.filesize ]}バイト</span>
+        {[/if]}
+      </td>
+    </tr>
+    {[/each]}
+  </table>
+</div>
+
+{[#if original_books]}
+<div class="p-4">
+  <h2 class="text-xl font-semibold bg-gray-100 p-2 mb-2">底本情報</h2>
+  {[#each original_books as book]}
+  <div class="mb-4 p-2 border-l-4 border-gray-300">
+    {[#if book.booktype]}
+    <div class="text-sm text-gray-600">{[ book.booktype ]}</div>
+    {[/if]}
+    <div class="font-semibold">{[ book.title ]}</div>
+    {[#if book.publisher]}
+    <div>{[ book.publisher ]}</div>
+    {[/if]}
+    {[#if book.first_pubdate]}
+    <div class="text-sm">初版発行：{[ book.first_pubdate ]}</div>
+    {[/if]}
+    {[#if book.input_edition]}
+    <div class="text-sm">入力に使用：{[ book.input_edition ]}</div>
+    {[/if]}
+    {[#if book.proof_edition]}
+    <div class="text-sm">校正に使用：{[ book.proof_edition ]}</div>
+    {[/if]}
+  </div>
+  {[/each]}
+</div>
+{[/if]}
+
+{[#if work_workers]}
+<div class="p-4">
+  <h2 class="text-xl font-semibold bg-gray-100 p-2 mb-2">工作員</h2>
+  <table class="w-full">
+    {[#each work_workers as worker]}
+    <tr>
+      <td class="py-1 w-1/6">{[ worker.role ]}：</td>
+      <td>{[ worker.name ]}</td>
+    </tr>
+    {[/each]}
+  </table>
+</div>
+{[/if]}
+
+{[#if bibclasses]}
+<div class="p-4">
+  <h2 class="text-xl font-semibold bg-gray-100 p-2 mb-2">分類</h2>
+  <ul class="list-disc ml-6">
+    {[#each bibclasses as bibclass]}
+    <li>{[ bibclass.name ]}{[ bibclass.num ]}{[#if bibclass.note]}（{[ bibclass.note ]}）{[/if]}</li>
+    {[/each]}
+  </ul>
+</div>
+{[/if]}
+
+{[#if note]}
+<div class="p-4">
+  <h2 class="text-xl font-semibold bg-gray-100 p-2 mb-2">備考</h2>
+  <div class="prose">{[!unsecure note ]}</div>
+</div>
+{[/if]}
+
+{[#if first_appearance]}
+<div class="p-4">
+  <h2 class="text-xl font-semibold bg-gray-100 p-2 mb-2">初出</h2>
+  <div>{[ first_appearance ]}</div>
+</div>
+{[/if]}
+
+{[#if sites]}
+<div class="p-4">
+  <h2 class="text-xl font-semibold bg-gray-100 p-2 mb-2">関連サイト</h2>
+  <ul class="list-disc ml-6">
+    {[#each sites as site]}
+    <li><a href="{[ site.url ]}" class="underline text-blue-700">{[ site.name ]}</a></li>
+    {[/each]}
+  </ul>
+</div>
+{[/if]}
+
+<div class="p-4 text-sm text-gray-600">
+  公開：{[ started_on ]}
+</div>
+
+{[!include /shared/footer ]}

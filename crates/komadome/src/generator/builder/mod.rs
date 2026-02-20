@@ -1,0 +1,12 @@
+pub mod card;
+pub mod list_inp;
+pub mod person;
+pub mod person_all_index;
+pub mod person_index;
+pub mod soramoyou;
+pub mod static_pages;
+pub mod top;
+pub mod whatsnew;
+pub mod wip_person_index;
+pub mod wip_work_index;
+pub mod work_index;

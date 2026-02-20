@@ -1,0 +1,24 @@
+# komadome-rs configuration
+
+[output]
+directory = "build"
+main_site_url = "https://www.aozora.gr.jp"
+
+[templates]
+directory = "templates"
+
+[data]
+directory = "data"
+
+[build]
+default_jobs = 8
+page_size = 50
+
+[database]
+url = "postgres://localhost/shinonome_development"
+
+[assets]
+css_dir = "../komadome/public/assets"
+images_dir = "../komadome/public/images"
+card_images_dir = "../komadome/public/cards/images"
+# zip_dir = "data/csv_zip"

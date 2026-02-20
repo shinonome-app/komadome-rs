@@ -1,0 +1,30 @@
+[package]
+name = "komadome"
+description = "Static site generator for Aozora Bunko"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+
+[[bin]]
+name = "komadome"
+path = "src/main.rs"
+
+[dependencies]
+natsuzora.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+clap.workspace = true
+indicatif.workspace = true
+rayon.workspace = true
+chrono.workspace = true
+thiserror.workspace = true
+anyhow.workspace = true
+regex.workspace = true
+toml.workspace = true
+tokio.workspace = true
+sqlx.workspace = true
+
+[dev-dependencies]
+tempfile = "3"

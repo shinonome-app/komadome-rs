@@ -1,0 +1,118 @@
+{[!include /shared/header ]}
+
+<h1 class="flex justify-center py-3 text-2xl font-semibold bg-yellow-100 border border-y-gray-500">作業中　作家別作品一覧：{[ person_name ]}　No.{[ person_id ]}</h1>
+
+<div class="flex justify-center p-1">
+
+  <div>
+
+    <div class="text-right py-4">
+      {[-#if has_pagination -]}
+      <nav aria-label="pager" class="pagy_nav pagination" role="navigation">
+        {[-#if prev_page -]}
+        <a href="list_inp{[ person_id ]}_{[ prev_page ]}.html" class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" rel="prev">前の50件</a>
+        {[-#else-]}
+        <span class="prev disabled"></span>
+        {[-/if-]}
+        <span class="px-1">&nbsp;</span>
+        ページ:
+        {[-#each pagination as item -]}
+        {[-#if item.is_current -]}
+        <span class="text-2xl">{[ item.page ]}</span>
+        {[-#else-]}
+        {[-#if item.is_gap -]}
+        <span class="page gap">&hellip;</span>
+        {[-#else-]}
+        <a href="list_inp{[ person_id ]}_{[ item.page ]}.html" class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline">{[ item.page ]}</a>
+        {[-/if-]}
+        {[-/if-]}
+        {[-/each-]}
+        {[-#if next_page -]}
+        <span class="px-1">&nbsp;</span>
+        <a href="list_inp{[ person_id ]}_{[ next_page ]}.html" class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" rel="next">次の50件</a>
+        {[-#else-]}
+        <span class="next disabled"></span>
+        {[-/if-]}
+      </nav>
+      {[-/if-]}
+    </div>
+
+    <table class="border-double border-2 border-gray-800">
+      <tr class="w-770 border-double border-2 border-gray-800">
+        <th class="w-100 font-normal bg-yellow-100 border-double border-2 border-gray-800">No.</th>
+        <th class="w-220 font-normal bg-yellow-100 border-double border-2 border-gray-800">作品名(作品ID)<br>副題</th>
+        <th class="w-110 font-normal bg-yellow-100 border-double border-2 border-gray-800">文字遣い種別</th>
+        <th class="w-110 font-normal bg-yellow-100 border-double border-2 border-gray-800">翻訳者名等<br>(人物ID)</th>
+        <th class="w-110 font-normal bg-yellow-100 border-double border-2 border-gray-800">入力者名<br>校正者名</th>
+        <th class="w-110 font-normal bg-yellow-100 border-double border-2 border-gray-800">状態<br>状態の開始日</th>
+        <th class="w-110 font-normal bg-yellow-100 border-double border-2 border-gray-800">底本名<br>出版社名</th>
+        <th class="w-110 font-normal bg-yellow-100 border-double border-2 border-gray-800">入力に使用した版</th>
+      </tr>
+
+      {[-#each works as work -]}
+      <tr>
+        <td class="bg-white border-double border-2 border-gray-800 text-right">{[ work.row_number ]}</td>
+        <td class="bg-white border-double border-2 border-gray-800">{[ work.title ]}({[ work.id ]})<br>{[ work.subtitle ]}</td>
+        <td class="bg-white border-double border-2 border-gray-800">{[ work.kana_type_name ]}</td>
+        <td class="bg-white border-double border-2 border-gray-800">{[ work.translator_text ]}</td>
+        <td class="bg-white border-double border-2 border-gray-800">{[ work.inputer_text ]}<br>{[ work.proofreader_text ]}</td>
+        <td class="bg-white border-double border-2 border-gray-800">{[ work.work_status_name ]}<br>{[ work.started_on ]}</td>
+        <td class="bg-white border-double border-2 border-gray-800">{[ work.teihon_title ]}<br>{[ work.teihon_publisher ]}</td>
+        <td class="bg-white border-double border-2 border-gray-800">{[ work.teihon_input_edition ]}</td>
+      </tr>
+      {[-/each-]}
+    </table>
+
+    <div class="text-right py-4">
+      {[-#if has_pagination -]}
+      <nav aria-label="pager" class="pagy_nav pagination" role="navigation">
+        {[-#if prev_page -]}
+        <a href="list_inp{[ person_id ]}_{[ prev_page ]}.html" class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" rel="prev">前の50件</a>
+        {[-#else-]}
+        <span class="prev disabled"></span>
+        {[-/if-]}
+        <span class="px-1">&nbsp;</span>
+        ページ:
+        {[-#each pagination as item -]}
+        {[-#if item.is_current -]}
+        <span class="text-2xl">{[ item.page ]}</span>
+        {[-#else-]}
+        {[-#if item.is_gap -]}
+        <span class="page gap">&hellip;</span>
+        {[-#else-]}
+        <a href="list_inp{[ person_id ]}_{[ item.page ]}.html" class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline">{[ item.page ]}</a>
+        {[-/if-]}
+        {[-/if-]}
+        {[-/each-]}
+        {[-#if next_page -]}
+        <span class="px-1">&nbsp;</span>
+        <a href="list_inp{[ person_id ]}_{[ next_page ]}.html" class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" rel="next">次の50件</a>
+        {[-#else-]}
+        <span class="next disabled"></span>
+        {[-/if-]}
+      </nav>
+      {[-/if-]}
+    </div>
+  </div>
+</div>
+
+<div class="text-right py-4">
+  <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="#top">▲</a>
+</div>
+
+<hr class="border-gray-400">
+
+<footer class="pt-3 pb-14">
+  <div>
+    <span class="pr-3">
+      ●
+      <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index.html">トップ</a>
+    </span>
+    <span class="pr-3">
+      ●
+      <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/index_top.html">インデックス</a>
+    </span>
+  </div>
+</footer>
+
+{[!include /shared/footer ]}

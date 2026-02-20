@@ -1,0 +1,57 @@
+{[!include /shared/header ]}
+
+<h1 class="flex justify-center py-3 text-2xl font-semibold bg-yellow-100 border border-y-gray-500">公開中　作家リスト：全て</h1>
+
+<div class="text-right py-4">
+  {[-#each sections as section -]}
+  <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="#sec{[ section.section_index ]}">[{[ section.kana_char ]}]</a>
+  {[-/each-]}
+</div>
+
+<div>
+  <p><a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/list_person_all.zip">「公開中　作家別作品一覧：全て(CSV形式、zip圧縮）」をダウンロード</a></p>
+  <p><a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/list_person_all_extended.zip">「公開中　作家別作品一覧拡充版：全て(CSV形式、zip圧縮）」をダウンロード</a></p>
+  <p><a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/list_person_all_utf8.zip">「公開中　作家別作品一覧：全て(CSV形式、UTF-8、zip圧縮）」をダウンロード</a></p>
+  <p><a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/list_person_all_extended_utf8.zip">「公開中　作家別作品一覧拡充版：全て(CSV形式、UTF-8、zip圧縮）」をダウンロード</a></p>
+</div>
+
+{[-#each sections as section -]}
+
+<h2 class="flex py-1 px-5 text-2xl font-semibold bg-gray-300 border border-y-gray-500"><a name="sec{[ section.section_index ]}">{[ section.kana_char ]}</a></h2>
+
+<div class="px-12 py-5">
+  <ol class="list-decimal">
+    {[-#each section.people as person -]}
+    <li><a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="person{[ person.id ]}.html#sakuhin_list_1">{[ person.name ]}</a>　(公開中：{[ person.published_count ]})　　{[-#if person.copyright_flag -]}<strong>＊著作権存続＊</strong>　{[-/if-]}</li>
+    {[-/each-]}
+  </ol>
+</div>
+
+<div class="text-right py-4">
+  <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="#top">▲</a>
+</div>
+
+{[-/each-]}
+
+<hr class="border-gray-400">
+
+<footer class="pt-3 pb-14">
+  <div>
+    <span class="pr-3">●作家リスト：公開中</span>
+    {[-#each column_nav as nav -]}
+    <span><a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="person_{[ nav.column ]}.html">[{[ nav.display ]}]</a></span>
+    {[-/each-]}
+  </div>
+  <div>
+    <span class="pr-3">
+      ●
+      <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index.html">トップ</a>
+    </span>
+    <span class="pr-3">
+      ●
+      <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/index_top.html">インデックス</a>
+    </span>
+  </div>
+</footer>
+
+{[!include /shared/footer ]}

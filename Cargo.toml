@@ -1,0 +1,42 @@
+[workspace]
+members = ["crates/komadome"]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+license = "MIT"
+authors = ["Aozora Bunko"]
+
+[workspace.dependencies]
+# Template engine
+natsuzora = { path = "../natsuzora/rust/crates/natsuzora" }
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+# CLI
+clap = { version = "4", features = ["derive"] }
+indicatif = "0.17"
+
+# Parallel processing
+rayon = "1.10"
+
+# Date/time
+chrono = { version = "0.4", features = ["serde"] }
+
+# Error handling
+thiserror = "2.0"
+anyhow = "1.0"
+
+# Async runtime
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+
+# Database
+sqlx = { version = "0.8", features = ["runtime-tokio", "postgres", "chrono"] }
+
+# Other utilities
+regex = "1"
+toml = "0.8"
