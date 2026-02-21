@@ -1,41 +1,14 @@
 use anyhow::Result;
-use serde::Serialize;
 use sqlx::PgPool;
 use std::io::Write;
 use std::path::Path;
 
+use crate::data::models::{WipWorkIndexData, WipWorkIndexItem};
 use crate::generator::kana::ROMA2KANA;
 
-const PAGE_SIZE: usize = 50;
+use super::export_helpers::{calculate_total_pages, write_jsonl_line, PAGE_SIZE};
 
 const KANA_PATTERN: &str = "^[あいうえおか-もやゆよら-ろわをんアイウエオカ-モヤユヨラ-ロワヲンヴ]";
-
-#[derive(Serialize)]
-struct WipWorkIndexData {
-    kana_symbol: String,
-    page: usize,
-    total_pages: usize,
-    works: Vec<WipWorkIndexItem>,
-}
-
-#[derive(Serialize)]
-struct WipWorkIndexItem {
-    id: i64,
-    title: String,
-    subtitle: Option<String>,
-    kana_type_name: Option<String>,
-    author_name: Option<String>,
-    author_id: Option<i64>,
-    base_author_name: Option<String>,
-    translator_text: Option<String>,
-    inputer_text: Option<String>,
-    proofreader_text: Option<String>,
-    work_status_name: Option<String>,
-    started_on: Option<String>,
-    teihon_title: Option<String>,
-    teihon_publisher: Option<String>,
-    teihon_input_edition: Option<String>,
-}
 
 #[derive(sqlx::FromRow)]
 struct WipWorkRow {
@@ -102,8 +75,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
                 works: page_works,
             };
 
-            serde_json::to_writer(&mut file, &data)?;
-            file.write_all(b"\n")?;
+            write_jsonl_line(&mut file, &data)?;
             count += 1;
         }
     }
@@ -252,7 +224,3 @@ async fn fetch_wip_works(
     Ok(works)
 }
 
-fn calculate_total_pages(total_items: usize) -> usize {
-    let pages = (total_items as f64 / PAGE_SIZE as f64).ceil() as usize;
-    if pages == 0 { 1 } else { pages }
-}

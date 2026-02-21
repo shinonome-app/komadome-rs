@@ -1,0 +1,24 @@
+{
+  "kana_symbol": "ka",
+  "page": 1,
+  "total_pages": 1,
+  "works": [
+    {
+      "id": 777,
+      "title": "WIP Work",
+      "subtitle": null,
+      "kana_type_name": "新字新仮名",
+      "author_name": "WIP Author",
+      "author_id": 300,
+      "base_author_name": null,
+      "translator_text": null,
+      "inputer_text": "Inputer A",
+      "proofreader_text": null,
+      "work_status_name": "入力中",
+      "started_on": null,
+      "teihon_title": "Teihon Book",
+      "teihon_publisher": "Teihon Publisher",
+      "teihon_input_edition": "初版"
+    }
+  ]
+}

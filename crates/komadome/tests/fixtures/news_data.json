@@ -1,0 +1,12 @@
+{
+  "year": 2024,
+  "entries": [
+    {
+      "id": 42,
+      "title": "News Title",
+      "body": "<p>News body content</p>",
+      "published_on": "2024-03-15",
+      "flag": true
+    }
+  ]
+}

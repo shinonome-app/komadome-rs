@@ -1,0 +1,22 @@
+{
+  "person_id": 300,
+  "person_name": "WIP Person",
+  "page": 1,
+  "total_pages": 1,
+  "works": [
+    {
+      "id": 888,
+      "title": "List Inp Work",
+      "subtitle": "Sub",
+      "kana_type_name": "新字新仮名",
+      "translator_text": "Translator A",
+      "inputer_text": "Inputer A",
+      "proofreader_text": null,
+      "work_status_name": "校正中",
+      "started_on": null,
+      "teihon_title": "Teihon",
+      "teihon_publisher": "Publisher",
+      "teihon_input_edition": "初版"
+    }
+  ]
+}

@@ -1,26 +1,13 @@
 use anyhow::Result;
 use chrono::Datelike;
-use serde::Serialize;
 use sqlx::PgPool;
 use std::io::Write;
 use std::path::Path;
 
+use super::export_helpers::write_jsonl_line;
+use crate::data::models::{NewsData, NewsEntry};
+
 const BEGIN_YEAR: i32 = 1997;
-
-#[derive(Serialize)]
-struct NewsData {
-    year: i32,
-    entries: Vec<NewsEntryData>,
-}
-
-#[derive(Serialize)]
-struct NewsEntryData {
-    id: i64,
-    title: String,
-    body: String,
-    published_on: Option<String>,
-    flag: bool,
-}
 
 #[derive(sqlx::FromRow)]
 struct NewsEntryRow {
@@ -57,7 +44,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
             year,
             entries: entries
                 .into_iter()
-                .map(|e| NewsEntryData {
+                .map(|e| NewsEntry {
                     id: e.id,
                     title: e.title,
                     body: e.body,
@@ -67,8 +54,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
                 .collect(),
         };
 
-        serde_json::to_writer(&mut file, &data)?;
-        file.write_all(b"\n")?;
+        write_jsonl_line(&mut file, &data)?;
         count += 1;
     }
 

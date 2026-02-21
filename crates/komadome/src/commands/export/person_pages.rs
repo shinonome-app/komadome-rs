@@ -1,68 +1,13 @@
 use anyhow::Result;
-use serde::Serialize;
 use sqlx::PgPool;
 use std::io::Write;
 use std::path::Path;
 
 use super::db_helpers;
-
-#[derive(Serialize)]
-struct PersonPageData {
-    person: PersonData,
-    works: Vec<PersonWorkInfo>,
-    unpublished_works: Vec<PersonWorkInfo>,
-    sites: Vec<SiteInfo>,
-    other_base_people: Vec<OtherBasePerson>,
-}
-
-#[derive(Serialize)]
-struct PersonData {
-    id: i64,
-    last_name: String,
-    first_name: Option<String>,
-    last_name_kana: String,
-    first_name_kana: Option<String>,
-    name_en: Option<String>,
-    born_on: Option<String>,
-    died_on: Option<String>,
-    copyright_flag: bool,
-    description: Option<String>,
-    sortkey: Option<String>,
-}
-
-#[derive(Serialize)]
-struct PersonWorkInfo {
-    id: i64,
-    title: String,
-    title_kana: Option<String>,
-    subtitle: Option<String>,
-    sortkey: Option<String>,
-    subtitle_kana: Option<String>,
-    role: Option<String>,
-    role_id: i64,
-    kana_type: Option<String>,
-    card_person_id: Option<String>,
-    work_people: Vec<WorkPersonRef>,
-}
-
-#[derive(Serialize)]
-struct WorkPersonRef {
-    person_id: i64,
-    name: String,
-    role_name: Option<String>,
-}
-
-#[derive(Serialize)]
-struct SiteInfo {
-    name: Option<String>,
-    url: Option<String>,
-}
-
-#[derive(Serialize)]
-struct OtherBasePerson {
-    id: i64,
-    name: String,
-}
+use super::export_helpers::write_jsonl_line;
+use crate::data::models::{
+    OtherBasePerson, Person, PersonPageData, PersonWorkInfo, SiteInfo, WorkPersonRef,
+};
 
 // DB row types
 #[derive(sqlx::FromRow)]
@@ -101,6 +46,7 @@ struct WorkPersonRow {
     person_id: i64,
     name: String,
     role_name: Option<String>,
+    #[allow(dead_code)]
     role_id: i64,
 }
 
@@ -320,7 +266,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
             .collect();
 
         let data = PersonPageData {
-            person: PersonData {
+            person: Person {
                 id: person.id,
                 last_name: person.last_name.clone(),
                 first_name: person.first_name.clone(),
@@ -339,8 +285,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
             other_base_people,
         };
 
-        serde_json::to_writer(&mut file, &data)?;
-        file.write_all(b"\n")?;
+        write_jsonl_line(&mut file, &data)?;
         count += 1;
     }
 

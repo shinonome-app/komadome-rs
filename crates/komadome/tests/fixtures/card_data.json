@@ -1,0 +1,73 @@
+{
+  "work_id": 12345,
+  "person_id": 100,
+  "title": "Test Work Title",
+  "title_kana": "テストサクヒンタイトル",
+  "subtitle": "A Subtitle",
+  "subtitle_kana": "サブタイトル",
+  "original_title": "Original Title",
+  "collection": "Test Collection",
+  "collection_kana": "テストコレクション",
+  "kana_type": "新字新仮名",
+  "started_on": "2024-01-15",
+  "note": "This is a <b>note</b>.",
+  "first_appearance": "Monthly Magazine 2024-01",
+  "description": "A test work description.",
+  "authors": [
+    {"id": 100, "name": "Author Name", "name_kana": "チョシャ メイ", "copyright_flag": false}
+  ],
+  "translators": [
+    {"id": 200, "name": "Translator Name", "name_kana": "ホンヤク メイ"}
+  ],
+  "editors": [],
+  "workfiles": [
+    {
+      "id": 1,
+      "filename": "12345_ruby_1234.zip",
+      "filesize": 5678,
+      "filetype": "テキストファイル(ルビあり)",
+      "filetype_id": 1,
+      "is_html": false,
+      "compresstype": "zip",
+      "charset": "JIS X 0208",
+      "file_encoding": "ShiftJIS",
+      "url": null,
+      "registered_on": "2024-01-15",
+      "last_updated_on": "2024-01-20"
+    }
+  ],
+  "original_books": [
+    {
+      "title": "Original Book",
+      "publisher": "Publisher Co.",
+      "first_pubdate": "1950-01-01",
+      "input_edition": "First Edition",
+      "proof_edition": "Second Edition",
+      "booktype": "底本",
+      "booktype_id": 1
+    }
+  ],
+  "work_workers": [
+    {"name": "Worker One", "role": "入力"},
+    {"name": "Worker Two", "role": "校正"}
+  ],
+  "bibclasses": [
+    {"name": "NDC", "num": "913", "note": "Japanese fiction"}
+  ],
+  "sites": [
+    {"name": "Author Site", "url": "https://example.com"}
+  ],
+  "work_people_details": [
+    {
+      "role_name": "著者",
+      "person_id": 100,
+      "name": "Author Name",
+      "name_kana": "チョシャ メイ",
+      "name_en": "Name, Author",
+      "born_on": "1900-01-01",
+      "died_on": "1970-12-31",
+      "description": "A famous author.",
+      "copyright_flag": false
+    }
+  ]
+}

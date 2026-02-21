@@ -1,0 +1,12 @@
+{
+  "exported_on": "2024-06-15",
+  "roles": [{"id": 1, "name": "著者"}, {"id": 2, "name": "翻訳者"}, {"id": 3, "name": "編者"}],
+  "work_statuses": [{"id": 1, "name": "公開", "sort_order": 1}],
+  "kana_types": [{"id": 1, "name": "新字新仮名"}],
+  "filetypes": [{"id": 1, "name": "テキストファイル(ルビあり)", "extension": "txt", "is_html": false, "is_text": true}],
+  "compresstypes": [{"id": 1, "name": "zip", "extension": "zip"}],
+  "booktypes": [{"id": 1, "name": "底本"}],
+  "charsets": [{"id": 1, "name": "JIS X 0208"}],
+  "file_encodings": [{"id": 1, "name": "ShiftJIS"}],
+  "worker_roles": [{"id": 1, "name": "入力"}, {"id": 2, "name": "校正"}]
+}

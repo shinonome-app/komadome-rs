@@ -1,38 +1,15 @@
 use anyhow::Result;
-use serde::Serialize;
 use sqlx::PgPool;
 use std::io::Write;
 use std::path::Path;
 
+use crate::data::models::{WorkIndexData, WorkIndexItem};
 use crate::generator::kana::ROMA2KANA;
 
-const PAGE_SIZE: usize = 50;
+use super::export_helpers::{calculate_total_pages, write_jsonl_line, PAGE_SIZE};
 
 // Regex pattern for all kana characters (same as Ruby's KANA_PATTERN)
 const KANA_PATTERN: &str = "^[あいうえおか-もやゆよら-ろわをんアイウエオカ-モヤユヨラ-ロワヲンヴ]";
-
-#[derive(Serialize)]
-struct WorkIndexData {
-    kana_symbol: String,
-    page: usize,
-    total_pages: usize,
-    works: Vec<WorkIndexItem>,
-}
-
-#[derive(Serialize)]
-struct WorkIndexItem {
-    id: i64,
-    title: String,
-    title_kana: Option<String>,
-    subtitle: Option<String>,
-    author_name: Option<String>,
-    person_id: Option<i64>,
-    card_person_id: Option<String>,
-    kana_type: Option<String>,
-    author_text: Option<String>,
-    base_author_text: String,
-    translator_text: String,
-}
 
 #[derive(sqlx::FromRow)]
 struct WorkRow {
@@ -78,8 +55,8 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
                     card_person_id: w.card_person_id.clone(),
                     kana_type: w.kana_type.clone(),
                     author_text: w.author_text.clone(),
-                    base_author_text: w.base_author_text.clone(),
-                    translator_text: w.translator_text.clone(),
+                    base_author_text: Some(w.base_author_text.clone()),
+                    translator_text: Some(w.translator_text.clone()),
                 })
                 .collect();
 
@@ -90,8 +67,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
                 works: page_works,
             };
 
-            serde_json::to_writer(&mut file, &data)?;
-            file.write_all(b"\n")?;
+            write_jsonl_line(&mut file, &data)?;
             count += 1;
         }
     }
@@ -196,7 +172,3 @@ async fn fetch_works(
     Ok(works)
 }
 
-fn calculate_total_pages(total_items: usize) -> usize {
-    let pages = (total_items as f64 / PAGE_SIZE as f64).ceil() as usize;
-    if pages == 0 { 1 } else { pages }
-}

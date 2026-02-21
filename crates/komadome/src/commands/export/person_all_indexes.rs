@@ -1,36 +1,13 @@
 use anyhow::Result;
-use serde::Serialize;
 use sqlx::PgPool;
 use std::io::Write;
 use std::path::Path;
 
+use super::export_helpers::write_jsonl_line;
+use crate::data::models::{PersonAllIndexData, PersonAllItem, PersonAllSection};
 use crate::generator::kana::COLUMN_CHARS;
 
 const KANA_PATTERN: &str = "^[あいうえおか-もやゆよら-ろわをんアイウエオカ-モヤユヨラ-ロワヲンヴ]";
-
-#[derive(Serialize)]
-struct PersonAllIndexData {
-    kana_column: String,
-    column_display: String,
-    sections: Vec<PersonAllSection>,
-}
-
-#[derive(Serialize)]
-struct PersonAllSection {
-    kana_char: String,
-    section_index: usize,
-    people: Vec<PersonAllItem>,
-}
-
-#[derive(Serialize)]
-struct PersonAllItem {
-    id: i64,
-    name: String,
-    published_count: i64,
-    unpublished_count: i64,
-    total_count: i64,
-    copyright_flag: bool,
-}
 
 #[derive(sqlx::FromRow)]
 struct PersonRow {
@@ -115,8 +92,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
             sections,
         };
 
-        serde_json::to_writer(&mut file, &data)?;
-        file.write_all(b"\n")?;
+        write_jsonl_line(&mut file, &data)?;
         count += 1;
     }
 

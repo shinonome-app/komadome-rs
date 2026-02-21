@@ -1,0 +1,24 @@
+{
+  "new_works": [
+    {
+      "work_id": 555,
+      "title": "Top Work",
+      "subtitle": null,
+      "author_text": "Top Author",
+      "card_person_id": 200
+    }
+  ],
+  "new_works_published_on": "2024-06-15",
+  "latest_news_published_on": "2024-06-10",
+  "topics": [
+    {
+      "id": 1,
+      "title": "News Topic",
+      "published_on": "2024-06-10",
+      "year": 2024
+    }
+  ],
+  "works_count": 18000,
+  "works_copyright_count": 3000,
+  "works_noncopyright_count": 15000
+}

@@ -1,0 +1,18 @@
+{
+  "year": null,
+  "page": 1,
+  "total_pages": 2,
+  "entries": [
+    {
+      "work_id": 999,
+      "title": "New Work",
+      "subtitle": "A new subtitle",
+      "card_person_id": 100,
+      "author_text": "Author Name",
+      "inputer_text": "Inputer Name",
+      "proofreader_text": "Proofreader Name",
+      "translator_text": null,
+      "started_on": "2024-06-01"
+    }
+  ]
+}

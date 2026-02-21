@@ -1,40 +1,17 @@
 use anyhow::Result;
-use serde::Serialize;
 use sqlx::PgPool;
 use std::io::Write;
 use std::path::Path;
 
-const PAGE_SIZE: usize = 50;
+use crate::data::models::{ListInpData, ListInpWorkItem};
 
-#[derive(Serialize)]
-struct ListInpData {
-    person_id: i64,
-    person_name: String,
-    page: usize,
-    total_pages: usize,
-    works: Vec<ListInpWorkItem>,
-}
-
-#[derive(Serialize)]
-struct ListInpWorkItem {
-    id: i64,
-    title: String,
-    subtitle: Option<String>,
-    kana_type_name: Option<String>,
-    translator_text: Option<String>,
-    inputer_text: Option<String>,
-    proofreader_text: Option<String>,
-    work_status_name: Option<String>,
-    started_on: Option<String>,
-    teihon_title: Option<String>,
-    teihon_publisher: Option<String>,
-    teihon_input_edition: Option<String>,
-}
+use super::export_helpers::{calculate_total_pages, write_jsonl_line, PAGE_SIZE};
 
 #[derive(sqlx::FromRow)]
 struct PersonWithCountRow {
     id: i64,
     name: String,
+    #[allow(dead_code)]
     work_count: i64,
 }
 
@@ -121,8 +98,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
                 works: page_works,
             };
 
-            serde_json::to_writer(&mut file, &data)?;
-            file.write_all(b"\n")?;
+            write_jsonl_line(&mut file, &data)?;
             count += 1;
         }
     }
@@ -192,7 +168,3 @@ async fn fetch_person_wip_works(
     Ok(works)
 }
 
-fn calculate_total_pages(total_items: usize) -> usize {
-    let pages = (total_items as f64 / PAGE_SIZE as f64).ceil() as usize;
-    if pages == 0 { 1 } else { pages }
-}

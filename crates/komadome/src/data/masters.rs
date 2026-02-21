@@ -187,3 +187,34 @@ impl Masters {
         self.worker_roles_map.get(&id).map(|s| s.as_str())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_masters_load_and_lookup() {
+        let path = std::path::PathBuf::from(format!(
+            "{}/tests/fixtures/masters_data.json",
+            env!("CARGO_MANIFEST_DIR")
+        ));
+        let masters = Masters::load(&path).unwrap();
+
+        assert_eq!(masters.exported_on.as_deref(), Some("2024-06-15"));
+        assert_eq!(
+            masters.exported_date(),
+            NaiveDate::from_ymd_opt(2024, 6, 15).unwrap()
+        );
+        assert_eq!(masters.roles.len(), 3);
+        assert_eq!(masters.role_name(1), Some("著者"));
+        assert_eq!(masters.role_name(2), Some("翻訳者"));
+        assert_eq!(masters.role_name(99), None);
+        assert_eq!(masters.work_status_name(1), Some("公開"));
+        assert_eq!(masters.kana_type_name(1), Some("新字新仮名"));
+        assert_eq!(masters.filetype_name(1), Some("テキストファイル(ルビあり)"));
+        assert_eq!(masters.compresstype_name(1), Some("zip"));
+        assert_eq!(masters.booktype_name(1), Some("底本"));
+        assert_eq!(masters.worker_role_name(1), Some("入力"));
+        assert_eq!(masters.worker_role_name(2), Some("校正"));
+    }
+}

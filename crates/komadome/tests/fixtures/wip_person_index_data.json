@@ -1,0 +1,18 @@
+{
+  "kana_column": "ka",
+  "column_display": "か",
+  "sections": [
+    {
+      "kana_char": "か",
+      "section_index": 1,
+      "people": [
+        {
+          "id": 300,
+          "name": "WIP Person",
+          "unpublished_count": 3,
+          "copyright_flag": true
+        }
+      ]
+    }
+  ]
+}

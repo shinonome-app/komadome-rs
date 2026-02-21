@@ -1,37 +1,14 @@
 use anyhow::Result;
-use serde::Serialize;
 use sqlx::PgPool;
 use std::io::Write;
 use std::path::Path;
 
+use super::export_helpers::write_jsonl_line;
+use crate::data::models::{PersonIndexData, PersonIndexItem, PersonIndexSection};
 use crate::generator::kana::COLUMN_CHARS;
 
 // Regex pattern for all kana characters
 const KANA_PATTERN: &str = "^[あいうえおか-もやゆよら-ろわをんアイウエオカ-モヤユヨラ-ロワヲンヴ]";
-
-#[derive(Serialize)]
-struct PersonIndexData {
-    kana_column: String,
-    column_display: String,
-    sections: Vec<PersonIndexSection>,
-}
-
-#[derive(Serialize)]
-struct PersonIndexSection {
-    kana_char: String,
-    section_index: usize,
-    people: Vec<PersonIndexItem>,
-}
-
-#[derive(Serialize)]
-struct PersonIndexItem {
-    id: i64,
-    name: String,
-    name_kana: String,
-    work_count: i64,
-    copyright_flag: bool,
-    published_works_count: i64,
-}
 
 #[derive(sqlx::FromRow)]
 struct PersonRow {
@@ -72,8 +49,8 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
                         id: p.id,
                         name: p.name,
                         name_kana: p.name_kana,
-                        published_works_count: p.work_count,
-                        work_count: p.work_count,
+                        published_works_count: p.work_count as usize,
+                        work_count: p.work_count as usize,
                         copyright_flag: p.copyright_flag,
                     })
                     .collect(),
@@ -93,8 +70,8 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
                             id: p.id,
                             name: p.name,
                             name_kana: p.name_kana,
-                            published_works_count: p.work_count,
-                            work_count: p.work_count,
+                            published_works_count: p.work_count as usize,
+                            work_count: p.work_count as usize,
                             copyright_flag: p.copyright_flag,
                         })
                         .collect(),
@@ -109,8 +86,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
             sections,
         };
 
-        serde_json::to_writer(&mut file, &data)?;
-        file.write_all(b"\n")?;
+        write_jsonl_line(&mut file, &data)?;
         count += 1;
     }
 

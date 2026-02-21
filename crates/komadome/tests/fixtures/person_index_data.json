@@ -1,0 +1,20 @@
+{
+  "kana_column": "a",
+  "column_display": "あ",
+  "sections": [
+    {
+      "kana_char": "あ",
+      "section_index": 1,
+      "people": [
+        {
+          "id": 10,
+          "name": "Person A",
+          "name_kana": "アキ タロウ",
+          "work_count": 5,
+          "copyright_flag": false,
+          "published_works_count": 5
+        }
+      ]
+    }
+  ]
+}

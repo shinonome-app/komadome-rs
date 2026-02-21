@@ -7,30 +7,10 @@ use std::io::Write;
 use std::path::Path;
 
 use super::db_helpers;
+use super::export_helpers::PAGE_SIZE;
+use crate::data::models::WhatsnewEntry;
 
 const FIRST_YEAR: i32 = 2001;
-const PAGE_SIZE: usize = 50;
-
-#[derive(Serialize)]
-struct WhatsnewData {
-    year: Option<i32>,
-    page: usize,
-    total_pages: usize,
-    entries: Vec<WhatsnewEntry>,
-}
-
-#[derive(Serialize)]
-struct WhatsnewEntry {
-    work_id: i64,
-    title: String,
-    subtitle: Option<String>,
-    card_person_id: Option<i64>,
-    author_text: Option<String>,
-    inputer_text: Option<String>,
-    proofreader_text: Option<String>,
-    translator_text: Option<String>,
-    started_on: Option<String>,
-}
 
 #[derive(sqlx::FromRow)]
 struct WorkRow {
@@ -243,6 +223,7 @@ fn write_paginated(
     Ok(count)
 }
 
+/// Export-specific paginated wrapper (uses borrowed references)
 #[derive(Serialize)]
 struct WhatsnewPageData<'a> {
     year: Option<i32>,

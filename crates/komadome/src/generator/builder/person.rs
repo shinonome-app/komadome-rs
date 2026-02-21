@@ -59,7 +59,7 @@ pub fn build_person_context(data: &PersonPageData) -> Result<Value> {
             "work_people": w.work_people.iter().map(|wp| json!({
                 "person_id": wp.person_id,
                 "name": &wp.name,
-                "role_name": &wp.role_name,
+                "role_name": wp.role_name.as_deref().unwrap_or(""),
             })).collect::<Vec<_>>(),
         })).collect::<Vec<_>>(),
 
@@ -76,7 +76,7 @@ pub fn build_person_context(data: &PersonPageData) -> Result<Value> {
             "work_people": w.work_people.iter().map(|wp| json!({
                 "person_id": wp.person_id,
                 "name": &wp.name,
-                "role_name": &wp.role_name,
+                "role_name": wp.role_name.as_deref().unwrap_or(""),
             })).collect::<Vec<_>>(),
         })).collect::<Vec<_>>(),
 

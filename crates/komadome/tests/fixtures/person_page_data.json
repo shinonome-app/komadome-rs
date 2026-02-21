@@ -1,0 +1,37 @@
+{
+  "person": {
+    "id": 100,
+    "last_name": "Author",
+    "first_name": "Name",
+    "last_name_kana": "チョシャ",
+    "first_name_kana": "メイ",
+    "name_en": "Name, Author",
+    "born_on": "1900-01-01",
+    "died_on": "1970-12-31",
+    "copyright_flag": false,
+    "description": "A famous author.",
+    "sortkey": "ちよしやめい"
+  },
+  "works": [
+    {
+      "id": 12345,
+      "title": "Published Work",
+      "title_kana": "コウカイサクヒン",
+      "subtitle": null,
+      "role": "著者",
+      "role_id": 1,
+      "kana_type": "新字新仮名",
+      "card_person_id": "000100",
+      "work_people": [
+        {"person_id": 200, "name": "Translator Name", "role_name": "翻訳者"}
+      ]
+    }
+  ],
+  "unpublished_works": [],
+  "sites": [
+    {"name": "Author Site", "url": "https://example.com"}
+  ],
+  "other_base_people": [
+    {"id": 101, "name": "Alternate Name"}
+  ]
+}

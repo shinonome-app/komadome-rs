@@ -1,111 +1,14 @@
 use anyhow::Result;
-use serde::Serialize;
 use sqlx::PgPool;
 use std::io::Write;
 use std::path::Path;
 
 use super::db_helpers;
-
-#[derive(Serialize)]
-struct CardData {
-    work_id: i64,
-    person_id: i64,
-    title: String,
-    title_kana: Option<String>,
-    subtitle: Option<String>,
-    subtitle_kana: Option<String>,
-    original_title: Option<String>,
-    collection: Option<String>,
-    collection_kana: Option<String>,
-    kana_type: Option<String>,
-    started_on: Option<String>,
-    note: Option<String>,
-    first_appearance: Option<String>,
-    description: Option<String>,
-    authors: Vec<AuthorInfo>,
-    translators: Vec<PersonRef>,
-    editors: Vec<PersonRef>,
-    workfiles: Vec<WorkfileInfo>,
-    original_books: Vec<OriginalBookInfo>,
-    work_workers: Vec<WorkWorkerInfo>,
-    bibclasses: Vec<BibclassInfo>,
-    sites: Vec<SiteInfo>,
-    work_people_details: Vec<WorkPersonDetailInfo>,
-}
-
-#[derive(Serialize)]
-struct AuthorInfo {
-    id: i64,
-    name: String,
-    name_kana: String,
-    copyright_flag: bool,
-}
-
-#[derive(Serialize)]
-struct PersonRef {
-    id: i64,
-    name: String,
-    name_kana: String,
-}
-
-#[derive(Serialize)]
-struct WorkfileInfo {
-    id: i64,
-    filename: Option<String>,
-    filesize: Option<i32>,
-    filetype: Option<String>,
-    filetype_id: i64,
-    is_html: bool,
-    compresstype: Option<String>,
-    charset: Option<String>,
-    file_encoding: Option<String>,
-    url: Option<String>,
-    registered_on: Option<String>,
-    last_updated_on: Option<String>,
-}
-
-#[derive(Serialize, Clone)]
-struct WorkPersonDetailInfo {
-    role_name: String,
-    person_id: i64,
-    name: String,
-    name_kana: String,
-    name_en: Option<String>,
-    born_on: Option<String>,
-    died_on: Option<String>,
-    description: Option<String>,
-    copyright_flag: bool,
-}
-
-#[derive(Serialize)]
-struct OriginalBookInfo {
-    title: String,
-    publisher: Option<String>,
-    first_pubdate: Option<String>,
-    input_edition: Option<String>,
-    proof_edition: Option<String>,
-    booktype: Option<String>,
-    booktype_id: Option<i64>,
-}
-
-#[derive(Serialize)]
-struct WorkWorkerInfo {
-    name: Option<String>,
-    role: Option<String>,
-}
-
-#[derive(Serialize)]
-struct BibclassInfo {
-    name: String,
-    num: String,
-    note: Option<String>,
-}
-
-#[derive(Serialize)]
-struct SiteInfo {
-    name: Option<String>,
-    url: Option<String>,
-}
+use super::export_helpers::write_jsonl_line;
+use crate::data::models::{
+    AuthorInfo, BibclassInfo, CardData, OriginalBookInfo, PersonRef, SiteInfo, WorkPersonDetail,
+    WorkWorkerInfo, WorkfileInfo,
+};
 
 // DB row types
 #[derive(sqlx::FromRow)]
@@ -466,12 +369,12 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
         let note = work.note.as_deref().map(remove_link_tag);
 
         // Rails: work.work_people.sort_by { |wp| [wp.role_id, wp.person_id] }
-        let work_people_details: Vec<WorkPersonDetailInfo> = {
+        let work_people_details: Vec<WorkPersonDetail> = {
             let mut sorted_people: Vec<&&WorkPersonRow> = people.iter().collect();
             sorted_people.sort_by_key(|wp| (wp.role_id, wp.person_id));
             sorted_people
                 .iter()
-                .map(|wp| WorkPersonDetailInfo {
+                .map(|wp| WorkPersonDetail {
                     role_name: wp.role_name.clone(),
                     person_id: wp.person_id,
                     name: wp.person_name.clone(),
@@ -513,8 +416,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
                 work_people_details: work_people_details.clone(),
             };
 
-            serde_json::to_writer(&mut file, &card)?;
-            file.write_all(b"\n")?;
+            write_jsonl_line(&mut file, &card)?;
             count += 1;
         }
     }
@@ -532,87 +434,4 @@ fn remove_link_tag(note: &str) -> String {
     )
     .unwrap();
     re.replace_all(note, "").to_string()
-}
-
-// Make AuthorInfo, PersonRef, WorkfileInfo etc. clonable for multi-author cards
-impl Clone for AuthorInfo {
-    fn clone(&self) -> Self {
-        Self {
-            id: self.id,
-            name: self.name.clone(),
-            name_kana: self.name_kana.clone(),
-            copyright_flag: self.copyright_flag,
-        }
-    }
-}
-
-impl Clone for PersonRef {
-    fn clone(&self) -> Self {
-        Self {
-            id: self.id,
-            name: self.name.clone(),
-            name_kana: self.name_kana.clone(),
-        }
-    }
-}
-
-impl Clone for WorkfileInfo {
-    fn clone(&self) -> Self {
-        Self {
-            id: self.id,
-            filename: self.filename.clone(),
-            filesize: self.filesize,
-            filetype: self.filetype.clone(),
-            filetype_id: self.filetype_id,
-            is_html: self.is_html,
-            compresstype: self.compresstype.clone(),
-            charset: self.charset.clone(),
-            file_encoding: self.file_encoding.clone(),
-            url: self.url.clone(),
-            registered_on: self.registered_on.clone(),
-            last_updated_on: self.last_updated_on.clone(),
-        }
-    }
-}
-
-impl Clone for OriginalBookInfo {
-    fn clone(&self) -> Self {
-        Self {
-            title: self.title.clone(),
-            publisher: self.publisher.clone(),
-            first_pubdate: self.first_pubdate.clone(),
-            input_edition: self.input_edition.clone(),
-            proof_edition: self.proof_edition.clone(),
-            booktype: self.booktype.clone(),
-            booktype_id: self.booktype_id,
-        }
-    }
-}
-
-impl Clone for WorkWorkerInfo {
-    fn clone(&self) -> Self {
-        Self {
-            name: self.name.clone(),
-            role: self.role.clone(),
-        }
-    }
-}
-
-impl Clone for BibclassInfo {
-    fn clone(&self) -> Self {
-        Self {
-            name: self.name.clone(),
-            num: self.num.clone(),
-            note: self.note.clone(),
-        }
-    }
-}
-
-impl Clone for SiteInfo {
-    fn clone(&self) -> Self {
-        Self {
-            name: self.name.clone(),
-            url: self.url.clone(),
-        }
-    }
 }

@@ -1,37 +1,10 @@
 use anyhow::Result;
 use chrono::Datelike;
-use serde::Serialize;
 use sqlx::PgPool;
 use std::io::Write;
 use std::path::Path;
 
-#[derive(Serialize)]
-struct TopData {
-    new_works: Vec<NewWork>,
-    new_works_published_on: Option<String>,
-    latest_news_published_on: Option<String>,
-    topics: Vec<TopicEntry>,
-    works_count: i64,
-    works_copyright_count: i64,
-    works_noncopyright_count: i64,
-}
-
-#[derive(Serialize)]
-struct NewWork {
-    work_id: i64,
-    title: String,
-    subtitle: Option<String>,
-    author_text: Option<String>,
-    card_person_id: Option<i64>,
-}
-
-#[derive(Serialize)]
-struct TopicEntry {
-    id: i64,
-    title: String,
-    published_on: Option<String>,
-    year: Option<i32>,
-}
+use crate::data::models::{TopNewWork, TopPageData, TopTopic};
 
 #[derive(sqlx::FromRow)]
 struct LatestDateRow {
@@ -43,6 +16,7 @@ struct NewWorkRow {
     id: i64,
     title: String,
     subtitle: Option<String>,
+    #[allow(dead_code)]
     started_on: Option<chrono::NaiveDate>,
 }
 
@@ -58,11 +32,6 @@ struct NewsRow {
     id: i64,
     title: String,
     published_on: Option<chrono::NaiveDate>,
-}
-
-#[derive(sqlx::FromRow)]
-struct CountRow {
-    count: i64,
 }
 
 pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
@@ -152,7 +121,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
 
     let authors_by_work = super::db_helpers::group_by(&authors, |a| a.work_id);
 
-    let new_works: Vec<NewWork> = new_works_rows
+    let new_works: Vec<TopNewWork> = new_works_rows
         .iter()
         .map(|w| {
             let empty = vec![];
@@ -164,7 +133,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
                 .join("、");
             let card_person_id = work_authors.first().map(|a| a.person_id);
 
-            NewWork {
+            TopNewWork {
                 work_id: w.id,
                 title: w.title.clone(),
                 subtitle: w.subtitle.clone(),
@@ -204,9 +173,9 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     .fetch_all(pool)
     .await?;
 
-    let topics: Vec<TopicEntry> = topic_rows
+    let topics: Vec<TopTopic> = topic_rows
         .into_iter()
-        .map(|r| TopicEntry {
+        .map(|r| TopTopic {
             id: r.id,
             title: r.title,
             year: r.published_on.map(|d| Datelike::year(&d)),
@@ -239,7 +208,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
 
     let works_noncopyright_count = works_count - works_copyright_count;
 
-    let data = TopData {
+    let data = TopPageData {
         new_works,
         new_works_published_on: latest_date.map(|d| d.to_string()),
         latest_news_published_on: latest_news.and_then(|n| n.published_on.map(|d| d.to_string())),
