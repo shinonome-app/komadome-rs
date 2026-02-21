@@ -12,7 +12,6 @@ pub fn build_soramoyou_index_context(
     current_year: i32,
 ) -> Result<Value> {
     let year_links: Vec<Value> = (BEGIN_YEAR..current_year)
-        .rev()
         .map(|y| json!({"year": y}))
         .collect();
 
@@ -31,12 +30,11 @@ pub fn build_soramoyou_year_context(
     data: &NewsData,
 ) -> Result<Value> {
     let year_links: Vec<Value> = (BEGIN_YEAR..data.year)
-        .rev()
         .map(|y| json!({"year": y}))
         .collect();
 
     let ctx = json!({
-        "page_title": format!("{}年のそらもよう | 青空文庫", data.year),
+        "page_title": "そらもよう | 青空文庫",
         "bgcolor": "bg-white-100",
         "entries": build_entries(&data.entries),
         "year_links": year_links,
@@ -56,8 +54,8 @@ fn build_entries(entries: &[crate::data::models::NewsEntry]) -> Vec<Value> {
                 .map(|d| format!("{}年{:02}月{:02}日", d.year(), d.month(), d.day()))
                 .unwrap_or_default();
 
-            // Convert newlines to <br /> (matching Ruby's gsub)
-            let body_html = e.body.replace("\r\n", "<br />").replace('\n', "<br />");
+            // Convert newlines to <br> (HTML5 style, matching Rails sanitize output)
+            let body_html = e.body.replace("\r\n", "<br>").replace('\n', "<br>");
 
             json!({
                 "id": e.id,

@@ -19,29 +19,34 @@ const COLUMN_DISPLAY: &[(&str, &str)] = &[
 ];
 
 pub fn build_wip_person_index_context(data: &WipPersonIndexData) -> Result<Value> {
-    let sections: Vec<Value> = data
-        .sections
-        .iter()
-        .map(|s| {
-            let people: Vec<Value> = s
-                .people
-                .iter()
-                .map(|p| {
-                    json!({
-                        "id": p.id,
-                        "name": p.name,
-                        "unpublished_count": p.unpublished_count,
-                        "copyright_flag": p.copyright_flag,
+    // For "zz" column (empty column_display), Rails renders no sections on per-column page.
+    // The sections data is still used by the consolidated page builder.
+    let sections: Vec<Value> = if data.column_display.is_empty() {
+        vec![]
+    } else {
+        data.sections
+            .iter()
+            .map(|s| {
+                let people: Vec<Value> = s
+                    .people
+                    .iter()
+                    .map(|p| {
+                        json!({
+                            "id": p.id,
+                            "name": p.name,
+                            "unpublished_count": p.unpublished_count,
+                            "copyright_flag": p.copyright_flag,
+                        })
                     })
+                    .collect();
+                json!({
+                    "kana_char": s.kana_char,
+                    "section_index": s.section_index,
+                    "people": people,
                 })
-                .collect();
-            json!({
-                "kana_char": s.kana_char,
-                "section_index": s.section_index,
-                "people": people,
             })
-        })
-        .collect();
+            .collect()
+    };
 
     let column_nav: Vec<Value> = COLUMN_CHARS
         .iter()
@@ -117,9 +122,20 @@ pub fn build_wip_person_consolidated_context(all_data: &[WipPersonIndexData]) ->
         })
         .collect();
 
+    let kana_all: Vec<Value> = all_sections
+        .iter()
+        .map(|s| {
+            json!({
+                "char": s["kana_char"],
+                "section_index": s["section_index"],
+            })
+        })
+        .collect();
+
     Ok(json!({
         "page_title": "作業中　作家リスト：全て | 青空文庫",
         "bgcolor": "bg-sky-50",
+        "kana_all": kana_all,
         "sections": all_sections,
         "column_nav": column_nav,
     }))

@@ -74,6 +74,7 @@ struct WorkPersonDetailInfo {
     born_on: Option<String>,
     died_on: Option<String>,
     description: Option<String>,
+    copyright_flag: bool,
 }
 
 #[derive(Serialize)]
@@ -238,7 +239,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
         JOIN people p ON p.id = wp.person_id
         JOIN roles r ON r.id = wp.role_id
         WHERE wp.work_id = ANY($1)
-        ORDER BY wp.work_id, wp.role_id, wp.person_id
+        ORDER BY wp.work_id, wp.id
         "#,
     )
     .bind(&work_ids)
@@ -260,7 +261,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
         LEFT JOIN charsets cs ON cs.id = wf.charset_id
         LEFT JOIN file_encodings fe ON fe.id = wf.file_encoding_id
         WHERE wf.work_id = ANY($1)
-        ORDER BY wf.work_id, wf.id
+        ORDER BY wf.work_id, wf.filetype_id, wf.id
         "#,
     )
     .bind(&work_ids)
@@ -341,11 +342,19 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
         let people = people_by_work.get(&work.id).unwrap_or(&empty_people);
 
         // Collect all unique person IDs related to this work (any role)
+        // Preserve insertion order (by work_people.id) to match Rails' .uniq behavior
         let all_person_ids: Vec<i64> = {
-            let mut ids: Vec<i64> = people.iter().map(|wp| wp.person_id).collect();
-            ids.sort();
-            ids.dedup();
-            ids
+            let mut seen = std::collections::HashSet::new();
+            people
+                .iter()
+                .filter_map(|wp| {
+                    if seen.insert(wp.person_id) {
+                        Some(wp.person_id)
+                    } else {
+                        None
+                    }
+                })
+                .collect()
         };
 
         if all_person_ids.is_empty() {
@@ -456,19 +465,25 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
 
         let note = work.note.as_deref().map(remove_link_tag);
 
-        let work_people_details: Vec<WorkPersonDetailInfo> = people
-            .iter()
-            .map(|wp| WorkPersonDetailInfo {
-                role_name: wp.role_name.clone(),
-                person_id: wp.person_id,
-                name: wp.person_name.clone(),
-                name_kana: wp.person_name_kana.clone(),
-                name_en: wp.person_name_en.clone(),
-                born_on: wp.born_on.clone(),
-                died_on: wp.died_on.clone(),
-                description: wp.person_description.clone(),
-            })
-            .collect();
+        // Rails: work.work_people.sort_by { |wp| [wp.role_id, wp.person_id] }
+        let work_people_details: Vec<WorkPersonDetailInfo> = {
+            let mut sorted_people: Vec<&&WorkPersonRow> = people.iter().collect();
+            sorted_people.sort_by_key(|wp| (wp.role_id, wp.person_id));
+            sorted_people
+                .iter()
+                .map(|wp| WorkPersonDetailInfo {
+                    role_name: wp.role_name.clone(),
+                    person_id: wp.person_id,
+                    name: wp.person_name.clone(),
+                    name_kana: wp.person_name_kana.clone(),
+                    name_en: wp.person_name_en.clone(),
+                    born_on: wp.born_on.clone(),
+                    died_on: wp.died_on.clone(),
+                    description: wp.person_description.clone(),
+                    copyright_flag: wp.copyright_flag,
+                })
+                .collect()
+        };
 
         // One card per related person
         for person_id in &all_person_ids {

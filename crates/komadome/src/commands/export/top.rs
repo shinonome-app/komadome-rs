@@ -222,12 +222,12 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     .fetch_one(pool)
     .await?;
 
-    // Copyright count: works where any author has copyright_flag = true
+    // Copyright count: works where any associated person has copyright_flag = true
     let works_copyright_count: i64 = sqlx::query_scalar(
         r#"
         SELECT COUNT(DISTINCT w.id)
         FROM works w
-        JOIN work_people wp ON wp.work_id = w.id AND wp.role_id = 1
+        JOIN work_people wp ON wp.work_id = w.id
         JOIN people p ON p.id = wp.person_id
         WHERE w.work_status_id = 1 AND w.started_on <= $1
           AND p.copyright_flag = true

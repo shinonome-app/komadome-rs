@@ -4,7 +4,7 @@ use serde_json::{json, Value};
 
 use crate::data::models::WhatsnewData;
 
-use super::work_index::build_pagination;
+use super::work_index::{build_pagination, build_pagination_nav_html};
 
 /// Build whatsnew index page context (current year)
 pub fn build_whatsnew_index_context(
@@ -15,8 +15,14 @@ pub fn build_whatsnew_index_context(
     let current_year = chrono::Datelike::year(today);
     let recent_cutoff = *today - chrono::Duration::days(7);
 
+    let pagination_nav_html = build_pagination_nav_html(
+        data.page,
+        data.total_pages,
+        |p| format!("/index_pages/whatsnew{}.html", p),
+    );
+
     let ctx = json!({
-        "page_title": format!("新規公開作品　{}年公開分 | 青空文庫", current_year),
+        "page_title": "新規公開作品 | 青空文庫",
         "bgcolor": "bg-sky-50",
         "current_year": current_year,
         "today": today.format("%Y.%m.%d").to_string(),
@@ -27,6 +33,7 @@ pub fn build_whatsnew_index_context(
         "prev_page": if data.page > 1 { Some(data.page - 1) } else { None },
         "next_page": if data.page < data.total_pages { Some(data.page + 1) } else { None },
         "pagination": build_pagination(data.page, data.total_pages),
+        "pagination_nav_html": &pagination_nav_html,
         "entries": data.entries.iter().map(|e| {
             let is_recent = e.started_on.as_ref().map_or(false, |s| {
                 NaiveDate::parse_from_str(s, "%Y-%m-%d")
@@ -58,8 +65,14 @@ pub fn build_whatsnew_year_context(
 ) -> Result<Value> {
     let year = data.year.unwrap_or(0);
 
+    let pagination_nav_html = build_pagination_nav_html(
+        data.page,
+        data.total_pages,
+        |p| format!("/index_pages/whatsnew_{}_{}.html", year, p),
+    );
+
     let ctx = json!({
-        "page_title": format!("公開作品　{}年公開分 | 青空文庫", year),
+        "page_title": format!("公開作品 {}年公開分 | 青空文庫", year),
         "bgcolor": "bg-sky-50",
         "year": year,
         "today": today.format("%Y.%m.%d").to_string(),
@@ -70,6 +83,7 @@ pub fn build_whatsnew_year_context(
         "prev_page": if data.page > 1 { Some(data.page - 1) } else { None },
         "next_page": if data.page < data.total_pages { Some(data.page + 1) } else { None },
         "pagination": build_pagination(data.page, data.total_pages),
+        "pagination_nav_html": &pagination_nav_html,
         "entries": data.entries.iter().map(|e| {
             json!({
                 "work_id": e.work_id,

@@ -1,4 +1,5 @@
 use anyhow::{Context, Result};
+use chrono::NaiveDate;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fs;
@@ -7,6 +8,9 @@ use std::path::Path;
 /// All master tables loaded from masters.json
 #[derive(Debug, Deserialize)]
 pub struct Masters {
+    /// The date when JSONL was exported (ISO 8601 format)
+    #[serde(default)]
+    pub exported_on: Option<String>,
     pub roles: Vec<Role>,
     pub work_statuses: Vec<WorkStatus>,
     pub kana_types: Vec<KanaType>,
@@ -145,6 +149,14 @@ impl Masters {
             .iter()
             .filter_map(|w| w.name.as_ref().map(|n| (w.id, n.clone())))
             .collect();
+    }
+
+    /// Get the export date as NaiveDate, falling back to today if not set
+    pub fn exported_date(&self) -> NaiveDate {
+        self.exported_on
+            .as_deref()
+            .and_then(|s| NaiveDate::parse_from_str(s, "%Y-%m-%d").ok())
+            .unwrap_or_else(|| chrono::Local::now().date_naive())
     }
 
     pub fn role_name(&self, id: i64) -> Option<&str> {

@@ -80,10 +80,10 @@ pub fn run(config: &Config, args: BuildArgs) -> Result<()> {
     build_person_indexes_internal(config, &templates, &stats, &multi)?;
 
     // Build whatsnew
-    build_whatsnew_internal(config, &templates, &stats, &multi)?;
+    build_whatsnew_internal(config, &masters, &templates, &stats, &multi)?;
 
     // Build soramoyou
-    build_soramoyou_internal(config, &templates, &stats, &multi)?;
+    build_soramoyou_internal(config, &masters, &templates, &stats, &multi)?;
 
     // Build static pages (index_top, index_all)
     build_static_pages_internal(config, &templates)?;
@@ -254,7 +254,8 @@ pub fn run_whatsnew(config: &Config, args: WhatsnewArgs) -> Result<()> {
     let start = Instant::now();
     println!("Building whatsnew pages with {} threads...", jobs);
 
-    // Load templates
+    // Load masters and templates
+    let masters = Masters::load(&config.data.directory.join("masters.json"))?;
     let templates = TemplateRegistry::load(&config.templates.directory)?;
 
     // Prepare output directory
@@ -263,7 +264,7 @@ pub fn run_whatsnew(config: &Config, args: WhatsnewArgs) -> Result<()> {
     let stats = BuildStats::default();
     let multi = MultiProgress::new();
 
-    build_whatsnew_internal(config, &templates, &stats, &multi)?;
+    build_whatsnew_internal(config, &masters, &templates, &stats, &multi)?;
     multi.clear()?;
 
     let elapsed = start.elapsed();
@@ -286,7 +287,8 @@ pub fn run_soramoyou(config: &Config, args: SoramoyouArgs) -> Result<()> {
     let start = Instant::now();
     println!("Building soramoyou pages with {} threads...", jobs);
 
-    // Load templates
+    // Load masters and templates
+    let masters = Masters::load(&config.data.directory.join("masters.json"))?;
     let templates = TemplateRegistry::load(&config.templates.directory)?;
 
     // Prepare output directory
@@ -295,7 +297,7 @@ pub fn run_soramoyou(config: &Config, args: SoramoyouArgs) -> Result<()> {
     let stats = BuildStats::default();
     let multi = MultiProgress::new();
 
-    build_soramoyou_internal(config, &templates, &stats, &multi)?;
+    build_soramoyou_internal(config, &masters, &templates, &stats, &multi)?;
     multi.clear()?;
 
     let elapsed = start.elapsed();
@@ -336,6 +338,7 @@ fn build_cards_internal(
     let cards: Vec<CardData> = JsonlIterator::new(&cards_path)?
         .filter_map(|r| r.ok())
         .collect();
+
 
     // Process in parallel
     cards.par_iter().for_each(|card| {
@@ -631,6 +634,7 @@ fn build_person_index(
 
 fn build_whatsnew_internal(
     config: &Config,
+    masters: &Masters,
     templates: &TemplateRegistry,
     stats: &BuildStats,
     multi: &MultiProgress,
@@ -663,7 +667,7 @@ fn build_whatsnew_internal(
         years
     };
 
-    let today = chrono::Local::now().date_naive();
+    let today = masters.exported_date();
     let index_pages_dir = config.output.directory.join("index_pages");
     fs::create_dir_all(&index_pages_dir)?;
 
@@ -711,6 +715,7 @@ fn build_whatsnew_internal(
 
 fn build_soramoyou_internal(
     config: &Config,
+    masters: &Masters,
     templates: &TemplateRegistry,
     stats: &BuildStats,
     multi: &MultiProgress,
@@ -731,7 +736,7 @@ fn build_soramoyou_internal(
             .progress_chars("=> "),
     );
 
-    let current_year = chrono::Datelike::year(&chrono::Local::now().date_naive());
+    let current_year = chrono::Datelike::year(&masters.exported_date());
     let soramoyou_dir = config.output.directory.join("soramoyou");
     fs::create_dir_all(&soramoyou_dir)?;
 

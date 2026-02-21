@@ -5,6 +5,7 @@ use std::path::Path;
 
 #[derive(Serialize)]
 struct MastersData {
+    exported_on: String,
     roles: Vec<RoleRow>,
     work_statuses: Vec<WorkStatusRow>,
     kana_types: Vec<KanaTypeRow>,
@@ -132,6 +133,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
         + worker_roles.len();
 
     let masters = MastersData {
+        exported_on: chrono::Local::now().date_naive().format("%Y-%m-%d").to_string(),
         roles,
         work_statuses,
         kana_types,

@@ -1,103 +1,135 @@
-{[!include /shared/header ]}
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{[ page_title ]}</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="stylesheet" href="/assets/tailwind.css">
+    <link rel="stylesheet" href="/assets/inter-font.css">
+  </head>
 
-<h1 class="flex justify-center py-3 text-2xl font-semibold bg-yellow-100 border border-y-gray-500">作品インデックス：{[ display_char ]}</h1>
+  <body class="{[ bgcolor ]}">
+    <main class="container mx-auto py-1">
+      <div id="app" class="container mx-auto max-w-5xl py-4">
+  <span id="top" name="top">&nbsp;</span>
 
-<div class="p-4">
-  <nav class="flex flex-wrap gap-2 mb-4">
-    <a href="/index_pages/sakuhin_a1.html" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded">あ</a>
-    <a href="/index_pages/sakuhin_ka1.html" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded">か</a>
-    <a href="/index_pages/sakuhin_sa1.html" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded">さ</a>
-    <a href="/index_pages/sakuhin_ta1.html" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded">た</a>
-    <a href="/index_pages/sakuhin_na1.html" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded">な</a>
-    <a href="/index_pages/sakuhin_ha1.html" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded">は</a>
-    <a href="/index_pages/sakuhin_ma1.html" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded">ま</a>
-    <a href="/index_pages/sakuhin_ya1.html" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded">や</a>
-    <a href="/index_pages/sakuhin_ra1.html" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded">ら</a>
-    <a href="/index_pages/sakuhin_wa1.html" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded">わ</a>
-    <a href="/index_pages/sakuhin_zz1.html" class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded">他</a>
-  </nav>
+  <header class="flex items-center justify-between">
+    <a href="/" class="md:hidden flex justify-between px-2">
+      <img src="/images/top_logo.png" alt="Logo" class="h-8 w-8">
+    </a>
+    <span class="hidden md:flex">&nbsp;</span>
+    <div class="flex md:hidden items-center space-x-3 py-3 px-3">
+      <!--
+          <button>
+            <svg class="h-6 w-6 fill-current" viewBox="0 0 24 24">
+              <path d="M24 6h-24v-4h24v4zm0 4h-24v4h24v-4zm0 8h-24v4h24v-4z"/>
+            </svg>
+          </button>
+          -->
+          <button class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline">[メニュー]</button>
+    </div>
+    <div>
+      <span class="pr-3">
+        ●
+        <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index.html">トップ</a>
+      </span>
+      <span class="pr-3">
+        ●
+        <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/index_top.html">インデックス</a>
+      </span>
+      <span class="pr-3">
+        ●
+        <span class="text-red-500">作品一覧</span>
+        <!--
+            <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="">作品一覧</a>
+            -->
+      </span>
+    </div>
+  </header>
 
-  {[-#if total_pages-]}
-  <nav class="flex items-center gap-2 mb-4">
-    {[-#if has_prev-]}
-    <a href="/index_pages/sakuhin_{[ kana_symbol ]}{[ prev_page ]}.html" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">前へ</a>
-    {[-/if-]}
+  <h1 class="flex justify-center py-3 text-2xl font-semibold bg-yellow-100 border border-y-gray-500">公開中　作品一覧：{[ display_char ]}</h1>
 
-    {[-#each pagination as item-]}
-      {[-#if item.is_gap-]}
-      <span class="px-2">...</span>
-      {[-/if-]}
-      {[-#unless item.is_gap-]}
-        {[-#if item.is_current-]}
-        <span class="px-3 py-1 bg-blue-700 text-white rounded">{[ item.page ]}</span>
-        {[-/if-]}
-        {[-#unless item.is_current-]}
-        <a href="/index_pages/sakuhin_{[ kana_symbol ]}{[ item.page ]}.html" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">{[ item.page ]}</a>
-        {[-/unless-]}
-      {[-/unless-]}
-    {[-/each-]}
+  <div class="flex justify-center p-1">
 
-    {[-#if has_next-]}
-    <a href="/index_pages/sakuhin_{[ kana_symbol ]}{[ next_page ]}.html" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">次へ</a>
-    {[-/if-]}
-  </nav>
-  {[-/if-]}
+    <div class="w-full">
 
-  <table class="w-full">
-    <thead>
-      <tr class="bg-gray-50 border-b">
-        <th class="text-left p-2">作品名</th>
-        <th class="text-left p-2">読み</th>
-        <th class="text-left p-2">著者</th>
-      </tr>
-    </thead>
-    <tbody>
-      {[-#each works as work-]}
-      <tr class="border-b hover:bg-gray-50">
-        <td class="p-2">
-          <a href="{[ work.card_path ]}" class="underline text-blue-700">
-            {[ work.title ]}{[#if work.subtitle]} {[ work.subtitle ]}{[/if]}
-          </a>
-        </td>
-        <td class="p-2 text-sm text-gray-600">{[ work.title_kana ]}</td>
-        <td class="p-2">
-          {[-#if work.has_person_id-]}
-          <a href="/index_pages/person{[ work.person_id ]}.html" class="underline text-blue-700">{[ work.author_name ]}</a>
-          {[-/if-]}
-          {[-#unless work.has_person_id-]}
-          {[ work.author_name ]}
-          {[-/unless-]}
-        </td>
-      </tr>
-      {[-/each-]}
-    </tbody>
-  </table>
+      <div class="text-right py-4">
+        <nav aria-label="pager" class="pagy_nav pagination" role="navigation">{[-#if has_prev]}
+  <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" rel="prev" aria-label="previous" href="/index_pages/sakuhin_{[ kana_symbol ]}{[ prev_page ]}.html">前の50件</a>{[/if]}{[-#unless has_prev]}
+  <span class="prev disabled"><!-- 前の50件 --></span>{[/unless]}
+  <span class="px-1">&nbsp;</span>
+  ページ:{[-#each pagination as item]}{[-#if item.is_gap]}
+  <span class="page gap">&hellip;</span>{[/if]}{[-#unless item.is_gap]}{[-#if item.is_current]}
+  <span class="text-2xl">{[ item.page ]}</span>{[/if]}{[-#unless item.is_current]}
+  <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/sakuhin_{[ kana_symbol ]}{[ item.page ]}.html">{[ item.page ]}</a>{[/unless]}{[/unless]}{[/each]}{[-#if has_next]}
+  <span class="px-1">&nbsp;</span>
+  <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" rel="next" aria-label="next" href="/index_pages/sakuhin_{[ kana_symbol ]}{[ next_page ]}.html">次の50件</a>{[/if]}{[-#unless has_next]}
+  <span class="next disabled"><!-- 次の50件 --></span>{[/unless]}
+</nav>
 
-  {[-#if total_pages-]}
-  <nav class="flex items-center gap-2 mt-4">
-    {[-#if has_prev-]}
-    <a href="/index_pages/sakuhin_{[ kana_symbol ]}{[ prev_page ]}.html" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">前へ</a>
-    {[-/if-]}
+      </div>
 
-    {[-#each pagination as item-]}
-      {[-#if item.is_gap-]}
-      <span class="px-2">...</span>
-      {[-/if-]}
-      {[-#unless item.is_gap-]}
-        {[-#if item.is_current-]}
-        <span class="px-3 py-1 bg-blue-700 text-white rounded">{[ item.page ]}</span>
-        {[-/if-]}
-        {[-#unless item.is_current-]}
-        <a href="/index_pages/sakuhin_{[ kana_symbol ]}{[ item.page ]}.html" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">{[ item.page ]}</a>
-        {[-/unless-]}
-      {[-/unless-]}
-    {[-/each-]}
+      <table class="border-double border-2 border-gray-800 w-full">
+        <tr class="w-770 border-double border-2 border-gray-800">
+          <th class="w-100 font-normal bg-yellow-100 border-double border-2 border-gray-800">No.</th>
+          <th class="w-220 font-normal bg-yellow-100 border-double border-2 border-gray-800">作品名<br>副題 </th>
+          <th class="w-110 font-normal bg-yellow-100 border-double border-2 border-gray-800">文字遣い種別 </th>
+          <th class="w-110 font-normal bg-yellow-100 border-double border-2 border-gray-800">著者名</th>
+          <th class="w-110 font-normal bg-yellow-100 border-double border-2 border-gray-800">著者基本名</th>
+          <th class="w-110 font-normal bg-yellow-100 border-double border-2 border-gray-800">翻訳者名等 </th>
+        </tr>
+{[-#each works as work]}
+        <tr>
+          <td class="bg-white border-double border-2 border-gray-800 text-right">{[ work.row_number ]}</td>
+          <td class="bg-white border-double border-2 border-gray-800">
+            <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="{[ work.card_path ]}">{[ work.title ]}</a>
+            <br>{[ work.subtitle ]}
+          </td>
+          <td class="bg-white border-double border-2 border-gray-800">{[ work.kana_type ]}</td>
+          <td class="bg-white border-double border-2 border-gray-800">{[ work.author_text ]}</td>
+          <td class="bg-white border-double border-2 border-gray-800">{[ work.base_author_text ]}</td>
+          <td class="bg-white border-double border-2 border-gray-800">{[ work.translator_text ]}</td>
+        </tr>
+{[/each]}
+      </table>
+      <div class="text-right py-4">
+        <nav aria-label="pager" class="pagy_nav pagination" role="navigation">{[-#if has_prev]}
+  <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" rel="prev" aria-label="previous" href="/index_pages/sakuhin_{[ kana_symbol ]}{[ prev_page ]}.html">前の50件</a>{[/if]}{[-#unless has_prev]}
+  <span class="prev disabled"><!-- 前の50件 --></span>{[/unless]}
+  <span class="px-1">&nbsp;</span>
+  ページ:{[-#each pagination as item]}{[-#if item.is_gap]}
+  <span class="page gap">&hellip;</span>{[/if]}{[-#unless item.is_gap]}{[-#if item.is_current]}
+  <span class="text-2xl">{[ item.page ]}</span>{[/if]}{[-#unless item.is_current]}
+  <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/sakuhin_{[ kana_symbol ]}{[ item.page ]}.html">{[ item.page ]}</a>{[/unless]}{[/unless]}{[/each]}{[-#if has_next]}
+  <span class="px-1">&nbsp;</span>
+  <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" rel="next" aria-label="next" href="/index_pages/sakuhin_{[ kana_symbol ]}{[ next_page ]}.html">次の50件</a>{[/if]}{[-#unless has_next]}
+  <span class="next disabled"><!-- 次の50件 --></span>{[/unless]}
+</nav>
 
-    {[-#if has_next-]}
-    <a href="/index_pages/sakuhin_{[ kana_symbol ]}{[ next_page ]}.html" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">次へ</a>
-    {[-/if-]}
-  </nav>
-  {[-/if-]}
+      </div>
+    </div>
+  </div>
+
+  <div class="text-right py-4">
+    <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="#top">▲</a>
+  </div>
+
+  <hr class="border-gray-400">
+
+  <footer class="pt-3 pb-14">
+    <div>
+      <span class="pr-3">
+        ●
+        <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index.html">トップ</a>
+      </span>
+      <span class="pr-3">
+        ●
+        <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/index_top.html">インデックス</a>
+      </span>
+    </div>
+  </footer>
 </div>
 
-{[!include /shared/footer ]}
+    </main>
+  </body>
+</html>

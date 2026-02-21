@@ -141,6 +141,24 @@ impl Kana {
         "zz"
     }
 
+    /// Get column symbol and index within that column for this kana
+    /// Equivalent to Ruby's Kana#to_symbol_and_index
+    /// Returns (column_symbol, index_within_column)
+    pub fn to_symbol_and_index(&self) -> (&'static str, usize) {
+        let kana_char = self.display_char().unwrap_or("");
+        if kana_char.is_empty() {
+            return ("zz", 0);
+        }
+        for (col_symbol, chars) in COLUMN_CHARS {
+            if let Some(idx) = chars.find(kana_char) {
+                // find returns byte offset; convert to char index
+                let char_idx = chars[..idx].chars().count();
+                return (col_symbol, char_idx);
+            }
+        }
+        ("zz", 0)
+    }
+
     /// Generate sortkey pattern for database queries (if needed)
     pub fn sortkey_pattern(&self) -> String {
         if self.symbol == "zz" {

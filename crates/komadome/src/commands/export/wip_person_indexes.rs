@@ -50,7 +50,7 @@ const COLUMN_DISPLAY: &[(&str, &str)] = &[
     ("ya", "や"),
     ("ra", "ら"),
     ("wa", "わ"),
-    ("zz", "他"),
+    ("zz", ""),
 ];
 
 fn column_display(col: &str) -> &'static str {
@@ -64,6 +64,8 @@ fn column_display(col: &str) -> &'static str {
 /// Get individual kana characters for a column
 fn column_kana_chars(kana_chars: &str) -> Vec<String> {
     if kana_chars.is_empty() {
+        // For "zz" column, include "その他" section so consolidated page can use it.
+        // Per-column page builder will filter this out (Rails renders no sections for zz).
         vec!["その他".to_string()]
     } else {
         kana_chars.chars().map(|c| c.to_string()).collect()
@@ -140,7 +142,7 @@ async fn fetch_wip_people(
                    END) AS unpublished_count,
                    p.copyright_flag
             FROM people p
-            LEFT JOIN work_people wp ON wp.person_id = p.id AND wp.role_id = 1
+            LEFT JOIN work_people wp ON wp.person_id = p.id
             LEFT JOIN works w ON w.id = wp.work_id
             WHERE p.sortkey !~ $1
             GROUP BY p.id, p.last_name, p.first_name, p.copyright_flag, p.sortkey, p.sortkey2
@@ -165,7 +167,7 @@ async fn fetch_wip_people(
                    END) AS unpublished_count,
                    p.copyright_flag
             FROM people p
-            LEFT JOIN work_people wp ON wp.person_id = p.id AND wp.role_id = 1
+            LEFT JOIN work_people wp ON wp.person_id = p.id
             LEFT JOIN works w ON w.id = wp.work_id
             WHERE p.sortkey LIKE $1
             GROUP BY p.id, p.last_name, p.first_name, p.copyright_flag, p.sortkey, p.sortkey2

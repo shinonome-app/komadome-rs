@@ -53,8 +53,12 @@
             <input type="text" name="as_q" value="" autocomplete="on" size="25" class="rounded text-sm h-6 mt-1">
             <br>
             <input type="submit" value="Google" class="my-1 rounded bg-gray-200 hover:bg-gray-300 border border-slate-500 text-sm w-16 h-6">
+            <!--<input type="button" onclick="se(1)" value="Google">-->
             <input type="button" onclick="se(2)" value="bing" class="my-1 rounded bg-gray-200 hover:bg-gray-300 border border-slate-500 text-sm w-16 h-6">
+            <!--<input type="button" onclick="se(3)" value="Naver">-->
+            <!--<input type="button" onclick="se(4)" value="Baidu">-->
             <input type="button" onclick="se(5)" value="goo" class="my-1 rounded bg-gray-200 hover:bg-gray-300 border border-slate-500 text-sm w-16 h-6">
+            <!--<input type="button" onclick="se(6)" value="Yahoo!">-->
           </form>
         </div>
       </div>

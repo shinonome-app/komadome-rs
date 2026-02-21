@@ -27,10 +27,14 @@ pub struct Person {
     pub first_name: Option<String>,
     pub last_name_kana: String,
     pub first_name_kana: Option<String>,
+    #[serde(default)]
+    pub name_en: Option<String>,
     pub born_on: Option<String>,
     pub died_on: Option<String>,
     pub copyright_flag: bool,
     pub description: Option<String>,
+    #[serde(default)]
+    pub sortkey: Option<String>,
 }
 
 impl Person {
@@ -130,6 +134,8 @@ pub struct WorkPersonDetail {
     pub born_on: Option<String>,
     pub died_on: Option<String>,
     pub description: Option<String>,
+    #[serde(default)]
+    pub copyright_flag: bool,
 }
 
 /// Card data (pre-joined for efficient page generation)
@@ -165,9 +171,9 @@ pub struct CardData {
 }
 
 impl CardData {
-    /// Check if any author has copyright
+    /// Check if any related person (author, translator, editor) has copyright
     pub fn has_copyright(&self) -> bool {
-        self.authors.iter().any(|a| a.copyright_flag)
+        self.work_people_details.iter().any(|wp| wp.copyright_flag)
     }
 
     /// Get primary author (first in list)
@@ -182,13 +188,32 @@ impl CardData {
     }
 }
 
+/// Other base person (別名人物)
+#[derive(Debug, Clone, Deserialize)]
+pub struct OtherBasePerson {
+    pub id: i64,
+    pub name: String,
+}
+
+/// Work person reference (関連著者/翻訳者)
+#[derive(Debug, Clone, Deserialize)]
+pub struct WorkPersonRef {
+    pub person_id: i64,
+    pub name: String,
+    pub role_name: String,
+}
+
 /// Person page data (pre-joined)
 /// From person_pages.jsonl
 #[derive(Debug, Clone, Deserialize)]
 pub struct PersonPageData {
     pub person: Person,
     pub works: Vec<PersonWorkInfo>,
+    #[serde(default)]
+    pub unpublished_works: Vec<PersonWorkInfo>,
     pub sites: Vec<SiteInfo>,
+    #[serde(default)]
+    pub other_base_people: Vec<OtherBasePerson>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -200,6 +225,10 @@ pub struct PersonWorkInfo {
     pub role: Option<String>,
     pub role_id: i64,
     pub kana_type: Option<String>,
+    #[serde(default)]
+    pub card_person_id: Option<String>,
+    #[serde(default)]
+    pub work_people: Vec<WorkPersonRef>,
 }
 
 /// Work index data (for index pages)
@@ -220,6 +249,16 @@ pub struct WorkIndexItem {
     pub subtitle: Option<String>,
     pub author_name: Option<String>,
     pub person_id: Option<i64>,
+    #[serde(default)]
+    pub card_person_id: Option<String>,
+    #[serde(default)]
+    pub kana_type: Option<String>,
+    #[serde(default)]
+    pub author_text: Option<String>,
+    #[serde(default)]
+    pub base_author_text: Option<String>,
+    #[serde(default)]
+    pub translator_text: Option<String>,
 }
 
 /// Person index data
@@ -227,6 +266,14 @@ pub struct WorkIndexItem {
 #[derive(Debug, Clone, Deserialize)]
 pub struct PersonIndexData {
     pub kana_column: String,
+    pub column_display: String,
+    pub sections: Vec<PersonIndexSection>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct PersonIndexSection {
+    pub kana_char: String,
+    pub section_index: usize,
     pub people: Vec<PersonIndexItem>,
 }
 
@@ -237,6 +284,8 @@ pub struct PersonIndexItem {
     pub name_kana: String,
     pub work_count: usize,
     pub copyright_flag: bool,
+    #[serde(default)]
+    pub published_works_count: usize,
 }
 
 /// Whatsnew data
@@ -367,6 +416,8 @@ pub struct PersonAllItem {
     pub name: String,
     pub published_count: i64,
     pub unpublished_count: i64,
+    #[serde(default)]
+    pub total_count: i64,
     pub copyright_flag: bool,
 }
 

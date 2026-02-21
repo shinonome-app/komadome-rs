@@ -93,7 +93,7 @@ async fn build_year_entries(
           AND started_on IS NOT NULL
           AND extract(year FROM started_on) = $1
           AND started_on <= $2
-        ORDER BY started_on DESC, id DESC
+        ORDER BY started_on DESC, id ASC
         "#,
     )
     .bind(year)
