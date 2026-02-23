@@ -2,10 +2,10 @@ use anyhow::Result;
 use serde_json::{json, Value};
 
 use crate::data::masters::Masters;
-use crate::data::models::CardData;
+use crate::data::models::{CardData, WorkfileInfo};
 
 /// Build card page context from card data
-pub fn build_card_context(card: &CardData, _masters: &Masters) -> Result<Value> {
+pub fn build_card_context(card: &CardData, _masters: &Masters, main_site_url: &str) -> Result<Value> {
     let bgcolor = if card.has_copyright() {
         "bg-rose-50"
     } else {
@@ -18,14 +18,7 @@ pub fn build_card_context(card: &CardData, _masters: &Masters) -> Result<Value> 
     // Find XHTML workfile URL for "いますぐXHTML版で読む" link
     let xhtml_url = card.workfiles.iter()
         .find(|f| f.is_html)
-        .and_then(|f| {
-            if let Some(url) = f.url.as_deref() {
-                if !url.is_empty() {
-                    return Some(url.to_string());
-                }
-            }
-            f.filename.as_deref().map(|fname| format!("./files/{}", fname))
-        });
+        .and_then(|f| workfile_download_url(f, first_author_id, main_site_url));
 
     // Format bibclasses as comma-separated string
     let bibclasses_text = card.bibclasses.iter().map(|b| {
@@ -100,16 +93,8 @@ pub fn build_card_context(card: &CardData, _masters: &Masters) -> Result<Value> 
                 "charset": f.charset.as_deref().unwrap_or(""),
                 "file_encoding": f.file_encoding.as_deref().unwrap_or(""),
                 "url": f.url.as_deref().unwrap_or(""),
-                "download_url": if f.url.as_deref().map_or(true, |u| u.is_empty()) {
-                    format!("./files/{}", download_filename)
-                } else {
-                    f.url.as_deref().unwrap_or("").to_string()
-                },
-                "download_display": if f.url.as_deref().map_or(true, |u| u.is_empty()) {
-                    download_filename.to_string()
-                } else {
-                    f.url.as_deref().unwrap_or("").to_string()
-                },
+                "download_url": workfile_download_url(f, first_author_id, main_site_url).unwrap_or_default(),
+                "download_display": workfile_download_display(f, first_author_id, main_site_url),
                 "registered_on": f.registered_on.as_deref().unwrap_or(""),
                 "last_updated_on": f.last_updated_on.as_deref().unwrap_or(""),
             })
@@ -164,6 +149,32 @@ fn cleanup_note(note: &str) -> String {
     // Remove old link.js script tags
     let re = regex::Regex::new(r#"<script[^>]*link\.js[^>]*></script>"#).unwrap();
     re.replace_all(note, "").to_string()
+}
+
+/// Build an absolute download URL for a workfile.
+/// If the workfile has an explicit URL, use it; otherwise construct from main_site_url.
+fn workfile_download_url(f: &WorkfileInfo, person_id: i64, main_site_url: &str) -> Option<String> {
+    if let Some(url) = f.url.as_deref() {
+        if !url.is_empty() {
+            return Some(url.to_string());
+        }
+    }
+    f.filename.as_deref().map(|fname| {
+        format!("{}/cards/{:06}/files/{}", main_site_url, person_id, fname)
+    })
+}
+
+/// Build a display string for a workfile download link.
+fn workfile_download_display(f: &WorkfileInfo, person_id: i64, main_site_url: &str) -> String {
+    if let Some(url) = f.url.as_deref() {
+        if !url.is_empty() {
+            return url.to_string();
+        }
+    }
+    match f.filename.as_deref() {
+        Some(fname) => format!("{}/cards/{:06}/files/{}", main_site_url, person_id, fname),
+        None => String::new(),
+    }
 }
 
 #[cfg(test)]

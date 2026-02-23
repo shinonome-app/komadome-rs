@@ -66,7 +66,7 @@ fn build_card(
     templates: &TemplateRegistry,
     card_data: &CardData,
 ) -> Result<()> {
-    let ctx = card::build_card_context(card_data, masters)?;
+    let ctx = card::build_card_context(card_data, masters, &config.output.main_site_url)?;
 
     let html = templates
         .render("cards/show", ctx)

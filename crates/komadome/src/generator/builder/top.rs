@@ -46,5 +46,6 @@ pub fn build_top_context(data: &TopPageData) -> Result<Value> {
         "works_count": data.works_count,
         "works_copyright_count": data.works_copyright_count,
         "works_noncopyright_count": data.works_noncopyright_count,
+        "editable_content_html": "",
     }))
 }

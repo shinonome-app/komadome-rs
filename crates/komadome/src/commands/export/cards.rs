@@ -246,10 +246,12 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
 
         // Collect all unique person IDs related to this work (any role)
         // Preserve insertion order (by work_people.id) to match Rails' .uniq behavior
+        // Skip person_id=0 ("著者なし" placeholder)
         let all_person_ids: Vec<i64> = {
             let mut seen = std::collections::HashSet::new();
             people
                 .iter()
+                .filter(|wp| wp.person_id != 0)
                 .filter_map(|wp| {
                     if seen.insert(wp.person_id) {
                         Some(wp.person_id)
