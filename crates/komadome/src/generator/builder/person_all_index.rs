@@ -76,7 +76,7 @@ pub fn build_person_all_index_context(data: &PersonAllIndexData) -> Result<Value
 }
 
 pub fn person_all_index_filename(kana_column: &str) -> String {
-    format!("person_all_{}.html", kana_column)
+    format!("person_all_{kana_column}.html")
 }
 
 /// Build context for the consolidated person_all.html page (all columns merged)

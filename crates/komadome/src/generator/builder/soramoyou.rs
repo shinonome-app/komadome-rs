@@ -76,5 +76,5 @@ pub fn soramoyou_index_filename() -> String {
 
 /// Generate soramoyou year page filename
 pub fn soramoyou_year_filename(year: i32) -> String {
-    format!("soramoyou{}.html", year)
+    format!("soramoyou{year}.html")
 }

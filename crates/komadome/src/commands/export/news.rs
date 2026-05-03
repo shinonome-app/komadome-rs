@@ -59,6 +59,6 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     }
 
     file.flush()?;
-    println!("  -> {} news years", count);
+    println!("  -> {count} news years");
     Ok(count)
 }

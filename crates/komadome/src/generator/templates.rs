@@ -30,7 +30,7 @@ impl TemplateRegistry {
                 .with_context(|| format!("Failed to read template: {}", entry.display()))?;
 
             let tmpl = Natsuzora::parse_with_includes(&source, template_dir)
-                .with_context(|| format!("Failed to parse template: {}", name))?;
+                .with_context(|| format!("Failed to parse template: {name}"))?;
 
             templates.insert(name, tmpl);
         }
@@ -50,10 +50,10 @@ impl TemplateRegistry {
     pub fn render(&self, name: &str, data: serde_json::Value) -> Result<String> {
         let tmpl = self
             .get(name)
-            .with_context(|| format!("Template not found: {}", name))?;
+            .with_context(|| format!("Template not found: {name}"))?;
 
         tmpl.render(data)
-            .map_err(|e| anyhow::anyhow!("Render error in {}: {}", name, e))
+            .map_err(|e| anyhow::anyhow!("Render error in {name}: {e}"))
     }
 
     /// Get the include root path

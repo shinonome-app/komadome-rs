@@ -11,9 +11,9 @@ fn fixture_path(name: &str) -> String {
 fn load_fixture<T: serde::de::DeserializeOwned>(name: &str) -> T {
     let path = fixture_path(name);
     let content = std::fs::read_to_string(&path)
-        .unwrap_or_else(|e| panic!("Failed to read fixture {}: {}", name, e));
+        .unwrap_or_else(|e| panic!("Failed to read fixture {name}: {e}"));
     serde_json::from_str(&content)
-        .unwrap_or_else(|e| panic!("Failed to parse fixture {}: {}", name, e))
+        .unwrap_or_else(|e| panic!("Failed to parse fixture {name}: {e}"))
 }
 
 fn roundtrip_check<T: serde::de::DeserializeOwned>(name: &str) -> (T, serde_json::Value) {
@@ -35,12 +35,12 @@ fn test_card_data_deserialization() {
     assert_eq!(card.kana_type.as_deref(), Some("新字新仮名"));
     assert_eq!(card.authors.len(), 1);
     assert_eq!(card.authors[0].id, 100);
-    assert_eq!(card.authors[0].copyright_flag, false);
+    assert!(!card.authors[0].copyright_flag);
     assert_eq!(card.translators.len(), 1);
     assert_eq!(card.editors.len(), 0);
     assert_eq!(card.workfiles.len(), 1);
     assert_eq!(card.workfiles[0].filetype_id, 1);
-    assert_eq!(card.workfiles[0].is_html, false);
+    assert!(!card.workfiles[0].is_html);
     assert_eq!(card.original_books.len(), 1);
     assert_eq!(card.work_workers.len(), 2);
     assert_eq!(card.bibclasses.len(), 1);
@@ -52,7 +52,7 @@ fn test_card_data_deserialization() {
 #[test]
 fn test_card_data_methods() {
     let card: CardData = load_fixture("card_data.json");
-    assert_eq!(card.has_copyright(), false);
+    assert!(!card.has_copyright());
     assert_eq!(card.primary_author().unwrap().id, 100);
     assert_eq!(card.card_path(), "cards/000100/card12345.html");
 }
@@ -65,7 +65,7 @@ fn test_person_page_data_deserialization() {
     assert_eq!(data.person.first_name.as_deref(), Some("Name"));
     assert_eq!(data.person.full_name(), "Author Name");
     assert_eq!(data.person.full_name_kana(), "チョシャ メイ");
-    assert_eq!(data.person.copyright_flag, false);
+    assert!(!data.person.copyright_flag);
     assert_eq!(data.works.len(), 1);
     assert_eq!(data.works[0].id, 12345);
     assert_eq!(data.works[0].role_id, 1);
@@ -146,7 +146,7 @@ fn test_wip_person_index_data_deserialization() {
     assert_eq!(data.sections.len(), 1);
     assert_eq!(data.sections[0].people.len(), 1);
     assert_eq!(data.sections[0].people[0].unpublished_count, 3);
-    assert_eq!(data.sections[0].people[0].copyright_flag, true);
+    assert!(data.sections[0].people[0].copyright_flag);
 }
 
 #[test]
@@ -178,6 +178,6 @@ fn test_news_data_deserialization() {
     assert_eq!(data.year, 2024);
     assert_eq!(data.entries.len(), 1);
     assert_eq!(data.entries[0].id, 42);
-    assert_eq!(data.entries[0].flag, true);
+    assert!(data.entries[0].flag);
     assert_eq!(data.entries[0].published_on.as_deref(), Some("2024-03-15"));
 }

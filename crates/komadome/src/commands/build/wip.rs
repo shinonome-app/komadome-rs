@@ -115,7 +115,7 @@ pub fn build_wip_person_indexes_internal(
         }
     }
 
-    println!("Built {} WIP person index pages", built);
+    println!("Built {built} WIP person index pages");
     Ok(())
 }
 
@@ -163,6 +163,6 @@ pub fn build_person_all_indexes_internal(
         }
     }
 
-    println!("Built {} person_all index pages", built);
+    println!("Built {built} person_all index pages");
     Ok(())
 }

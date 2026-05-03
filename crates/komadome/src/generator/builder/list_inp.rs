@@ -47,5 +47,5 @@ pub fn build_list_inp_context(data: &ListInpData) -> Result<Value> {
 }
 
 pub fn list_inp_filename(person_id: i64, page: usize) -> String {
-    format!("list_inp{}_{}.html", person_id, page)
+    format!("list_inp{person_id}_{page}.html")
 }

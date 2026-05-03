@@ -148,7 +148,7 @@ mod tests {
     fn test_count_jsonl_lines() {
         let mut file = NamedTempFile::new().unwrap();
         writeln!(file, r#"{{"id": 1}}"#).unwrap();
-        writeln!(file, "").unwrap(); // empty line
+        writeln!(file).unwrap(); // empty line
         writeln!(file, r#"{{"id": 2}}"#).unwrap();
 
         let count = count_jsonl_lines(file.path()).unwrap();

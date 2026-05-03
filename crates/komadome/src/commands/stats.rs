@@ -26,12 +26,12 @@ pub fn run(config: &Config) -> Result<()> {
 
             if file.ends_with(".jsonl") {
                 let lines = count_jsonl_lines(&path)?;
-                println!("  {}: {} KB ({} records)", file, size_kb, lines);
+                println!("  {file}: {size_kb} KB ({lines} records)");
             } else {
-                println!("  {}: {} KB", file, size_kb);
+                println!("  {file}: {size_kb} KB");
             }
         } else {
-            println!("  {}: (not found)", file);
+            println!("  {file}: (not found)");
         }
     }
 

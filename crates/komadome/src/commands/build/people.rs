@@ -92,7 +92,7 @@ pub fn build_single_person(
     let person_data: PersonPageData = JsonlIterator::new(&people_path)?
         .filter_map(|r| r.ok())
         .find(|p: &PersonPageData| p.person.id == person_id)
-        .with_context(|| format!("Person not found: {}", person_id))?;
+        .with_context(|| format!("Person not found: {person_id}"))?;
 
     build_person(config, templates, &person_data)
 }

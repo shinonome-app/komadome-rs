@@ -56,5 +56,5 @@ pub fn build_wip_work_index_context(data: &WipWorkIndexData) -> Result<Value> {
 }
 
 pub fn wip_work_index_filename(kana_symbol: &str, page: usize) -> String {
-    format!("sakuhin_inp_{}{}.html", kana_symbol, page)
+    format!("sakuhin_inp_{kana_symbol}{page}.html")
 }

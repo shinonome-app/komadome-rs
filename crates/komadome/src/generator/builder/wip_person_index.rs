@@ -75,7 +75,7 @@ pub fn build_wip_person_index_context(data: &WipPersonIndexData) -> Result<Value
 }
 
 pub fn wip_person_index_filename(kana_column: &str) -> String {
-    format!("person_inp_{}.html", kana_column)
+    format!("person_inp_{kana_column}.html")
 }
 
 /// Build context for the consolidated person_inp_all.html page (all columns merged)

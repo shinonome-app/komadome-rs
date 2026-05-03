@@ -19,7 +19,6 @@ pub use person_index::*;
 pub use top::*;
 pub use whatsnew::*;
 pub use wip::*;
-pub use work::*;
 pub use work_index::*;
 
 #[cfg(test)]

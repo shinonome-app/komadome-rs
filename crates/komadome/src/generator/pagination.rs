@@ -22,7 +22,7 @@ pub enum PageItem {
 
 impl Pagination {
     pub fn new(current_page: usize, total_items: usize, page_size: usize) -> Self {
-        let total_pages = (total_items + page_size - 1) / page_size;
+        let total_pages = total_items.div_ceil(page_size);
         let total_pages = total_pages.max(1);
         let current_page = current_page.clamp(1, total_pages);
 

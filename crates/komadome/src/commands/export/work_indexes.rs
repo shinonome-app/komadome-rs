@@ -73,7 +73,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     }
 
     file.flush()?;
-    println!("  -> {} index pages", count);
+    println!("  -> {count} index pages");
     Ok(count)
 }
 
@@ -84,7 +84,7 @@ async fn fetch_works(
 ) -> Result<Vec<WorkRow>> {
     let works = if let Some(kana) = kana_char {
         // Regular kana character - match sortkey starting with this char
-        let pattern = format!("^{}", kana);
+        let pattern = format!("^{kana}");
         sqlx::query_as::<_, WorkRow>(
             r#"
             SELECT w.id, w.title, w.title_kana, w.subtitle,

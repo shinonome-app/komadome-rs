@@ -97,7 +97,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     }
 
     file.flush()?;
-    println!("  -> {} index pages", count);
+    println!("  -> {count} index pages");
     Ok(count)
 }
 
@@ -144,7 +144,7 @@ async fn fetch_all_people(
         .fetch_all(pool)
         .await?
     } else {
-        let pattern = format!("{}%", kana_char);
+        let pattern = format!("{kana_char}%");
         sqlx::query_as::<_, PersonRow>(
             r#"
             SELECT p.id,

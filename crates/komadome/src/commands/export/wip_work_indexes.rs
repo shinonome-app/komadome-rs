@@ -81,7 +81,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     }
 
     file.flush()?;
-    println!("  -> {} index pages", count);
+    println!("  -> {count} index pages");
     Ok(count)
 }
 
@@ -91,7 +91,7 @@ async fn fetch_wip_works(
     today: chrono::NaiveDate,
 ) -> Result<Vec<WipWorkRow>> {
     let works = if let Some(kana) = kana_char {
-        let pattern = format!("^{}", kana);
+        let pattern = format!("^{kana}");
         sqlx::query_as::<_, WipWorkRow>(
             r#"
             SELECT w.id, w.title, w.subtitle,

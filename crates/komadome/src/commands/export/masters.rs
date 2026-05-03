@@ -148,6 +148,6 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     let json = serde_json::to_string_pretty(&masters)?;
     std::fs::write(output_dir.join("masters.json"), json)?;
 
-    println!("  -> {} records", count);
+    println!("  -> {count} records");
     Ok(count)
 }

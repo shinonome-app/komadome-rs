@@ -59,7 +59,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
             // For regular columns, create one section per kana character
             let mut sections = Vec::new();
             for (idx, kana_char) in kana_chars.chars().enumerate() {
-                let pattern = format!("{}%", kana_char);
+                let pattern = format!("{kana_char}%");
                 let people = fetch_kana_people(pool, &pattern, today).await?;
                 sections.push(PersonIndexSection {
                     kana_char: kana_char.to_string(),
@@ -91,7 +91,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     }
 
     file.flush()?;
-    println!("  -> {} index pages", count);
+    println!("  -> {count} index pages");
     Ok(count)
 }
 

@@ -32,7 +32,7 @@ impl FileIncludeLoader {
             .collect();
 
         if segments.is_empty() {
-            anyhow::bail!("include name '{}' resolves to empty path", name);
+            anyhow::bail!("include name '{name}' resolves to empty path");
         }
 
         let mut path = self.root.clone();
@@ -92,10 +92,10 @@ pub fn run(config: &Config) -> Result<()> {
     let mut skipped = 0usize;
 
     for name in &contract_names {
-        let template_path = templates_dir.join(format!("{}.ntzr", name));
+        let template_path = templates_dir.join(format!("{name}.ntzr"));
 
         if !template_path.exists() {
-            println!("  skip: {}.ntzc (no matching template)", name);
+            println!("  skip: {name}.ntzc (no matching template)");
             skipped += 1;
             continue;
         }
@@ -107,7 +107,7 @@ pub fn run(config: &Config) -> Result<()> {
         let parsed = match Natsuzora::parse(&template_source) {
             Ok(t) => t,
             Err(e) => {
-                println!("  PARSE ERROR: {}.ntzr: {}", name, e);
+                println!("  PARSE ERROR: {name}.ntzr: {e}");
                 total_errors += 1;
                 continue;
             }
@@ -119,7 +119,7 @@ pub fn run(config: &Config) -> Result<()> {
         checked += 1;
 
         if errors.is_empty() {
-            println!("  ok: {}", name);
+            println!("  ok: {name}");
         } else {
             for error in &errors {
                 println!(
@@ -130,7 +130,7 @@ pub fn run(config: &Config) -> Result<()> {
                     error.message
                 );
                 if let Some(suggestion) = &error.suggestion {
-                    println!("    hint: {}", suggestion);
+                    println!("    hint: {suggestion}");
                 }
             }
             total_errors += errors.len();
@@ -139,12 +139,11 @@ pub fn run(config: &Config) -> Result<()> {
 
     println!();
     println!(
-        "Checked {} template(s), skipped {}, found {} violation(s).",
-        checked, skipped, total_errors
+        "Checked {checked} template(s), skipped {skipped}, found {total_errors} violation(s)."
     );
 
     if total_errors > 0 {
-        anyhow::bail!("{} violation(s) found", total_errors);
+        anyhow::bail!("{total_errors} violation(s) found");
     }
 
     Ok(())

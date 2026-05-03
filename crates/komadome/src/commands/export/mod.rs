@@ -72,7 +72,7 @@ pub async fn run(config: &Config, args: ExportArgs) -> Result<()> {
             list_inp::export(&pool, output_dir).await?;
         }
         Some(other) => {
-            anyhow::bail!("Unknown export type: {}", other);
+            anyhow::bail!("Unknown export type: {other}");
         }
         None => {
             // Export all

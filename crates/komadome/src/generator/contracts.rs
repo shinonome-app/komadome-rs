@@ -27,7 +27,7 @@ impl ContractRegistry {
                 .with_context(|| format!("Failed to read contract: {}", entry.display()))?;
 
             let contract = parse(&source)
-                .map_err(|e| anyhow::anyhow!("Failed to parse contract {}: {}", name, e))?;
+                .map_err(|e| anyhow::anyhow!("Failed to parse contract {name}: {e}"))?;
 
             contracts.insert(name, contract);
         }

@@ -160,7 +160,7 @@ fn workfile_download_url(f: &WorkfileInfo, person_id: i64, main_site_url: &str) 
         }
     }
     f.filename.as_deref().map(|fname| {
-        format!("{}/cards/{:06}/files/{}", main_site_url, person_id, fname)
+        format!("{main_site_url}/cards/{person_id:06}/files/{fname}")
     })
 }
 
@@ -172,7 +172,7 @@ fn workfile_download_display(f: &WorkfileInfo, person_id: i64, main_site_url: &s
         }
     }
     match f.filename.as_deref() {
-        Some(fname) => format!("{}/cards/{:06}/files/{}", main_site_url, person_id, fname),
+        Some(fname) => format!("{main_site_url}/cards/{person_id:06}/files/{fname}"),
         None => String::new(),
     }
 }

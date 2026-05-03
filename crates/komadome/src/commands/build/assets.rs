@@ -74,7 +74,7 @@ pub fn copy_assets(config: &Config) -> Result<()> {
             for entry in fs::read_dir(zip_dir)? {
                 let entry = entry?;
                 let path = entry.path();
-                if path.is_file() && path.extension().map_or(false, |e| e == "zip") {
+                if path.is_file() && path.extension().is_some_and(|e| e == "zip") {
                     let filename = path.file_name().unwrap();
                     fs::copy(&path, index_pages_out.join(filename))?;
                     copied += 1;
@@ -86,7 +86,7 @@ pub fn copy_assets(config: &Config) -> Result<()> {
     }
 
     if copied > 0 {
-        println!("Copied {} asset files", copied);
+        println!("Copied {copied} asset files");
     }
     Ok(())
 }

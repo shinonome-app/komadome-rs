@@ -97,7 +97,7 @@ pub fn build_single_card(
     let card_data: CardData = JsonlIterator::new(&cards_path)?
         .filter_map(|r| r.ok())
         .find(|c: &CardData| c.work_id == work_id)
-        .with_context(|| format!("Card not found: {}", work_id))?;
+        .with_context(|| format!("Card not found: {work_id}"))?;
 
     build_card(config, masters, templates, &card_data)
 }

@@ -88,5 +88,5 @@ pub fn build_person_index_context(data: &PersonIndexData) -> Result<Value> {
 
 /// Generate the output filename for a person index page
 pub fn person_index_filename(kana_column: &str) -> String {
-    format!("person_{}.html", kana_column)
+    format!("person_{kana_column}.html")
 }

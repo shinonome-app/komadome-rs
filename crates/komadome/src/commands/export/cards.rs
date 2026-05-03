@@ -424,7 +424,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     }
 
     file.flush()?;
-    println!("  -> {} cards", count);
+    println!("  -> {count} cards");
     Ok(count)
 }
 

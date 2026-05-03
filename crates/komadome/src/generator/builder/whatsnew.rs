@@ -18,7 +18,7 @@ pub fn build_whatsnew_index_context(
     let pagination_nav_html = build_pagination_nav_html(
         data.page,
         data.total_pages,
-        |p| format!("/index_pages/whatsnew{}.html", p),
+        |p| format!("/index_pages/whatsnew{p}.html"),
     );
 
     let ctx = json!({
@@ -35,15 +35,15 @@ pub fn build_whatsnew_index_context(
         "pagination": build_pagination(data.page, data.total_pages),
         "pagination_nav_html": &pagination_nav_html,
         "entries": data.entries.iter().map(|e| {
-            let is_recent = e.started_on.as_ref().map_or(false, |s| {
+            let is_recent = e.started_on.as_ref().is_some_and(|s| {
                 NaiveDate::parse_from_str(s, "%Y-%m-%d")
-                    .map_or(false, |d| d >= recent_cutoff)
+                    .is_ok_and(|d| d >= recent_cutoff)
             });
             json!({
                 "work_id": e.work_id,
                 "title": &e.title,
                 "subtitle": e.subtitle.as_deref().unwrap_or(""),
-                "card_person_dir": e.card_person_id.map(|id| format!("{:06}", id)).unwrap_or_default(),
+                "card_person_dir": e.card_person_id.map(|id| format!("{id:06}")).unwrap_or_default(),
                 "author_text": e.author_text.as_deref().unwrap_or(""),
                 "inputer_text": e.inputer_text.as_deref().unwrap_or(""),
                 "proofreader_text": e.proofreader_text.as_deref().unwrap_or(""),
@@ -68,7 +68,7 @@ pub fn build_whatsnew_year_context(
     let pagination_nav_html = build_pagination_nav_html(
         data.page,
         data.total_pages,
-        |p| format!("/index_pages/whatsnew_{}_{}.html", year, p),
+        |p| format!("/index_pages/whatsnew_{year}_{p}.html"),
     );
 
     let ctx = json!({
@@ -89,7 +89,7 @@ pub fn build_whatsnew_year_context(
                 "work_id": e.work_id,
                 "title": &e.title,
                 "subtitle": e.subtitle.as_deref().unwrap_or(""),
-                "card_person_dir": e.card_person_id.map(|id| format!("{:06}", id)).unwrap_or_default(),
+                "card_person_dir": e.card_person_id.map(|id| format!("{id:06}")).unwrap_or_default(),
                 "author_text": e.author_text.as_deref().unwrap_or(""),
                 "inputer_text": e.inputer_text.as_deref().unwrap_or(""),
                 "proofreader_text": e.proofreader_text.as_deref().unwrap_or(""),
@@ -104,12 +104,12 @@ pub fn build_whatsnew_year_context(
 
 /// Generate whatsnew index page filename
 pub fn whatsnew_index_filename(page: usize) -> String {
-    format!("whatsnew{}.html", page)
+    format!("whatsnew{page}.html")
 }
 
 /// Generate whatsnew year page filename
 pub fn whatsnew_year_filename(year: i32, page: usize) -> String {
-    format!("whatsnew_{}_{}.html", year, page)
+    format!("whatsnew_{year}_{page}.html")
 }
 
 #[cfg(test)]

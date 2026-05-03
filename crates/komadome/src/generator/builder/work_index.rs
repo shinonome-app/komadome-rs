@@ -196,7 +196,7 @@ pub fn build_pagination_nav_html(
                 parts.push("  <span class=\"page gap\">&hellip;</span>".to_string());
             }
             PagyItem::Current(p) => {
-                parts.push(format!("  <span class=\"text-2xl\">{}</span>", p));
+                parts.push(format!("  <span class=\"text-2xl\">{p}</span>"));
             }
             PagyItem::Page(p) => {
                 parts.push(format!(
@@ -211,7 +211,7 @@ pub fn build_pagination_nav_html(
 
     // Next link
     if current < total {
-        parts.push(format!("  <span class=\"px-1\">&nbsp;</span>"));
+        parts.push("  <span class=\"px-1\">&nbsp;</span>".to_string());
         parts.push(format!(
             "  <a class=\"{}\" rel=\"next\" aria-label=\"next\" href=\"{}\">次の50件</a>",
             LINK_CLASS,
@@ -289,7 +289,7 @@ fn build_pagination_series(current: usize, total: usize, size: usize) -> Vec<Pag
 
 /// Generate the output filename for a work index page
 pub fn work_index_filename(kana_symbol: &str, page: usize) -> String {
-    format!("sakuhin_{}{}.html", kana_symbol, page)
+    format!("sakuhin_{kana_symbol}{page}.html")
 }
 
 #[cfg(test)]

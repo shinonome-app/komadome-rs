@@ -51,7 +51,7 @@ pub fn run(config: &Config, args: BuildArgs) -> Result<()> {
         .ok();
 
     let start = Instant::now();
-    println!("Building all pages with {} threads...\n", jobs);
+    println!("Building all pages with {jobs} threads...\n");
 
     // Load masters
     let masters_path = config.data.directory.join("masters.json");
@@ -148,7 +148,7 @@ pub fn run_cards(config: &Config, args: CardsArgs) -> Result<()> {
 
     if let Some(work_id) = args.work_id {
         cards::build_single_card(config, &masters, &templates, work_id)?;
-        println!("Built card for work {}", work_id);
+        println!("Built card for work {work_id}");
     } else {
         cards::build_cards_internal(config, &masters, &templates, &stats, &multi)?;
         multi.clear()?;
@@ -184,7 +184,7 @@ pub fn run_people(config: &Config, args: PeopleArgs) -> Result<()> {
 
     if let Some(person_id) = args.person_id {
         people::build_single_person(config, &templates, person_id)?;
-        println!("Built page for person {}", person_id);
+        println!("Built page for person {person_id}");
     } else {
         people::build_people_internal(config, &templates, &stats, &multi)?;
         multi.clear()?;
@@ -209,7 +209,7 @@ pub fn run_indexes(config: &Config, args: IndexesArgs) -> Result<()> {
 
     let start = Instant::now();
     let index_type = args.r#type.as_deref().unwrap_or("all");
-    println!("Building {} indexes with {} threads...", index_type, jobs);
+    println!("Building {index_type} indexes with {jobs} threads...");
 
     // Load templates
     let templates = TemplateRegistry::load(&config.templates.directory)?;
@@ -253,7 +253,7 @@ pub fn run_whatsnew(config: &Config, args: WhatsnewArgs) -> Result<()> {
         .ok();
 
     let start = Instant::now();
-    println!("Building whatsnew pages with {} threads...", jobs);
+    println!("Building whatsnew pages with {jobs} threads...");
 
     // Load masters and templates
     let masters = Masters::load(&config.data.directory.join("masters.json"))?;
@@ -286,7 +286,7 @@ pub fn run_soramoyou(config: &Config, args: SoramoyouArgs) -> Result<()> {
         .ok();
 
     let start = Instant::now();
-    println!("Building soramoyou pages with {} threads...", jobs);
+    println!("Building soramoyou pages with {jobs} threads...");
 
     // Load masters and templates
     let masters = Masters::load(&config.data.directory.join("masters.json"))?;

@@ -134,7 +134,7 @@ impl Kana {
     /// Get column symbol for this kana
     pub fn column_symbol(&self) -> &'static str {
         for (col_symbol, chars) in COLUMN_CHARS {
-            if chars.contains(&self.display_char().unwrap_or("")) {
+            if chars.contains(self.display_char().unwrap_or("")) {
                 return col_symbol;
             }
         }
@@ -166,7 +166,7 @@ impl Kana {
         }
 
         if let Some(kana) = self.display_char() {
-            format!("^{}", kana)
+            format!("^{kana}")
         } else {
             "^[^あ-ん]".to_string()
         }
