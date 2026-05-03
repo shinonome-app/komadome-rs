@@ -1,13 +1,16 @@
 <!DOCTYPE html>
-<html lang="ja">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{[ page_title ]}</title>
-  <link rel="stylesheet" href="/assets/tailwind.css">
-</head>
-<body class="{[ bgcolor ]}">
-<div id="app" class="container mx-auto max-w-6xl py-2">
+<html>
+  <head>
+    <title>{[ page_title ]}</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <link rel="stylesheet" href="/assets/tailwind.css" />
+<link rel="stylesheet" href="/assets/inter-font.css" />
+  </head>
+
+  <body class="{[ bgcolor ]}">
+    <main class="container mx-auto py-1">
+      <div id="app" class="container mx-auto max-w-6xl py-2">
   <div id="top" class="flex">
     <img src="/images/top_logo.png" class="p-1 bg-[#000063]">
     <div class="flex flex-col w-full">
@@ -65,11 +68,13 @@
     </div>
   </div>
 
-{[#if editable_content_html ]}
-{[!unsecure editable_content_html ]}
-{[#else]}
-{[!include /top/body ]}
-{[/if]}
+{[#if editable_content_html -]}
+{[!unsecure editable_content_html -]}
+{[#else-]}
+{[!include /top/body -]}
+{[/if-]}
 </div>
-</body>
+
+    </main>
+  </body>
 </html>

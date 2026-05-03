@@ -4,8 +4,8 @@
     <title>{[ page_title ]}</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <link rel="stylesheet" href="/assets/tailwind.css">
-    <link rel="stylesheet" href="/assets/inter-font.css">
+    <link rel="stylesheet" href="/assets/tailwind.css" />
+<link rel="stylesheet" href="/assets/inter-font.css" />
   </head>
 
   <body class="{[ bgcolor ]}">
@@ -60,8 +60,7 @@
           <th class="w-[120px] font-normal bg-yellow-100 border-double border-2 border-gray-800">入力者名</th>
           <th class="w-[120px] font-normal bg-yellow-100 border-double border-2 border-gray-800">校正者名</th>
           <th class="w-[120px] font-normal bg-yellow-100 border-double border-2 border-gray-800">翻訳者名等 </th>
-        </tr>{[-#each entries as entry-]}
-
+        </tr>{[-#each entries as entry]}
         <tr>
           <td class="bg-white border-double border-2 border-gray-800">
 {[-#if entry.is_recent-]}

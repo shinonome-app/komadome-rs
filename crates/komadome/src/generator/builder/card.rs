@@ -15,10 +15,10 @@ pub fn build_card_context(card: &CardData, _masters: &Masters, main_site_url: &s
     // First author ID for header nav link
     let first_author_id = card.authors.first().map(|a| a.id).unwrap_or(card.person_id);
 
-    // Find XHTML workfile URL for "いますぐXHTML版で読む" link
+    // Find XHTML workfile URL for "いますぐ XHTML 版で読む" link
     let xhtml_url = card.workfiles.iter()
         .find(|f| f.is_html)
-        .and_then(|f| workfile_download_url(f, first_author_id, main_site_url));
+        .and_then(|f| workfile_top_xhtml_url(f, first_author_id, main_site_url));
 
     // Format bibclasses as comma-separated string
     let bibclasses_text = card.bibclasses.iter().map(|b| {
@@ -93,8 +93,8 @@ pub fn build_card_context(card: &CardData, _masters: &Masters, main_site_url: &s
                 "charset": f.charset.as_deref().unwrap_or(""),
                 "file_encoding": f.file_encoding.as_deref().unwrap_or(""),
                 "url": f.url.as_deref().unwrap_or(""),
-                "download_url": workfile_download_url(f, first_author_id, main_site_url).unwrap_or_default(),
-                "download_display": workfile_download_display(f, first_author_id, main_site_url),
+                "download_url": workfile_download_url(f),
+                "download_display": workfile_download_display(f),
                 "registered_on": f.registered_on.as_deref().unwrap_or(""),
                 "last_updated_on": f.last_updated_on.as_deref().unwrap_or(""),
             })
@@ -151,9 +151,9 @@ fn cleanup_note(note: &str) -> String {
     re.replace_all(note, "").to_string()
 }
 
-/// Build an absolute download URL for a workfile.
-/// If the workfile has an explicit URL, use it; otherwise construct from main_site_url.
-fn workfile_download_url(f: &WorkfileInfo, person_id: i64, main_site_url: &str) -> Option<String> {
+/// Build the href for the top "いますぐ XHTML 版で読む" link.
+/// Ruby Workfile#download_url に合わせ、`{main_site_url}{download_path}` の絶対 URL。
+fn workfile_top_xhtml_url(f: &WorkfileInfo, person_id: i64, main_site_url: &str) -> Option<String> {
     if let Some(url) = f.url.as_deref() {
         if !url.is_empty() {
             return Some(url.to_string());
@@ -164,17 +164,29 @@ fn workfile_download_url(f: &WorkfileInfo, person_id: i64, main_site_url: &str) 
     })
 }
 
-/// Build a display string for a workfile download link.
-fn workfile_download_display(f: &WorkfileInfo, person_id: i64, main_site_url: &str) -> String {
+/// Build the href for the download table link.
+/// Ruby template の `./files/{filename}` (page-relative path) と同じ形。
+fn workfile_download_url(f: &WorkfileInfo) -> String {
     if let Some(url) = f.url.as_deref() {
         if !url.is_empty() {
             return url.to_string();
         }
     }
     match f.filename.as_deref() {
-        Some(fname) => format!("{main_site_url}/cards/{person_id:06}/files/{fname}"),
+        Some(fname) => format!("./files/{fname}"),
         None => String::new(),
     }
+}
+
+/// Build the display text for the download table link.
+/// Ruby template と同じ: url 指定があればそれ、無ければ filename のみ。
+fn workfile_download_display(f: &WorkfileInfo) -> String {
+    if let Some(url) = f.url.as_deref() {
+        if !url.is_empty() {
+            return url.to_string();
+        }
+    }
+    f.filename.as_deref().unwrap_or("").to_string()
 }
 
 #[cfg(test)]
