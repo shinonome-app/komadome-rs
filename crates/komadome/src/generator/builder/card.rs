@@ -187,4 +187,27 @@ mod tests {
         let cleaned = cleanup_note(note);
         assert_eq!(cleaned, "Some text  more text");
     }
+
+    #[test]
+    fn card_context_matches_contract() {
+        let fixture_path = format!(
+            "{}/tests/fixtures/card_data.json",
+            env!("CARGO_MANIFEST_DIR")
+        );
+        let masters_path = format!(
+            "{}/tests/fixtures/masters_data.json",
+            env!("CARGO_MANIFEST_DIR")
+        );
+        let card: CardData = serde_json::from_str(
+            &std::fs::read_to_string(&fixture_path).unwrap(),
+        )
+        .unwrap();
+        let masters = Masters::load(std::path::Path::new(&masters_path)).unwrap();
+
+        let ctx = build_card_context(&card, &masters, "https://www.aozora.gr.jp").unwrap();
+
+        let contract_source = include_str!("../../../../../contracts/cards/show.ntzc");
+        let contract = subaru::parse(contract_source).unwrap();
+        subaru::validate(&contract, &ctx).unwrap();
+    }
 }

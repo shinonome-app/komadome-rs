@@ -49,3 +49,26 @@ pub fn build_top_context(data: &TopPageData) -> Result<Value> {
         "editable_content_html": "",
     }))
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn top_context_matches_contract() {
+        let fixture_path = format!(
+            "{}/tests/fixtures/top_page_data.json",
+            env!("CARGO_MANIFEST_DIR")
+        );
+        let data: TopPageData = serde_json::from_str(
+            &std::fs::read_to_string(&fixture_path).unwrap(),
+        )
+        .unwrap();
+
+        let ctx = build_top_context(&data).unwrap();
+
+        let contract_source = include_str!("../../../../../contracts/top/index.ntzc");
+        let contract = subaru::parse(contract_source).unwrap();
+        subaru::validate(&contract, &ctx).unwrap();
+    }
+}

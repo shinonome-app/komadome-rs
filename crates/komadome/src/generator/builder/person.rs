@@ -88,3 +88,26 @@ pub fn build_person_context(data: &PersonPageData) -> Result<Value> {
 
     Ok(ctx)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn person_context_matches_contract() {
+        let fixture_path = format!(
+            "{}/tests/fixtures/person_page_data.json",
+            env!("CARGO_MANIFEST_DIR")
+        );
+        let data: PersonPageData = serde_json::from_str(
+            &std::fs::read_to_string(&fixture_path).unwrap(),
+        )
+        .unwrap();
+
+        let ctx = build_person_context(&data).unwrap();
+
+        let contract_source = include_str!("../../../../../contracts/people/show.ntzc");
+        let contract = subaru::parse(contract_source).unwrap();
+        subaru::validate(&contract, &ctx).unwrap();
+    }
+}

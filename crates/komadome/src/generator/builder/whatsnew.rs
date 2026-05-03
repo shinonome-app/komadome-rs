@@ -111,3 +111,27 @@ pub fn whatsnew_index_filename(page: usize) -> String {
 pub fn whatsnew_year_filename(year: i32, page: usize) -> String {
     format!("whatsnew_{}_{}.html", year, page)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn whatsnew_index_context_matches_contract() {
+        let fixture_path = format!(
+            "{}/tests/fixtures/whatsnew_data.json",
+            env!("CARGO_MANIFEST_DIR")
+        );
+        let data: WhatsnewData = serde_json::from_str(
+            &std::fs::read_to_string(&fixture_path).unwrap(),
+        )
+        .unwrap();
+
+        let today = NaiveDate::from_ymd_opt(2024, 6, 15).unwrap();
+        let ctx = build_whatsnew_index_context(&data, &today, &[2023, 2024]).unwrap();
+
+        let contract_source = include_str!("../../../../../contracts/whatsnew/index.ntzc");
+        let contract = subaru::parse(contract_source).unwrap();
+        subaru::validate(&contract, &ctx).unwrap();
+    }
+}

@@ -10,7 +10,7 @@ use anyhow::Result;
 use clap::Parser;
 
 use cli::{Cli, Commands};
-use commands::{build, clean, export, stats};
+use commands::{build, clean, export, stats, validate};
 use config::Config;
 
 fn main() -> Result<()> {
@@ -31,6 +31,7 @@ fn main() -> Result<()> {
             rt.block_on(export::run(&config, args))?;
         }
         Commands::Stats => stats::run(&config)?,
+        Commands::Validate => validate::run(&config)?,
     }
 
     Ok(())

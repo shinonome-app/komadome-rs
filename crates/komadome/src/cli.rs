@@ -42,6 +42,9 @@ pub enum Commands {
 
     /// Show statistics
     Stats,
+
+    /// Validate templates against contracts
+    Validate,
 }
 
 #[derive(Parser)]
