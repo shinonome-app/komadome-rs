@@ -96,9 +96,11 @@ async fn fetch_wip_works(
             r#"
             SELECT w.id, w.title, w.subtitle,
                    kt.name AS kana_type_name,
-                   CONCAT_WS(' ', author_p.last_name, author_p.first_name) AS author_name,
+                   CONCAT(COALESCE(author_p.last_name, ''), ' ', COALESCE(author_p.first_name, '')) AS author_name,
                    author_p.id AS author_id,
-                   CONCAT_WS(' ', orig_p.last_name, orig_p.first_name) AS base_author_name,
+                   CASE WHEN orig_p.id IS NULL THEN NULL
+                        ELSE CONCAT(COALESCE(orig_p.last_name, ''), ' ', COALESCE(orig_p.first_name, ''))
+                   END AS base_author_name,
                    translators.translator_text,
                    inputers.inputer_text,
                    proofreaders.proofreader_text,
@@ -121,7 +123,7 @@ async fn fetch_wip_works(
             LEFT JOIN base_people bp ON bp.person_id = author_p.id
             LEFT JOIN people orig_p ON orig_p.id = bp.original_person_id
             LEFT JOIN LATERAL (
-                SELECT string_agg(CONCAT_WS(' ', pe.last_name, pe.first_name), ', ') AS translator_text
+                SELECT string_agg(CONCAT(COALESCE(pe.last_name, ''), ' ', COALESCE(pe.first_name, '')), ', ') AS translator_text
                 FROM work_people wp2
                 JOIN people pe ON pe.id = wp2.person_id
                 WHERE wp2.work_id = w.id AND wp2.role_id = 2
@@ -160,9 +162,11 @@ async fn fetch_wip_works(
             r#"
             SELECT w.id, w.title, w.subtitle,
                    kt.name AS kana_type_name,
-                   CONCAT_WS(' ', author_p.last_name, author_p.first_name) AS author_name,
+                   CONCAT(COALESCE(author_p.last_name, ''), ' ', COALESCE(author_p.first_name, '')) AS author_name,
                    author_p.id AS author_id,
-                   CONCAT_WS(' ', orig_p.last_name, orig_p.first_name) AS base_author_name,
+                   CASE WHEN orig_p.id IS NULL THEN NULL
+                        ELSE CONCAT(COALESCE(orig_p.last_name, ''), ' ', COALESCE(orig_p.first_name, ''))
+                   END AS base_author_name,
                    translators.translator_text,
                    inputers.inputer_text,
                    proofreaders.proofreader_text,
@@ -185,7 +189,7 @@ async fn fetch_wip_works(
             LEFT JOIN base_people bp ON bp.person_id = author_p.id
             LEFT JOIN people orig_p ON orig_p.id = bp.original_person_id
             LEFT JOIN LATERAL (
-                SELECT string_agg(CONCAT_WS(' ', pe.last_name, pe.first_name), ', ') AS translator_text
+                SELECT string_agg(CONCAT(COALESCE(pe.last_name, ''), ' ', COALESCE(pe.first_name, '')), ', ') AS translator_text
                 FROM work_people wp2
                 JOIN people pe ON pe.id = wp2.person_id
                 WHERE wp2.work_id = w.id AND wp2.role_id = 2

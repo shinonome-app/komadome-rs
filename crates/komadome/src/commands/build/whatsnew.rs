@@ -46,6 +46,10 @@ pub fn build_whatsnew_internal(
         years
     };
 
+    // 「最終更新日」は JSONL export 時刻 (= DB を読み出した時点) を表す。
+    // build を再実行しても export し直さない限り表示が変わらない (idempotent)。
+    // Ruby (komadome) は build 時刻を使うため、再 export しないと両者の表示日付は
+    // ズレることがあるが、Rust 側の意味は data freshness なので意図的にこちらを優先する。
     let today = masters.exported_date();
     let index_pages_dir = config.output.directory.join("index_pages");
     fs::create_dir_all(&index_pages_dir)?;

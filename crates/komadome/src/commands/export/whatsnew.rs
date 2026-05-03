@@ -91,7 +91,7 @@ async fn build_year_entries(
     let work_people: Vec<WorkPersonRow> = sqlx::query_as(
         r#"
         SELECT wp.work_id, wp.role_id,
-               CONCAT_WS(' ', p.last_name, p.first_name) AS person_name
+               CONCAT(COALESCE(p.last_name, ''), ' ', COALESCE(p.first_name, '')) AS person_name
         FROM work_people wp
         JOIN people p ON p.id = wp.person_id
         WHERE wp.work_id = ANY($1)
@@ -196,10 +196,13 @@ fn write_paginated(
     entries: &[WhatsnewEntry],
     year: Option<i32>,
 ) -> Result<usize> {
-    let total_pages = {
-        let pages = (entries.len() as f64 / PAGE_SIZE as f64).ceil() as usize;
-        if pages == 0 { 1 } else { pages }
-    };
+    // Ruby (komadome) は対象年に published 作品が無ければページ自体を生成しないので、
+    // entries が空のとき write_paginated は何も書かない (現年・過去年とも同じ扱い)。
+    if entries.is_empty() {
+        return Ok(0);
+    }
+
+    let total_pages = (entries.len() as f64 / PAGE_SIZE as f64).ceil() as usize;
 
     let mut count = 0;
 

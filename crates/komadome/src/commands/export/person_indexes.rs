@@ -103,8 +103,8 @@ async fn fetch_kana_people(
     let people = sqlx::query_as::<_, PersonRow>(
         r#"
         SELECT p.id,
-               CONCAT_WS(' ', p.last_name, p.first_name) AS name,
-               CONCAT_WS(' ', p.last_name_kana, p.first_name_kana) AS name_kana,
+               CONCAT(COALESCE(p.last_name, ''), ' ', COALESCE(p.first_name, '')) AS name,
+               CONCAT(COALESCE(p.last_name_kana, ''), ' ', COALESCE(p.first_name_kana, '')) AS name_kana,
                COUNT(DISTINCT CASE
                    WHEN w.work_status_id = 1 AND w.started_on <= $2
                    THEN w.id
@@ -134,8 +134,8 @@ async fn fetch_non_kana_people(
     let people = sqlx::query_as::<_, PersonRow>(
         r#"
         SELECT p.id,
-               CONCAT_WS(' ', p.last_name, p.first_name) AS name,
-               CONCAT_WS(' ', p.last_name_kana, p.first_name_kana) AS name_kana,
+               CONCAT(COALESCE(p.last_name, ''), ' ', COALESCE(p.first_name, '')) AS name,
+               CONCAT(COALESCE(p.last_name_kana, ''), ' ', COALESCE(p.first_name_kana, '')) AS name_kana,
                COUNT(DISTINCT CASE
                    WHEN w.work_status_id = 1 AND w.started_on <= $2
                    THEN w.id

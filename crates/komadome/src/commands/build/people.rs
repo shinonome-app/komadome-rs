@@ -34,9 +34,11 @@ pub fn build_people_internal(
             .progress_chars("=> "),
     );
 
-    // Read all people into memory for parallel processing
+    // Read all people into memory for parallel processing.
+    // person_id=0 ("著者なし" placeholder) は public 公開対象から除外する。
     let people: Vec<PersonPageData> = JsonlIterator::new(&people_path)?
         .filter_map(|r| r.ok())
+        .filter(|p: &PersonPageData| p.person.id != 0)
         .collect();
 
     // Process in parallel

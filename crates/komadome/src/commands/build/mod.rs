@@ -101,8 +101,8 @@ pub fn run(config: &Config, args: BuildArgs) -> Result<()> {
     // Copy assets
     assets::copy_assets(config)?;
 
-    // Generate 404 page
-    assets::build_404_page(config)?;
+    // 404.html は Ruby (komadome) では生成しないため、互換性維持のためここでは呼ばない。
+    // 静的配信に必要なら nginx 等のレイヤーで補う。
 
     multi.clear()?;
 

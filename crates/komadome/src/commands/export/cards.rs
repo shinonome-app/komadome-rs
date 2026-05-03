@@ -130,10 +130,11 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
         r#"
         SELECT wp.work_id, wp.person_id, wp.role_id,
                r.name AS role_name,
-               CONCAT_WS(' ', p.last_name, p.first_name) AS person_name,
-               CONCAT_WS(' ', p.last_name_kana, p.first_name_kana) AS person_name_kana,
+               CONCAT(COALESCE(p.last_name, ''), ' ', COALESCE(p.first_name, '')) AS person_name,
+               CONCAT(COALESCE(p.last_name_kana, ''), ' ', COALESCE(p.first_name_kana, '')) AS person_name_kana,
+               -- Ruby Person#name_en に合わせる ("{last_en}, {first_en}"、片方 null は空文字列)
                CASE WHEN p.last_name_en IS NOT NULL OR p.first_name_en IS NOT NULL
-                    THEN CONCAT_WS(', ', p.last_name_en, p.first_name_en)
+                    THEN CONCAT(COALESCE(p.last_name_en, ''), ', ', COALESCE(p.first_name_en, ''))
                     ELSE NULL END AS person_name_en,
                p.born_on, p.died_on,
                p.description AS person_description,

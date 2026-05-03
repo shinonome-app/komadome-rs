@@ -73,8 +73,10 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     let people: Vec<PersonRow> = sqlx::query_as(
         r#"
         SELECT id, last_name, first_name, last_name_kana, first_name_kana,
+               -- Ruby Person#name_en は last_en/first_en どちらかが non-null なら
+               -- "{last_en}, {first_en}" を返す (片方 null は空文字列扱いで comma+space を残す)。
                CASE WHEN last_name_en IS NOT NULL OR first_name_en IS NOT NULL
-                    THEN CONCAT_WS(', ', last_name_en, first_name_en)
+                    THEN CONCAT(COALESCE(last_name_en, ''), ', ', COALESCE(first_name_en, ''))
                     ELSE NULL END AS name_en,
                born_on, died_on, copyright_flag, description, sortkey
         FROM people
@@ -150,7 +152,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
         sqlx::query_as(
             r#"
             SELECT wp.work_id, wp.person_id,
-                   CONCAT_WS(' ', p.last_name, p.first_name) AS name,
+                   CONCAT(COALESCE(p.last_name, ''), ' ', COALESCE(p.first_name, '')) AS name,
                    r.name AS role_name,
                    wp.role_id
             FROM work_people wp
@@ -183,7 +185,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     let other_base_people_rows: Vec<OtherBasePersonRow> = sqlx::query_as(
         r#"
         SELECT bp.person_id, bp.original_person_id,
-               CONCAT_WS(' ', p.last_name, p.first_name) AS name
+               CONCAT(COALESCE(p.last_name, ''), ' ', COALESCE(p.first_name, '')) AS name
         FROM base_people bp
         JOIN people p ON p.id = bp.original_person_id
         WHERE bp.person_id = ANY($1)

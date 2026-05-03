@@ -23,7 +23,11 @@ pub fn build_list_inp_internal(
         return Ok(());
     }
 
-    let all_data: Vec<ListInpData> = loader::load_jsonl(&list_path)?;
+    // person_id=0 ("著者なし" placeholder) は public 公開対象から除外する。
+    let all_data: Vec<ListInpData> = loader::load_jsonl::<ListInpData>(&list_path)?
+        .into_iter()
+        .filter(|d| d.person_id != 0)
+        .collect();
 
     let pb = multi.add(ProgressBar::new(all_data.len() as u64));
     pb.set_style(

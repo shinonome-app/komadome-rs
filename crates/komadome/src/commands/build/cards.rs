@@ -36,9 +36,11 @@ pub fn build_cards_internal(
             .progress_chars("=> "),
     );
 
-    // Read all cards into memory for parallel processing
+    // Read all cards into memory for parallel processing.
+    // first_author.id == 0 ("著者なし" placeholder) は public 公開対象から除外する。
     let cards: Vec<CardData> = JsonlIterator::new(&cards_path)?
         .filter_map(|r| r.ok())
+        .filter(|c: &CardData| c.authors.first().map(|a| a.id).unwrap_or(c.person_id) != 0)
         .collect();
 
 

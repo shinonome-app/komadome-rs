@@ -112,7 +112,7 @@ async fn fetch_wip_people(
         sqlx::query_as::<_, PersonRow>(
             r#"
             SELECT p.id,
-                   CONCAT_WS(' ', p.last_name, p.first_name) AS name,
+                   CONCAT(COALESCE(p.last_name, ''), ' ', COALESCE(p.first_name, '')) AS name,
                    COUNT(DISTINCT CASE
                        WHEN w.work_status_id IN (3,4,5,6,7,8,9,10,11)
                             OR (w.work_status_id = 1 AND w.started_on > $2)
@@ -137,7 +137,7 @@ async fn fetch_wip_people(
         sqlx::query_as::<_, PersonRow>(
             r#"
             SELECT p.id,
-                   CONCAT_WS(' ', p.last_name, p.first_name) AS name,
+                   CONCAT(COALESCE(p.last_name, ''), ' ', COALESCE(p.first_name, '')) AS name,
                    COUNT(DISTINCT CASE
                        WHEN w.work_status_id IN (3,4,5,6,7,8,9,10,11)
                             OR (w.work_status_id = 1 AND w.started_on > $2)

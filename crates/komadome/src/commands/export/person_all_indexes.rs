@@ -115,7 +115,7 @@ async fn fetch_all_people(
         sqlx::query_as::<_, PersonRow>(
             r#"
             SELECT p.id,
-                   CONCAT_WS(' ', p.last_name, p.first_name) AS name,
+                   CONCAT(COALESCE(p.last_name, ''), ' ', COALESCE(p.first_name, '')) AS name,
                    (SELECT COUNT(DISTINCT w.id)
                     FROM work_people wp
                     JOIN works w ON w.id = wp.work_id
@@ -148,7 +148,7 @@ async fn fetch_all_people(
         sqlx::query_as::<_, PersonRow>(
             r#"
             SELECT p.id,
-                   CONCAT_WS(' ', p.last_name, p.first_name) AS name,
+                   CONCAT(COALESCE(p.last_name, ''), ' ', COALESCE(p.first_name, '')) AS name,
                    (SELECT COUNT(DISTINCT w.id)
                     FROM work_people wp
                     JOIN works w ON w.id = wp.work_id

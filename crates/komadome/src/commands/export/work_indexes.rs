@@ -88,21 +88,21 @@ async fn fetch_works(
         sqlx::query_as::<_, WorkRow>(
             r#"
             SELECT w.id, w.title, w.title_kana, w.subtitle,
-                   CONCAT_WS(' ', p.last_name, p.first_name) AS author_name,
+                   CONCAT(COALESCE(p.last_name, ''), ' ', COALESCE(p.first_name, '')) AS author_name,
                    p.id AS person_id,
                    CASE WHEN p.id IS NOT NULL THEN LPAD(p.id::text, 6, '0') END AS card_person_id,
                    kt.name AS kana_type,
-                   (SELECT string_agg(CONCAT_WS(' ', pe2.last_name, pe2.first_name), ', ' ORDER BY wp2.id)
+                   (SELECT string_agg(CONCAT(COALESCE(pe2.last_name, ''), ' ', COALESCE(pe2.first_name, '')), ', ' ORDER BY wp2.id)
                     FROM work_people wp2
                     JOIN people pe2 ON pe2.id = wp2.person_id
                     WHERE wp2.work_id = w.id AND wp2.role_id = 1) AS author_text,
-                   COALESCE((SELECT string_agg(CONCAT_WS(' ', op.last_name, op.first_name), ', ' ORDER BY wp3.id)
+                   COALESCE((SELECT string_agg(CONCAT(COALESCE(op.last_name, ''), ' ', COALESCE(op.first_name, '')), ', ' ORDER BY wp3.id)
                     FROM work_people wp3
                     JOIN people pe3 ON pe3.id = wp3.person_id
                     JOIN base_people bp ON bp.person_id = pe3.id
                     JOIN people op ON op.id = bp.original_person_id
                     WHERE wp3.work_id = w.id AND wp3.role_id = 1), '') AS base_author_text,
-                   COALESCE((SELECT string_agg(CONCAT_WS(' ', pe4.last_name, pe4.first_name), ', ' ORDER BY wp4.id)
+                   COALESCE((SELECT string_agg(CONCAT(COALESCE(pe4.last_name, ''), ' ', COALESCE(pe4.first_name, '')), ', ' ORDER BY wp4.id)
                     FROM work_people wp4
                     JOIN people pe4 ON pe4.id = wp4.person_id
                     WHERE wp4.work_id = w.id AND wp4.role_id = 2), '') AS translator_text
@@ -130,21 +130,21 @@ async fn fetch_works(
         sqlx::query_as::<_, WorkRow>(
             r#"
             SELECT w.id, w.title, w.title_kana, w.subtitle,
-                   CONCAT_WS(' ', p.last_name, p.first_name) AS author_name,
+                   CONCAT(COALESCE(p.last_name, ''), ' ', COALESCE(p.first_name, '')) AS author_name,
                    p.id AS person_id,
                    CASE WHEN p.id IS NOT NULL THEN LPAD(p.id::text, 6, '0') END AS card_person_id,
                    kt.name AS kana_type,
-                   (SELECT string_agg(CONCAT_WS(' ', pe2.last_name, pe2.first_name), ', ' ORDER BY wp2.id)
+                   (SELECT string_agg(CONCAT(COALESCE(pe2.last_name, ''), ' ', COALESCE(pe2.first_name, '')), ', ' ORDER BY wp2.id)
                     FROM work_people wp2
                     JOIN people pe2 ON pe2.id = wp2.person_id
                     WHERE wp2.work_id = w.id AND wp2.role_id = 1) AS author_text,
-                   COALESCE((SELECT string_agg(CONCAT_WS(' ', op.last_name, op.first_name), ', ' ORDER BY wp3.id)
+                   COALESCE((SELECT string_agg(CONCAT(COALESCE(op.last_name, ''), ' ', COALESCE(op.first_name, '')), ', ' ORDER BY wp3.id)
                     FROM work_people wp3
                     JOIN people pe3 ON pe3.id = wp3.person_id
                     JOIN base_people bp ON bp.person_id = pe3.id
                     JOIN people op ON op.id = bp.original_person_id
                     WHERE wp3.work_id = w.id AND wp3.role_id = 1), '') AS base_author_text,
-                   COALESCE((SELECT string_agg(CONCAT_WS(' ', pe4.last_name, pe4.first_name), ', ' ORDER BY wp4.id)
+                   COALESCE((SELECT string_agg(CONCAT(COALESCE(pe4.last_name, ''), ' ', COALESCE(pe4.first_name, '')), ', ' ORDER BY wp4.id)
                     FROM work_people wp4
                     JOIN people pe4 ON pe4.id = wp4.person_id
                     WHERE wp4.work_id = w.id AND wp4.role_id = 2), '') AS translator_text

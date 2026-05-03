@@ -105,7 +105,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
         sqlx::query_as(
             r#"
             SELECT wp.work_id, wp.person_id,
-                   CONCAT_WS(' ', p.last_name, p.first_name) AS person_name
+                   CONCAT(COALESCE(p.last_name, ''), ' ', COALESCE(p.first_name, '')) AS person_name
             FROM work_people wp
             JOIN people p ON p.id = wp.person_id
             WHERE wp.work_id = ANY($1) AND wp.role_id = 1

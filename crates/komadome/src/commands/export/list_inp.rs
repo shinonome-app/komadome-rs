@@ -44,7 +44,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     let persons: Vec<PersonWithCountRow> = sqlx::query_as(
         r#"
         SELECT p.id,
-               CONCAT_WS(' ', p.last_name, p.first_name) AS name,
+               CONCAT(COALESCE(p.last_name, ''), ' ', COALESCE(p.first_name, '')) AS name,
                COUNT(DISTINCT w.id) AS work_count
         FROM people p
         JOIN work_people wp ON wp.person_id = p.id
@@ -131,7 +131,7 @@ async fn fetch_person_wip_works(
         LEFT JOIN kana_types kt ON kt.id = w.kana_type_id
         LEFT JOIN work_statuses ws ON ws.id = w.work_status_id
         LEFT JOIN LATERAL (
-            SELECT string_agg(CONCAT_WS(' ', pe.last_name, pe.first_name), ', ') AS translator_text
+            SELECT string_agg(CONCAT(COALESCE(pe.last_name, ''), ' ', COALESCE(pe.first_name, '')), ', ') AS translator_text
             FROM work_people wp2
             JOIN people pe ON pe.id = wp2.person_id
             WHERE wp2.work_id = w.id AND wp2.role_id = 2
