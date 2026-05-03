@@ -40,6 +40,9 @@ pub enum Commands {
     /// Export data from PostgreSQL to JSONL files
     Export(ExportArgs),
 
+    /// Generate downloadable CSV zip files (basic, extended, unpublished)
+    GenerateZip,
+
     /// Show statistics
     Stats,
 

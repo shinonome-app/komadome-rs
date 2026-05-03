@@ -43,3 +43,8 @@ sqlx = { version = "0.8", features = ["runtime-tokio", "postgres", "chrono"] }
 # Other utilities
 regex = "1"
 toml = "0.8"
+
+# CSV / encoding / zip (for CsvCreator-equivalent zip generation)
+csv = "1.3"
+encoding_rs = "0.8"
+zip = { version = "2", default-features = false, features = ["deflate"] }

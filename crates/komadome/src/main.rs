@@ -10,7 +10,7 @@ use anyhow::Result;
 use clap::Parser;
 
 use cli::{Cli, Commands};
-use commands::{build, clean, export, stats, validate};
+use commands::{build, clean, export, generate_zip, stats, validate};
 use config::Config;
 
 fn main() -> Result<()> {
@@ -29,6 +29,10 @@ fn main() -> Result<()> {
         Commands::Export(args) => {
             let rt = tokio::runtime::Runtime::new()?;
             rt.block_on(export::run(&config, args))?;
+        }
+        Commands::GenerateZip => {
+            let rt = tokio::runtime::Runtime::new()?;
+            rt.block_on(generate_zip::run(&config))?;
         }
         Commands::Stats => stats::run(&config)?,
         Commands::Validate => validate::run(&config)?,
