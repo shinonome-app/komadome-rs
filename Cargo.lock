@@ -880,12 +880,12 @@ dependencies = [
  "encoding_rs",
  "indicatif",
  "natsuzora",
+ "natsuzora-contract",
  "rayon",
  "regex",
  "serde",
  "serde_json",
  "sqlx",
- "subaru",
  "tempfile",
  "thiserror",
  "tokio",
@@ -1001,18 +1001,25 @@ dependencies = [
 
 [[package]]
 name = "natsuzora"
-version = "0.2.0"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "98bb8a422f75a1f50704cf8d16d37a129efc9900b6499621ecc3077288bf1322"
 dependencies = [
- "natsuzora-ast",
  "serde",
  "serde_json",
  "thiserror",
 ]
 
 [[package]]
-name = "natsuzora-ast"
-version = "0.2.0"
+name = "natsuzora-contract"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "89348c01bc48020ada3130b699a89d227612e4128754e531c4190b8c6d9283be"
 dependencies = [
+ "bitflags",
+ "natsuzora",
+ "serde",
+ "serde_json",
  "thiserror",
 ]
 
@@ -1719,17 +1726,6 @@ name = "strsim"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
-
-[[package]]
-name = "subaru"
-version = "0.1.0"
-dependencies = [
- "bitflags",
- "natsuzora-ast",
- "serde",
- "serde_json",
- "thiserror",
-]
 
 [[package]]
 name = "subtle"

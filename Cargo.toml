@@ -11,10 +11,10 @@ authors = ["Aozora Bunko"]
 
 [workspace.dependencies]
 # Template engine
-natsuzora = { path = "../natsuzora/rust/crates/natsuzora" }
+natsuzora = "0.4"
 
 # Schema validation
-subaru = { path = "../subaru/rust", default-features = false }
+natsuzora-contract = { version = "0.4", default-features = false }
 
 # Serialization
 serde = { version = "1.0", features = ["derive"] }
