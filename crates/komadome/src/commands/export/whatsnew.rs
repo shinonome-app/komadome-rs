@@ -37,7 +37,7 @@ struct WorkWorkerRow {
 pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     println!("Exporting whatsnew.jsonl...");
 
-    let today = chrono::Local::now().date_naive();
+    let today = crate::clock::build_date();
     let current_year = Datelike::year(&today);
 
     let mut file =

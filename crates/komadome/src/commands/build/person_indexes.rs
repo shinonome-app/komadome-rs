@@ -47,7 +47,10 @@ pub fn build_person_indexes_internal(
             }
             Err(e) => {
                 stats.errors.fetch_add(1, Ordering::Relaxed);
-                eprintln!("Error building person index {}: {}", index_data.kana_column, e);
+                eprintln!(
+                    "Error building person index {}: {}",
+                    index_data.kana_column, e
+                );
             }
         }
         pb.inc(1);

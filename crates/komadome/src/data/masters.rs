@@ -156,7 +156,7 @@ impl Masters {
         self.exported_on
             .as_deref()
             .and_then(|s| NaiveDate::parse_from_str(s, "%Y-%m-%d").ok())
-            .unwrap_or_else(|| chrono::Local::now().date_naive())
+            .unwrap_or_else(|| crate::clock::build_date())
     }
 
     pub fn role_name(&self, id: i64) -> Option<&str> {

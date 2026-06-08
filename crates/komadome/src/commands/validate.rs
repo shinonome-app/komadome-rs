@@ -55,8 +55,7 @@ impl IncludeLoader for FileIncludeLoader {
         let path = self.resolve_path(name)?;
         let source = fs::read_to_string(&path)
             .with_context(|| format!("reading include '{}'", path.display()))?;
-        let parsed = Natsuzora::parse(&source)
-            .map_err(|e| -> LoaderError { Box::new(e) })?;
+        let parsed = Natsuzora::parse(&source).map_err(|e| -> LoaderError { Box::new(e) })?;
         let template = parsed.template().clone();
         self.cache.insert(name.to_string(), template.clone());
         Ok(template)
@@ -114,7 +113,7 @@ pub fn run(config: &Config) -> Result<()> {
         };
 
         let mut loader = FileIncludeLoader::new(templates_dir.to_path_buf());
-        let errors = subaru::check_template(parsed.template(), contract, &mut loader);
+        let errors = natsuzora_contract::check_template(parsed.template(), contract, &mut loader);
 
         checked += 1;
 

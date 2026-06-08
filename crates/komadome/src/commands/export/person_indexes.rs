@@ -22,7 +22,7 @@ struct PersonRow {
 pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     println!("Exporting person_indexes.jsonl...");
 
-    let today = chrono::Local::now().date_naive();
+    let today = crate::clock::build_date();
 
     let mut file = std::io::BufWriter::new(std::fs::File::create(
         output_dir.join("person_indexes.jsonl"),
@@ -127,10 +127,7 @@ async fn fetch_kana_people(
     Ok(people)
 }
 
-async fn fetch_non_kana_people(
-    pool: &PgPool,
-    today: chrono::NaiveDate,
-) -> Result<Vec<PersonRow>> {
+async fn fetch_non_kana_people(pool: &PgPool, today: chrono::NaiveDate) -> Result<Vec<PersonRow>> {
     let people = sqlx::query_as::<_, PersonRow>(
         r#"
         SELECT p.id,

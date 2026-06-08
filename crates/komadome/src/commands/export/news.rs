@@ -21,10 +21,9 @@ struct NewsEntryRow {
 pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     println!("Exporting news.jsonl...");
 
-    let current_year = Datelike::year(&chrono::Local::now().date_naive());
+    let current_year = Datelike::year(&crate::clock::build_date());
 
-    let mut file =
-        std::io::BufWriter::new(std::fs::File::create(output_dir.join("news.jsonl"))?);
+    let mut file = std::io::BufWriter::new(std::fs::File::create(output_dir.join("news.jsonl"))?);
     let mut count = 0;
 
     for year in BEGIN_YEAR..=current_year {

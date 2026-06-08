@@ -1,5 +1,5 @@
 use anyhow::Result;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 use crate::data::models::WipWorkIndexData;
 use crate::generator::builder::work_index::build_pagination;
@@ -9,9 +9,7 @@ const PAGE_SIZE: usize = 50;
 
 pub fn build_wip_work_index_context(data: &WipWorkIndexData) -> Result<Value> {
     let kana = Kana::from_symbol(&data.kana_symbol);
-    let display_char = kana
-        .and_then(|k| k.display_char())
-        .unwrap_or("");
+    let display_char = kana.and_then(|k| k.display_char()).unwrap_or("");
 
     let works: Vec<Value> = data
         .works

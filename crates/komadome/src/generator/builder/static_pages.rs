@@ -1,5 +1,5 @@
 use anyhow::Result;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 /// Build context for the index_top page (総合インデックス)
 pub fn build_index_top_context() -> Result<Value> {

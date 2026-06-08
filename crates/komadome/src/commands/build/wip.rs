@@ -94,10 +94,7 @@ pub fn build_wip_person_indexes_internal(
             let html = templates
                 .render("indexes/wip_people", ctx)
                 .with_context(|| {
-                    format!(
-                        "Failed to render WIP person index {}",
-                        data.kana_column
-                    )
+                    format!("Failed to render WIP person index {}", data.kana_column)
                 })?;
             let filename = wip_person_index::wip_person_index_filename(&data.kana_column);
             fs::write(index_pages_dir.join(&filename), html)?;
@@ -110,7 +107,10 @@ pub fn build_wip_person_indexes_internal(
             }
             Err(e) => {
                 stats.errors.fetch_add(1, Ordering::Relaxed);
-                eprintln!("Error building WIP person index {}: {}", data.kana_column, e);
+                eprintln!(
+                    "Error building WIP person index {}: {}",
+                    data.kana_column, e
+                );
             }
         }
     }
@@ -142,10 +142,7 @@ pub fn build_person_all_indexes_internal(
             let html = templates
                 .render("indexes/person_all_index", ctx)
                 .with_context(|| {
-                    format!(
-                        "Failed to render person_all index {}",
-                        data.kana_column
-                    )
+                    format!("Failed to render person_all index {}", data.kana_column)
                 })?;
             let filename = person_all_index::person_all_index_filename(&data.kana_column);
             fs::write(index_pages_dir.join(&filename), html)?;
@@ -158,7 +155,10 @@ pub fn build_person_all_indexes_internal(
             }
             Err(e) => {
                 stats.errors.fetch_add(1, Ordering::Relaxed);
-                eprintln!("Error building person_all index {}: {}", data.kana_column, e);
+                eprintln!(
+                    "Error building person_all index {}: {}",
+                    data.kana_column, e
+                );
             }
         }
     }

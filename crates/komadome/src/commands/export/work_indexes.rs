@@ -6,7 +6,7 @@ use std::path::Path;
 use crate::data::models::{WorkIndexData, WorkIndexItem};
 use crate::generator::kana::ROMA2KANA;
 
-use super::export_helpers::{calculate_total_pages, write_jsonl_line, PAGE_SIZE};
+use super::export_helpers::{PAGE_SIZE, calculate_total_pages, write_jsonl_line};
 
 // Regex pattern for all kana characters (same as Ruby's KANA_PATTERN)
 const KANA_PATTERN: &str = "^[あいうえおか-もやゆよら-ろわをんアイウエオカ-モヤユヨラ-ロワヲンヴ]";
@@ -29,10 +29,11 @@ struct WorkRow {
 pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     println!("Exporting work_indexes.jsonl...");
 
-    let today = chrono::Local::now().date_naive();
+    let today = crate::clock::build_date();
 
-    let mut file =
-        std::io::BufWriter::new(std::fs::File::create(output_dir.join("work_indexes.jsonl"))?);
+    let mut file = std::io::BufWriter::new(std::fs::File::create(
+        output_dir.join("work_indexes.jsonl"),
+    )?);
     let mut count = 0;
 
     for (symbol, kana_char) in ROMA2KANA {
@@ -171,4 +172,3 @@ async fn fetch_works(
 
     Ok(works)
 }
-

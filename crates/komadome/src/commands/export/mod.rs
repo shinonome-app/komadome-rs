@@ -29,10 +29,7 @@ pub async fn run(config: &Config, args: ExportArgs) -> Result<()> {
     let output_dir = &config.data.directory;
     fs::create_dir_all(output_dir)?;
 
-    println!(
-        "Exporting to {}...\n",
-        output_dir.display()
-    );
+    println!("Exporting to {}...\n", output_dir.display());
 
     match args.only.as_deref() {
         Some("masters") => {

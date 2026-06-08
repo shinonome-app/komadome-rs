@@ -43,14 +43,9 @@ pub fn build_list_inp_internal(
     all_data.par_iter().for_each(|data| {
         let result = (|| -> Result<()> {
             let ctx = list_inp::build_list_inp_context(data)?;
-            let html = templates
-                .render("indexes/list_inp", ctx)
-                .with_context(|| {
-                    format!(
-                        "Failed to render list_inp {}/{}",
-                        data.person_id, data.page
-                    )
-                })?;
+            let html = templates.render("indexes/list_inp", ctx).with_context(|| {
+                format!("Failed to render list_inp {}/{}", data.person_id, data.page)
+            })?;
             let filename = list_inp::list_inp_filename(data.person_id, data.page);
             fs::write(index_pages_dir.join(&filename), html)?;
             Ok(())

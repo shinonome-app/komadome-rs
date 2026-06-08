@@ -35,7 +35,7 @@ pub async fn run(config: &Config) -> Result<()> {
     println!("Generating CSV zip files in {}...\n", zip_dir.display());
 
     let pool = db::connect(config).await?;
-    let today = chrono::Local::now().date_naive();
+    let today = crate::clock::build_date();
 
     finished_basic::generate(&pool, &zip_dir, today).await?;
     finished_extended::generate(&pool, &zip_dir, today, &config.output.main_site_url).await?;
@@ -62,11 +62,7 @@ fn resolve_zip_dir(config: &Config) -> Result<PathBuf> {
 /// `base_name` は zip ファイル名のベース (例: `list_person_all`)。
 /// 拡張子なしで渡す。
 /// `csv_body_utf8` は BOM 付き UTF-8 の CSV バイト列。
-pub(super) fn write_pair(
-    zip_dir: &Path,
-    base_name: &str,
-    csv_body_utf8: &[u8],
-) -> Result<()> {
+pub(super) fn write_pair(zip_dir: &Path, base_name: &str, csv_body_utf8: &[u8]) -> Result<()> {
     // UTF-8 zip
     let utf8_zip_path = zip_dir.join(format!("{base_name}_utf8.zip"));
     let utf8_csv_name = format!("{base_name}_utf8.csv");

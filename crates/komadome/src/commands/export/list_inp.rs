@@ -5,7 +5,7 @@ use std::path::Path;
 
 use crate::data::models::{ListInpData, ListInpWorkItem};
 
-use super::export_helpers::{calculate_total_pages, write_jsonl_line, PAGE_SIZE};
+use super::export_helpers::{PAGE_SIZE, calculate_total_pages, write_jsonl_line};
 
 #[derive(sqlx::FromRow)]
 struct PersonWithCountRow {
@@ -38,7 +38,7 @@ struct WorkRow {
 pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     println!("Exporting list_inp.jsonl...");
 
-    let today = chrono::Local::now().date_naive();
+    let today = crate::clock::build_date();
 
     // Find all persons who have unpublished works (any role)
     let persons: Vec<PersonWithCountRow> = sqlx::query_as(
@@ -167,4 +167,3 @@ async fn fetch_person_wip_works(
 
     Ok(works)
 }
-

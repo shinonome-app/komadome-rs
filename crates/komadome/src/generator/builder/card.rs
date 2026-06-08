@@ -1,11 +1,15 @@
 use anyhow::Result;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 use crate::data::masters::Masters;
 use crate::data::models::{CardData, WorkfileInfo};
 
 /// Build card page context from card data
-pub fn build_card_context(card: &CardData, _masters: &Masters, main_site_url: &str) -> Result<Value> {
+pub fn build_card_context(
+    card: &CardData,
+    _masters: &Masters,
+    main_site_url: &str,
+) -> Result<Value> {
     let bgcolor = if card.has_copyright() {
         "bg-rose-50"
     } else {
@@ -16,23 +20,37 @@ pub fn build_card_context(card: &CardData, _masters: &Masters, main_site_url: &s
     let first_author_id = card.authors.first().map(|a| a.id).unwrap_or(card.person_id);
 
     // Find XHTML workfile URL for "いますぐ XHTML 版で読む" link
-    let xhtml_url = card.workfiles.iter()
+    let xhtml_url = card
+        .workfiles
+        .iter()
         .find(|f| f.is_html)
         .and_then(|f| workfile_top_xhtml_url(f, first_author_id, main_site_url));
 
     // Format bibclasses as comma-separated string
-    let bibclasses_text = card.bibclasses.iter().map(|b| {
-        match b.note.as_deref() {
+    let bibclasses_text = card
+        .bibclasses
+        .iter()
+        .map(|b| match b.note.as_deref() {
             Some(note) if !note.is_empty() => format!("{}{} {}", b.name, b.num, note),
             _ => format!("{} {}", b.name, b.num),
-        }
-    }).collect::<Vec<_>>().join(", ");
+        })
+        .collect::<Vec<_>>()
+        .join(", ");
 
     // External link URLs for LinkComponent
     let booklog_url = format!("http://booklog.jp/item/7/{}", card.work_id);
-    let voyger_url = format!("http://aozora.binb.jp/reader/main.html?cid={}", card.work_id);
-    let airzoshi_url = format!("https://www.satokazzz.com/airzoshi/reader.php?action=aozora&id={}", card.work_id);
-    let rodoku_url = format!("https://www.google.co.jp/search?hl=ja&source=hp&q=青空文庫+朗読+{}", card.title);
+    let voyger_url = format!(
+        "http://aozora.binb.jp/reader/main.html?cid={}",
+        card.work_id
+    );
+    let airzoshi_url = format!(
+        "https://www.satokazzz.com/airzoshi/reader.php?action=aozora&id={}",
+        card.work_id
+    );
+    let rodoku_url = format!(
+        "https://www.google.co.jp/search?hl=ja&source=hp&q=青空文庫+朗読+{}",
+        card.title
+    );
 
     let ctx = json!({
         "page_title": format!("図書カード：{} | 青空文庫", card.title),
@@ -159,9 +177,9 @@ fn workfile_top_xhtml_url(f: &WorkfileInfo, person_id: i64, main_site_url: &str)
             return Some(url.to_string());
         }
     }
-    f.filename.as_deref().map(|fname| {
-        format!("{main_site_url}/cards/{person_id:06}/files/{fname}")
-    })
+    f.filename
+        .as_deref()
+        .map(|fname| format!("{main_site_url}/cards/{person_id:06}/files/{fname}"))
 }
 
 /// Build the href for the download table link.
@@ -210,16 +228,14 @@ mod tests {
             "{}/tests/fixtures/masters_data.json",
             env!("CARGO_MANIFEST_DIR")
         );
-        let card: CardData = serde_json::from_str(
-            &std::fs::read_to_string(&fixture_path).unwrap(),
-        )
-        .unwrap();
+        let card: CardData =
+            serde_json::from_str(&std::fs::read_to_string(&fixture_path).unwrap()).unwrap();
         let masters = Masters::load(std::path::Path::new(&masters_path)).unwrap();
 
         let ctx = build_card_context(&card, &masters, "https://www.aozora.gr.jp").unwrap();
 
         let contract_source = include_str!("../../../../../contracts/cards/show.ntzc");
-        let contract = subaru::parse(contract_source).unwrap();
-        subaru::validate(&contract, &ctx).unwrap();
+        let contract = natsuzora_contract::parse(contract_source).unwrap();
+        natsuzora_contract::validate(&contract, &ctx).unwrap();
     }
 }

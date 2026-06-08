@@ -1,8 +1,8 @@
 use anyhow::{Context, Result};
+use natsuzora_contract::{Contract, parse};
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
-use subaru::{parse, Contract};
 
 /// Pre-loaded contract registry for template validation
 pub struct ContractRegistry {

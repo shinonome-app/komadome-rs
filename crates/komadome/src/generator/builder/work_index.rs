@@ -1,5 +1,5 @@
 use anyhow::Result;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 use crate::data::models::WorkIndexData;
 use crate::generator::kana::Kana;
@@ -9,9 +9,7 @@ const PAGE_SIZE: usize = 50;
 /// Build work index page context
 pub fn build_work_index_context(data: &WorkIndexData) -> Result<Value> {
     let kana = Kana::from_symbol(&data.kana_symbol);
-    let display_char = kana
-        .and_then(|k| k.display_char())
-        .unwrap_or("");
+    let display_char = kana.and_then(|k| k.display_char()).unwrap_or("");
 
     let page_offset = (data.page - 1) * PAGE_SIZE;
 
@@ -161,7 +159,8 @@ enum PagyItem {
     Gap,
 }
 
-const LINK_CLASS: &str = "text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline";
+const LINK_CLASS: &str =
+    "text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline";
 
 /// Build pagination nav HTML matching Rails' PagyNav component output.
 ///

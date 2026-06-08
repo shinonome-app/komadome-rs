@@ -67,14 +67,12 @@ fn build_work_index(
 ) -> Result<()> {
     let ctx = work_index::build_work_index_context(data)?;
 
-    let html = templates
-        .render("indexes/works", ctx)
-        .with_context(|| {
-            format!(
-                "Failed to render work index {}/{}",
-                data.kana_symbol, data.page
-            )
-        })?;
+    let html = templates.render("indexes/works", ctx).with_context(|| {
+        format!(
+            "Failed to render work index {}/{}",
+            data.kana_symbol, data.page
+        )
+    })?;
 
     let filename = work_index::work_index_filename(&data.kana_symbol, data.page);
     let output_path = config.output.directory.join("index_pages").join(&filename);

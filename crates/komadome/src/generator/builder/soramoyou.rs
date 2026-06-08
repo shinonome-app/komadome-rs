@@ -1,16 +1,13 @@
 use anyhow::Result;
 use chrono::NaiveDate;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 use crate::data::models::NewsData;
 
 const BEGIN_YEAR: i32 = 1997;
 
 /// Build soramoyou index page context (current year)
-pub fn build_soramoyou_index_context(
-    data: &NewsData,
-    current_year: i32,
-) -> Result<Value> {
+pub fn build_soramoyou_index_context(data: &NewsData, current_year: i32) -> Result<Value> {
     let year_links: Vec<Value> = (BEGIN_YEAR..current_year)
         .map(|y| json!({"year": y}))
         .collect();
@@ -26,9 +23,7 @@ pub fn build_soramoyou_index_context(
 }
 
 /// Build soramoyou year page context (past year)
-pub fn build_soramoyou_year_context(
-    data: &NewsData,
-) -> Result<Value> {
+pub fn build_soramoyou_year_context(data: &NewsData) -> Result<Value> {
     let year_links: Vec<Value> = (BEGIN_YEAR..data.year)
         .map(|y| json!({"year": y}))
         .collect();

@@ -97,10 +97,15 @@ pub fn copy_assets(config: &Config) -> Result<()> {
 fn strip_fingerprint(filename: &str) -> Option<String> {
     // Match pattern: name-hexhash.ext (hash is 8+ hex chars)
     let re = regex::Regex::new(r"^(.+)-[0-9a-f]{8,}(\.css(?:\.gz)?|\.js(?:\.gz)?)$").unwrap();
-    re.captures(filename).map(|caps| format!("{}{}", &caps[1], &caps[2]))
+    re.captures(filename)
+        .map(|caps| format!("{}{}", &caps[1], &caps[2]))
 }
 
-fn copy_dir_recursive(src: &std::path::Path, dst: &std::path::Path, count: &mut usize) -> Result<()> {
+fn copy_dir_recursive(
+    src: &std::path::Path,
+    dst: &std::path::Path,
+    count: &mut usize,
+) -> Result<()> {
     for entry in fs::read_dir(src)? {
         let entry = entry?;
         let path = entry.path();

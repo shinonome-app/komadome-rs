@@ -1,5 +1,5 @@
 use anyhow::Result;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 use crate::data::models::PersonPageData;
 use crate::generator::kana::Kana;
@@ -17,7 +17,11 @@ pub fn build_person_context(data: &PersonPageData) -> Result<Value> {
 
     // Calculate kana and kana_fragment from sortkey
     let sortkey = person.sortkey.as_deref().unwrap_or("");
-    let first_char = sortkey.chars().next().map(|c| c.to_string()).unwrap_or_default();
+    let first_char = sortkey
+        .chars()
+        .next()
+        .map(|c| c.to_string())
+        .unwrap_or_default();
     let kana_obj = Kana::from_kana(&first_char);
     let (column_symbol, index_in_column) = kana_obj.to_symbol_and_index();
     let kana_fragment = format!("sec{}", index_in_column + 1);
@@ -99,15 +103,13 @@ mod tests {
             "{}/tests/fixtures/person_page_data.json",
             env!("CARGO_MANIFEST_DIR")
         );
-        let data: PersonPageData = serde_json::from_str(
-            &std::fs::read_to_string(&fixture_path).unwrap(),
-        )
-        .unwrap();
+        let data: PersonPageData =
+            serde_json::from_str(&std::fs::read_to_string(&fixture_path).unwrap()).unwrap();
 
         let ctx = build_person_context(&data).unwrap();
 
         let contract_source = include_str!("../../../../../contracts/people/show.ntzc");
-        let contract = subaru::parse(contract_source).unwrap();
-        subaru::validate(&contract, &ctx).unwrap();
+        let contract = natsuzora_contract::parse(contract_source).unwrap();
+        natsuzora_contract::validate(&contract, &ctx).unwrap();
     }
 }

@@ -227,8 +227,16 @@ pub async fn generate(
 }
 
 fn write_row(w: &mut csv::Writer<&mut Vec<u8>>, r: &Row, main_site_url: &str) -> Result<()> {
-    let work_copyright = if r.work_copyright_flag { "あり" } else { "なし" };
-    let person_copyright = if r.person_copyright_flag { "あり" } else { "なし" };
+    let work_copyright = if r.work_copyright_flag {
+        "あり"
+    } else {
+        "なし"
+    };
+    let person_copyright = if r.person_copyright_flag {
+        "あり"
+    } else {
+        "なし"
+    };
 
     let work_id = r.work_id.to_string();
     let started_on = r
@@ -290,8 +298,14 @@ fn write_row(w: &mut csv::Writer<&mut Vec<u8>>, r: &Row, main_site_url: &str) ->
     // shinonome は `default_timezone = :local` で TIMESTAMP を JST 保存するため変換不要。
     let text_updated_at = format_workfile_timestamp(r.text_updated_at);
     let html_updated_at = format_workfile_timestamp(r.html_updated_at);
-    let text_revision = r.text_revision_count.map(|n| n.to_string()).unwrap_or_default();
-    let html_revision = r.html_revision_count.map(|n| n.to_string()).unwrap_or_default();
+    let text_revision = r
+        .text_revision_count
+        .map(|n| n.to_string())
+        .unwrap_or_default();
+    let html_revision = r
+        .html_revision_count
+        .map(|n| n.to_string())
+        .unwrap_or_default();
 
     w.write_record([
         // 作品 (1-14)

@@ -1,5 +1,5 @@
 use anyhow::Result;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 use crate::data::models::TopPageData;
 
@@ -60,15 +60,13 @@ mod tests {
             "{}/tests/fixtures/top_page_data.json",
             env!("CARGO_MANIFEST_DIR")
         );
-        let data: TopPageData = serde_json::from_str(
-            &std::fs::read_to_string(&fixture_path).unwrap(),
-        )
-        .unwrap();
+        let data: TopPageData =
+            serde_json::from_str(&std::fs::read_to_string(&fixture_path).unwrap()).unwrap();
 
         let ctx = build_top_context(&data).unwrap();
 
         let contract_source = include_str!("../../../../../contracts/top/index.ntzc");
-        let contract = subaru::parse(contract_source).unwrap();
-        subaru::validate(&contract, &ctx).unwrap();
+        let contract = natsuzora_contract::parse(contract_source).unwrap();
+        natsuzora_contract::validate(&contract, &ctx).unwrap();
     }
 }

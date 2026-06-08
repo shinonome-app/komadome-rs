@@ -54,7 +54,7 @@ fn column_kana_chars(kana_chars: &str) -> Vec<String> {
 pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     println!("Exporting person_all_indexes.jsonl...");
 
-    let today = chrono::Local::now().date_naive();
+    let today = crate::clock::build_date();
 
     let mut file = std::io::BufWriter::new(std::fs::File::create(
         output_dir.join("person_all_indexes.jsonl"),

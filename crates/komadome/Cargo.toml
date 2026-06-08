@@ -13,7 +13,7 @@ path = "src/main.rs"
 
 [dependencies]
 natsuzora.workspace = true
-subaru.workspace = true
+natsuzora-contract.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 clap.workspace = true

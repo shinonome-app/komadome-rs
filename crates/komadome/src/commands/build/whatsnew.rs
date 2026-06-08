@@ -59,9 +59,9 @@ pub fn build_whatsnew_internal(
             if data.year.is_none() {
                 // Current year -> index template
                 let ctx = whatsnew::build_whatsnew_index_context(data, &today, &year_links)?;
-                let html = templates
-                    .render("whatsnew/index", ctx)
-                    .with_context(|| format!("Failed to render whatsnew index page {}", data.page))?;
+                let html = templates.render("whatsnew/index", ctx).with_context(|| {
+                    format!("Failed to render whatsnew index page {}", data.page)
+                })?;
                 let filename = whatsnew::whatsnew_index_filename(data.page);
                 fs::write(index_pages_dir.join(&filename), html)?;
             } else {

@@ -70,18 +70,9 @@ pub const COLUMN_CHARS: &[(&str, &str)] = &[
 
 /// All kana symbols in order
 pub const SYMBOLS: &[&str] = &[
-    "a", "i", "u", "e", "o",
-    "ka", "ki", "ku", "ke", "ko",
-    "sa", "si", "su", "se", "so", 
-    "ta", "ti", "tu", "te", "to",
-    "na", "ni", "nu", "ne", "no", 
-    "ha", "hi", "hu", "he", "ho",
-    "ma", "mi", "mu", "me", "mo",
-    "ya", "yu", "yo",
-    "ra", "ri", "ru", "re", "ro",
-    "wa", "wo",
-    "nn",
-    "zz",
+    "a", "i", "u", "e", "o", "ka", "ki", "ku", "ke", "ko", "sa", "si", "su", "se", "so", "ta",
+    "ti", "tu", "te", "to", "na", "ni", "nu", "ne", "no", "ha", "hi", "hu", "he", "ho", "ma", "mi",
+    "mu", "me", "mo", "ya", "yu", "yo", "ra", "ri", "ru", "re", "ro", "wa", "wo", "nn", "zz",
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq)]

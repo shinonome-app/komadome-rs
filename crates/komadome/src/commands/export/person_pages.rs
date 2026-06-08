@@ -67,7 +67,7 @@ struct OtherBasePersonRow {
 pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     println!("Exporting person_pages.jsonl...");
 
-    let today = chrono::Local::now().date_naive();
+    let today = crate::clock::build_date();
 
     // Fetch all people
     let people: Vec<PersonRow> = sqlx::query_as(
@@ -203,8 +203,9 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     let sites_by_person = db_helpers::group_by(&site_rows, |sr| sr.person_id);
     let obp_by_person = db_helpers::group_by(&other_base_people_rows, |r| r.person_id);
 
-    let mut file =
-        std::io::BufWriter::new(std::fs::File::create(output_dir.join("person_pages.jsonl"))?);
+    let mut file = std::io::BufWriter::new(std::fs::File::create(
+        output_dir.join("person_pages.jsonl"),
+    )?);
     let mut count = 0;
 
     for person in &people {

@@ -43,7 +43,6 @@ pub fn build_cards_internal(
         .filter(|c: &CardData| c.authors.first().map(|a| a.id).unwrap_or(c.person_id) != 0)
         .collect();
 
-
     // Process in parallel
     cards.par_iter().for_each(|card_data| {
         match build_card(config, masters, templates, card_data) {
@@ -74,10 +73,7 @@ fn build_card(
         .render("cards/show", ctx)
         .with_context(|| format!("Failed to render card {}", card_data.work_id))?;
 
-    let output_path = config
-        .output
-        .directory
-        .join(card_data.card_path());
+    let output_path = config.output.directory.join(card_data.card_path());
 
     if let Some(parent) = output_path.parent() {
         fs::create_dir_all(parent)?;

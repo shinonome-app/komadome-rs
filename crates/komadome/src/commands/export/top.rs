@@ -37,7 +37,7 @@ struct NewsRow {
 pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     println!("Exporting top.json...");
 
-    let today = chrono::Local::now().date_naive();
+    let today = crate::clock::build_date();
     let current_year = Datelike::year(&today);
 
     // Find the latest published date (try current year first, then previous year)

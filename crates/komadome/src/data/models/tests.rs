@@ -1,19 +1,14 @@
 use super::*;
 
 fn fixture_path(name: &str) -> String {
-    format!(
-        "{}/tests/fixtures/{}",
-        env!("CARGO_MANIFEST_DIR"),
-        name
-    )
+    format!("{}/tests/fixtures/{}", env!("CARGO_MANIFEST_DIR"), name)
 }
 
 fn load_fixture<T: serde::de::DeserializeOwned>(name: &str) -> T {
     let path = fixture_path(name);
     let content = std::fs::read_to_string(&path)
         .unwrap_or_else(|e| panic!("Failed to read fixture {name}: {e}"));
-    serde_json::from_str(&content)
-        .unwrap_or_else(|e| panic!("Failed to parse fixture {name}: {e}"))
+    serde_json::from_str(&content).unwrap_or_else(|e| panic!("Failed to parse fixture {name}: {e}"))
 }
 
 fn roundtrip_check<T: serde::de::DeserializeOwned>(name: &str) -> (T, serde_json::Value) {

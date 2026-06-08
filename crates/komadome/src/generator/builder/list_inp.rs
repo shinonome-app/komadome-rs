@@ -1,5 +1,5 @@
 use anyhow::Result;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 use crate::data::models::ListInpData;
 use crate::generator::builder::work_index::build_pagination;

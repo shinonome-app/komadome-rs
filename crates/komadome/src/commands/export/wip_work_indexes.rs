@@ -6,7 +6,7 @@ use std::path::Path;
 use crate::data::models::{WipWorkIndexData, WipWorkIndexItem};
 use crate::generator::kana::ROMA2KANA;
 
-use super::export_helpers::{calculate_total_pages, write_jsonl_line, PAGE_SIZE};
+use super::export_helpers::{PAGE_SIZE, calculate_total_pages, write_jsonl_line};
 
 const KANA_PATTERN: &str = "^[あいうえおか-もやゆよら-ろわをんアイウエオカ-モヤユヨラ-ロワヲンヴ]";
 
@@ -32,7 +32,7 @@ struct WipWorkRow {
 pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     println!("Exporting wip_work_indexes.jsonl...");
 
-    let today = chrono::Local::now().date_naive();
+    let today = crate::clock::build_date();
 
     let mut file = std::io::BufWriter::new(std::fs::File::create(
         output_dir.join("wip_work_indexes.jsonl"),
@@ -227,4 +227,3 @@ async fn fetch_wip_works(
 
     Ok(works)
 }
-

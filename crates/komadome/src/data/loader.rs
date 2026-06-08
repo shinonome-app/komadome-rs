@@ -6,15 +6,16 @@ use std::path::Path;
 
 /// Load all records from a JSONL file
 pub fn load_jsonl<T: DeserializeOwned>(path: &Path) -> Result<Vec<T>> {
-    let file =
-        File::open(path).with_context(|| format!("Failed to open JSONL file: {}", path.display()))?;
+    let file = File::open(path)
+        .with_context(|| format!("Failed to open JSONL file: {}", path.display()))?;
 
     let reader = BufReader::new(file);
     let mut records = Vec::new();
 
     for (line_num, line) in reader.lines().enumerate() {
-        let line =
-            line.with_context(|| format!("Failed to read line {} of {}", line_num + 1, path.display()))?;
+        let line = line.with_context(|| {
+            format!("Failed to read line {} of {}", line_num + 1, path.display())
+        })?;
 
         if line.trim().is_empty() {
             continue;

@@ -1,5 +1,5 @@
 use anyhow::Result;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 use crate::data::models::WipPersonIndexData;
 use crate::generator::kana::COLUMN_CHARS;

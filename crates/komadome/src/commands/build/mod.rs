@@ -60,7 +60,10 @@ pub fn run(config: &Config, args: BuildArgs) -> Result<()> {
     println!("  Masters loaded.\n");
 
     // Load templates
-    println!("Loading templates from {}...", config.templates.directory.display());
+    println!(
+        "Loading templates from {}...",
+        config.templates.directory.display()
+    );
     let templates = TemplateRegistry::load(&config.templates.directory)?;
     println!("  {} templates loaded.\n", templates.names().count());
 
@@ -116,10 +119,7 @@ pub fn run(config: &Config, args: BuildArgs) -> Result<()> {
     );
 
     if stats.errors.load(Ordering::Relaxed) > 0 {
-        println!(
-            "  {} errors occurred",
-            stats.errors.load(Ordering::Relaxed)
-        );
+        println!("  {} errors occurred", stats.errors.load(Ordering::Relaxed));
     }
 
     Ok(())

@@ -103,10 +103,9 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
             .fetch_all(pool)
             .await?;
 
-    let booktypes: Vec<BooktypeRow> =
-        sqlx::query_as("SELECT id, name FROM booktypes ORDER BY id")
-            .fetch_all(pool)
-            .await?;
+    let booktypes: Vec<BooktypeRow> = sqlx::query_as("SELECT id, name FROM booktypes ORDER BY id")
+        .fetch_all(pool)
+        .await?;
 
     let charsets: Vec<CharsetRow> = sqlx::query_as("SELECT id, name FROM charsets ORDER BY id")
         .fetch_all(pool)
@@ -133,7 +132,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
         + worker_roles.len();
 
     let masters = MastersData {
-        exported_on: chrono::Local::now().date_naive().format("%Y-%m-%d").to_string(),
+        exported_on: crate::clock::build_date().format("%Y-%m-%d").to_string(),
         roles,
         work_statuses,
         kana_types,

@@ -7,10 +7,7 @@ use crate::data::models::{PersonAllIndexData, TopPageData, WipPersonIndexData};
 use crate::generator::builder::{person_all_index, static_pages, top, wip_person_index};
 use crate::generator::templates::TemplateRegistry;
 
-pub fn build_static_pages_internal(
-    config: &Config,
-    templates: &TemplateRegistry,
-) -> Result<()> {
+pub fn build_static_pages_internal(config: &Config, templates: &TemplateRegistry) -> Result<()> {
     let index_pages_dir = config.output.directory.join("index_pages");
     fs::create_dir_all(&index_pages_dir)?;
 
@@ -50,14 +47,13 @@ pub fn build_static_pages_internal(
         fs::write(index_pages_dir.join("person_inp_all.html"), html)?;
     }
 
-    println!("Built static pages: index_top.html, index_all.html, person_all.html, person_inp_all.html");
+    println!(
+        "Built static pages: index_top.html, index_all.html, person_all.html, person_inp_all.html"
+    );
     Ok(())
 }
 
-pub fn build_top_internal(
-    config: &Config,
-    templates: &TemplateRegistry,
-) -> Result<()> {
+pub fn build_top_internal(config: &Config, templates: &TemplateRegistry) -> Result<()> {
     let top_path = config.data.directory.join("top.json");
     if !top_path.exists() {
         println!("top.json not found, skipping top page generation");

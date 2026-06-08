@@ -1,6 +1,7 @@
 #![recursion_limit = "256"]
 
 mod cli;
+mod clock;
 mod commands;
 mod config;
 mod data;
@@ -15,6 +16,9 @@ use config::Config;
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
+
+    // Pin "today" before any command runs so output is reproducible.
+    clock::init(cli.date);
 
     let config = Config::load(&cli.config)?;
 

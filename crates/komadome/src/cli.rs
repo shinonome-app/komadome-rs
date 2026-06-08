@@ -1,3 +1,4 @@
+use chrono::NaiveDate;
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
@@ -9,6 +10,11 @@ pub struct Cli {
     /// Path to config file
     #[arg(short, long, default_value = "config/komadome.toml")]
     pub config: PathBuf,
+
+    /// Pin the build date (YYYY-MM-DD) for deterministic output.
+    /// Overrides the KOMADOME_BUILD_DATE env var; defaults to the system date.
+    #[arg(long, global = true, value_name = "YYYY-MM-DD")]
+    pub date: Option<NaiveDate>,
 
     #[command(subcommand)]
     pub command: Commands,

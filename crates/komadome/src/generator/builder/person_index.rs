@@ -1,5 +1,5 @@
 use anyhow::Result;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 use crate::data::models::PersonIndexData;
 use crate::generator::kana::COLUMN_CHARS;
@@ -18,10 +18,12 @@ pub fn build_person_index_context(data: &PersonIndexData) -> Result<Value> {
     } else {
         data.sections
             .iter()
-            .map(|s| json!({
-                "char": &s.kana_char,
-                "section_index": s.section_index,
-            }))
+            .map(|s| {
+                json!({
+                    "char": &s.kana_char,
+                    "section_index": s.section_index,
+                })
+            })
             .collect()
     };
 
@@ -36,15 +38,17 @@ pub fn build_person_index_context(data: &PersonIndexData) -> Result<Value> {
                     .people
                     .iter()
                     .filter(|p| p.published_works_count > 0)
-                    .map(|p| json!({
-                        "id": p.id,
-                        "name": &p.name,
-                        "name_kana": &p.name_kana,
-                        "work_count": p.work_count,
-                        "copyright_flag": p.copyright_flag,
-                        "published_works_count": p.published_works_count,
-                        "person_path": format!("person{}.html#sakuhin_list_1", p.id),
-                    }))
+                    .map(|p| {
+                        json!({
+                            "id": p.id,
+                            "name": &p.name,
+                            "name_kana": &p.name_kana,
+                            "work_count": p.work_count,
+                            "copyright_flag": p.copyright_flag,
+                            "published_works_count": p.published_works_count,
+                            "person_path": format!("person{}.html#sakuhin_list_1", p.id),
+                        })
+                    })
                     .collect();
                 json!({
                     "kana_char": &s.kana_char,

@@ -97,7 +97,7 @@ struct WorkSiteRow {
 pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     println!("Exporting cards.jsonl...");
 
-    let today = chrono::Local::now().date_naive();
+    let today = crate::clock::build_date();
 
     // Fetch published works with kana_type name
     let works: Vec<WorkRow> = sqlx::query_as(

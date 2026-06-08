@@ -1,6 +1,6 @@
 use anyhow::Result;
 use chrono::NaiveDate;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 use crate::data::models::WhatsnewData;
 
@@ -15,11 +15,9 @@ pub fn build_whatsnew_index_context(
     let current_year = chrono::Datelike::year(today);
     let recent_cutoff = *today - chrono::Duration::days(7);
 
-    let pagination_nav_html = build_pagination_nav_html(
-        data.page,
-        data.total_pages,
-        |p| format!("/index_pages/whatsnew{p}.html"),
-    );
+    let pagination_nav_html = build_pagination_nav_html(data.page, data.total_pages, |p| {
+        format!("/index_pages/whatsnew{p}.html")
+    });
 
     let ctx = json!({
         "page_title": "新規公開作品 | 青空文庫",
@@ -59,17 +57,12 @@ pub fn build_whatsnew_index_context(
 }
 
 /// Build whatsnew year page context (past year)
-pub fn build_whatsnew_year_context(
-    data: &WhatsnewData,
-    today: &NaiveDate,
-) -> Result<Value> {
+pub fn build_whatsnew_year_context(data: &WhatsnewData, today: &NaiveDate) -> Result<Value> {
     let year = data.year.unwrap_or(0);
 
-    let pagination_nav_html = build_pagination_nav_html(
-        data.page,
-        data.total_pages,
-        |p| format!("/index_pages/whatsnew_{year}_{p}.html"),
-    );
+    let pagination_nav_html = build_pagination_nav_html(data.page, data.total_pages, |p| {
+        format!("/index_pages/whatsnew_{year}_{p}.html")
+    });
 
     let ctx = json!({
         "page_title": format!("公開作品 {}年公開分 | 青空文庫", year),
@@ -122,16 +115,14 @@ mod tests {
             "{}/tests/fixtures/whatsnew_data.json",
             env!("CARGO_MANIFEST_DIR")
         );
-        let data: WhatsnewData = serde_json::from_str(
-            &std::fs::read_to_string(&fixture_path).unwrap(),
-        )
-        .unwrap();
+        let data: WhatsnewData =
+            serde_json::from_str(&std::fs::read_to_string(&fixture_path).unwrap()).unwrap();
 
         let today = NaiveDate::from_ymd_opt(2024, 6, 15).unwrap();
         let ctx = build_whatsnew_index_context(&data, &today, &[2023, 2024]).unwrap();
 
         let contract_source = include_str!("../../../../../contracts/whatsnew/index.ntzc");
-        let contract = subaru::parse(contract_source).unwrap();
-        subaru::validate(&contract, &ctx).unwrap();
+        let contract = natsuzora_contract::parse(contract_source).unwrap();
+        natsuzora_contract::validate(&contract, &ctx).unwrap();
     }
 }
