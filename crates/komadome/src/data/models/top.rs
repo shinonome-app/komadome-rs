@@ -11,6 +11,10 @@ pub struct TopPageData {
     pub works_count: i64,
     pub works_copyright_count: i64,
     pub works_noncopyright_count: i64,
+    /// Natsuzora fragment edited in shinonome admin (editable_contents table).
+    /// `serde(default)` keeps older top.json files deserializable.
+    #[serde(default)]
+    pub editable_content: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

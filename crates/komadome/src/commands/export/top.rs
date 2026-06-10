@@ -208,6 +208,21 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
 
     let works_noncopyright_count = works_count - works_copyright_count;
 
+    // Latest published editable content (natsuzora fragment edited in shinonome admin).
+    // Ordering matches shinonome's EditableContent.latest_published_for.
+    let editable_content: Option<String> = sqlx::query_scalar(
+        r#"
+        SELECT value FROM editable_contents
+        WHERE area_name = 'top' AND "key" = 'main' AND status = 'published'
+        ORDER BY published_at DESC, created_at DESC
+        LIMIT 1
+        "#,
+    )
+    .fetch_optional(pool)
+    .await?
+    .flatten()
+    .filter(|s: &String| !s.trim().is_empty());
+
     let data = TopPageData {
         new_works,
         new_works_published_on: latest_date.map(|d| d.to_string()),
@@ -216,6 +231,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
         works_count,
         works_copyright_count,
         works_noncopyright_count,
+        editable_content,
     };
 
     let mut file = std::io::BufWriter::new(std::fs::File::create(output_dir.join("top.json"))?);
