@@ -73,7 +73,7 @@ pub fn build_card_context(
         "started_on": card.started_on.as_deref().unwrap_or(""),
         "note": card.note.as_ref().map(|n| cleanup_note(n)).unwrap_or_default(),
         "first_appearance": card.first_appearance.as_deref().unwrap_or(""),
-        "description": card.description.as_deref().unwrap_or(""),
+        "description": card.description.as_ref().map(|d| d.replace("\r\n", "<br>").replace('\n', "<br>")).unwrap_or_default(),
         "has_copyright": card.has_copyright(),
         "card_path": card.card_path(),
         "xhtml_url": xhtml_url,
@@ -150,7 +150,7 @@ pub fn build_card_context(
             "name_en": wp.name_en.as_deref().unwrap_or(""),
             "born_on": wp.born_on.as_deref().unwrap_or(""),
             "died_on": wp.died_on.as_deref().unwrap_or(""),
-            "description": wp.description.as_deref().unwrap_or(""),
+            "description": wp.description.as_ref().map(|d| d.replace("\r\n", "<br>").replace('\n', "<br>")).unwrap_or_default(),
         })).collect::<Vec<_>>(),
 
         "sites": card.sites.iter().map(|s| json!({
@@ -216,6 +216,30 @@ mod tests {
         let note = r#"Some text <script src="link.js"></script> more text"#;
         let cleaned = cleanup_note(note);
         assert_eq!(cleaned, "Some text  more text");
+    }
+
+    #[test]
+    fn description_newlines_become_br() {
+        let fixture_path = format!(
+            "{}/tests/fixtures/card_data.json",
+            env!("CARGO_MANIFEST_DIR")
+        );
+        let masters_path = format!(
+            "{}/tests/fixtures/masters_data.json",
+            env!("CARGO_MANIFEST_DIR")
+        );
+        let mut card: CardData =
+            serde_json::from_str(&std::fs::read_to_string(&fixture_path).unwrap()).unwrap();
+        let masters = Masters::load(std::path::Path::new(&masters_path)).unwrap();
+
+        card.description = Some("一行目\r\n二行目\n三行目".to_string());
+        if let Some(wp) = card.work_people_details.first_mut() {
+            wp.description = Some("人物\r\n説明\n行".to_string());
+        }
+        let ctx = build_card_context(&card, &masters, "https://www.aozora.gr.jp").unwrap();
+
+        assert_eq!(ctx["description"], "一行目<br>二行目<br>三行目");
+        assert_eq!(ctx["work_people_details"][0]["description"], "人物<br>説明<br>行");
     }
 
     #[test]
