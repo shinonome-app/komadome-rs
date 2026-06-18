@@ -67,9 +67,26 @@ impl Config {
         let content = fs::read_to_string(path)
             .with_context(|| format!("Failed to read config file: {}", path.display()))?;
 
-        let config: Config = toml::from_str(&content)
+        let mut config: Config = toml::from_str(&content)
             .with_context(|| format!("Failed to parse config file: {}", path.display()))?;
 
+        config.apply_env_overrides();
+
         Ok(config)
+    }
+
+    /// 環境変数で設定を上書きする。
+    /// 本番(サーバ/Kamalアクセサリ)では DB 認証情報や公開URLを toml にコミットせず env で注入する。
+    fn apply_env_overrides(&mut self) {
+        if let Ok(url) = std::env::var("KOMADOME_DATABASE_URL") {
+            if !url.is_empty() {
+                self.database = Some(DatabaseConfig { url });
+            }
+        }
+        if let Ok(site_url) = std::env::var("KOMADOME_MAIN_SITE_URL") {
+            if !site_url.is_empty() {
+                self.output.main_site_url = site_url;
+            }
+        }
     }
 }
