@@ -1,0 +1,23 @@
+[output]
+directory = "build"
+main_site_url = "https://www.aozora.jp"
+
+[templates]
+directory = "templates"
+
+[data]
+directory = "data"
+
+[build]
+default_jobs = 8
+page_size = 50
+
+[database]
+# プレースホルダ。実値は KOMADOME_DATABASE_URL で上書きされる。
+url = "postgres://localhost/shinonome"
+
+# CSS/フォント/画像はwwwへ別途配置するため css_dir/images_dir/card_images_dir は持たない。
+# tailwind.css は run-build.sh が生成HTMLを走査して build/assets/ に出力する。
+# zip_dir のみ設定（CSVダウンロードzipは komadome-rs が自前生成）。
+[assets]
+zip_dir = "data/csv_zip"
