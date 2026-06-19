@@ -15,4 +15,4 @@ if [ "${RUN_ON_START:-1}" = "1" ]; then
 fi
 
 # 3) supercronic で定時実行（crontab 参照）
-exec supercronic /app/crontab
+exec /usr/local/bin/supercronic /app/crontab
