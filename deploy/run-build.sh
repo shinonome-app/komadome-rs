@@ -26,7 +26,10 @@ tailwindcss \
 # 公開サーバへ転送。
 # 別管理の静的アセット(inter-font.css / Inter フォント / images / css)は
 # --delete で消さないよう除外する（tailwind.css は build/assets にあるので同期される）。
-if [ -n "${RSYNC_SERVER_PATH:-}" ]; then
+#
+# 転送は DO_RSYNC=1 のときだけ行う（既定＝転送しない＝安全側）。
+# staging はこれを設定せず生成のみ、production で DO_RSYNC=1 にして公開サーバへ転送する。
+if [ "${DO_RSYNC:-0}" = "1" ] && [ -n "${RSYNC_SERVER_PATH:-}" ]; then
   rsync -a --delete \
     --exclude='/assets/inter-font.css' \
     --exclude='/assets/Inter-*' \
@@ -36,7 +39,7 @@ if [ -n "${RSYNC_SERVER_PATH:-}" ]; then
     /app/build/ "${RSYNC_SERVER_PATH}"
   echo "[run-build] rsync done -> ${RSYNC_SERVER_PATH}"
 else
-  echo "[run-build] RSYNC_SERVER_PATH 未設定のため転送はスキップ"
+  echo "[run-build] 転送しない（生成のみ。DO_RSYNC=${DO_RSYNC:-0}）"
 fi
 
 echo "[run-build] $(date '+%F %T %z') done"
