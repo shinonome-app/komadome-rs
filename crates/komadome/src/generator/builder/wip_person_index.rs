@@ -66,7 +66,7 @@ pub fn build_wip_person_index_context(data: &WipPersonIndexData) -> Result<Value
 
     Ok(json!({
         "page_title": format!("作業中　作家リスト：{}行 | 青空文庫", data.column_display),
-        "bgcolor": "bg-sky-50",
+        "bgcolor": crate::tailwind::bgcolor::DEFAULT,
         "kana_column": data.kana_column,
         "column_display": data.column_display,
         "sections": sections,
@@ -134,7 +134,7 @@ pub fn build_wip_person_consolidated_context(all_data: &[WipPersonIndexData]) ->
 
     Ok(json!({
         "page_title": "作業中　作家リスト：全て | 青空文庫",
-        "bgcolor": "bg-sky-50",
+        "bgcolor": crate::tailwind::bgcolor::DEFAULT,
         "kana_all": kana_all,
         "sections": all_sections,
         "column_nav": column_nav,

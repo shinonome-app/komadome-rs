@@ -14,7 +14,7 @@ pub fn build_soramoyou_index_context(data: &NewsData, current_year: i32) -> Resu
 
     let ctx = json!({
         "page_title": "そらもよう | 青空文庫",
-        "bgcolor": "bg-white-100",
+        "bgcolor": crate::tailwind::bgcolor::WHITE,
         "entries": build_entries(&data.entries),
         "year_links": year_links,
     });
@@ -30,7 +30,7 @@ pub fn build_soramoyou_year_context(data: &NewsData) -> Result<Value> {
 
     let ctx = json!({
         "page_title": "そらもよう | 青空文庫",
-        "bgcolor": "bg-white-100",
+        "bgcolor": crate::tailwind::bgcolor::WHITE,
         "entries": build_entries(&data.entries),
         "year_links": year_links,
     });

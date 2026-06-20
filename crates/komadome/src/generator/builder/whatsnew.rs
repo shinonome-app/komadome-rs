@@ -21,7 +21,7 @@ pub fn build_whatsnew_index_context(
 
     let ctx = json!({
         "page_title": "新規公開作品 | 青空文庫",
-        "bgcolor": "bg-sky-50",
+        "bgcolor": crate::tailwind::bgcolor::DEFAULT,
         "current_year": current_year,
         "today": today.format("%Y.%m.%d").to_string(),
         "page": data.page,
@@ -66,7 +66,7 @@ pub fn build_whatsnew_year_context(data: &WhatsnewData, today: &NaiveDate) -> Re
 
     let ctx = json!({
         "page_title": format!("公開作品 {}年公開分 | 青空文庫", year),
-        "bgcolor": "bg-sky-50",
+        "bgcolor": crate::tailwind::bgcolor::DEFAULT,
         "year": year,
         "today": today.format("%Y.%m.%d").to_string(),
         "page": data.page,

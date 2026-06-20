@@ -38,7 +38,7 @@ pub fn build_top_context(data: &TopPageData) -> Result<Value> {
 
     let mut ctx = json!({
         "page_title": "青空文庫",
-        "bgcolor": "bg-white-100",
+        "bgcolor": crate::tailwind::bgcolor::WHITE,
         "new_works": new_works,
         "new_works_published_on": data.new_works_published_on.as_deref().unwrap_or(""),
         "latest_news_published_on": data.latest_news_published_on.as_deref().unwrap_or(""),

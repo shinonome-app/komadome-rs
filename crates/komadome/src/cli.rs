@@ -54,6 +54,9 @@ pub enum Commands {
 
     /// Validate templates against contracts
     Validate,
+
+    /// Print the tailwind safelist (dynamic classes) as JSON
+    TailwindSafelist,
 }
 
 #[derive(Parser)]

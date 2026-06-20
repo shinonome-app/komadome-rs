@@ -11,9 +11,9 @@ pub fn build_card_context(
     main_site_url: &str,
 ) -> Result<Value> {
     let bgcolor = if card.has_copyright() {
-        "bg-rose-50"
+        crate::tailwind::bgcolor::COPYRIGHT
     } else {
-        "bg-sky-50"
+        crate::tailwind::bgcolor::DEFAULT
     };
 
     // First author ID for header nav link

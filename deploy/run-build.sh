@@ -24,8 +24,12 @@ komadome --config "${CONFIG}" export
 komadome --config "${CONFIG}" generate-zip
 komadome --config "${CONFIG}" build
 
-# Tailwind CSS: 生成済みHTMLを走査して必要ユーティリティのみ出力
-tailwindcss \
+# 動的クラス(bgcolor 等)の safelist を Rust(単一の出所)から生成して tailwind に渡す。
+komadome tailwind-safelist > /app/tailwind/safelist.json
+
+# Tailwind CSS: テンプレート(*.ntzr)＋編集トップページ(index.html)＋safelist を走査して
+# 必要ユーティリティのみ出力（生成物全走査による OOM を避ける）。
+KOMADOME_TAILWIND_CONTENT="${BUILD_DIR}" tailwindcss \
   -i /app/tailwind/input.css \
   -c /app/tailwind/tailwind.config.js \
   -o "${BUILD_DIR}/assets/tailwind.css" \

@@ -10,9 +10,9 @@ pub fn build_person_context(data: &PersonPageData) -> Result<Value> {
     let full_name = person.full_name();
 
     let bgcolor = if person.copyright_flag {
-        "bg-rose-50"
+        crate::tailwind::bgcolor::COPYRIGHT
     } else {
-        "bg-sky-50"
+        crate::tailwind::bgcolor::DEFAULT
     };
 
     // Calculate kana and kana_fragment from sortkey

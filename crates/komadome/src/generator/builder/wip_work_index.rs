@@ -40,7 +40,7 @@ pub fn build_wip_work_index_context(data: &WipWorkIndexData) -> Result<Value> {
 
     Ok(json!({
         "page_title": format!("作業中　作品一覧：{} | 青空文庫", display_char),
-        "bgcolor": "bg-sky-50",
+        "bgcolor": crate::tailwind::bgcolor::DEFAULT,
         "kana_symbol": data.kana_symbol,
         "kana_display": display_char,
         "page": data.page,

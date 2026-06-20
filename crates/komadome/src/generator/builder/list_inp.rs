@@ -33,7 +33,7 @@ pub fn build_list_inp_context(data: &ListInpData) -> Result<Value> {
 
     Ok(json!({
         "page_title": format!("作業中　作家別作品一覧：{} | 青空文庫", data.person_name),
-        "bgcolor": "bg-sky-50",
+        "bgcolor": crate::tailwind::bgcolor::DEFAULT,
         "person_id": data.person_id,
         "person_name": data.person_name,
         "page": data.page,

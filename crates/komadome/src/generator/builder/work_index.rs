@@ -15,7 +15,7 @@ pub fn build_work_index_context(data: &WorkIndexData) -> Result<Value> {
 
     let ctx = json!({
         "page_title": format!("公開中　作品一覧：{} | 青空文庫", display_char),
-        "bgcolor": "bg-sky-50",
+        "bgcolor": crate::tailwind::bgcolor::DEFAULT,
         "kana_symbol": data.kana_symbol,
         "display_char": display_char,
         "page": data.page,

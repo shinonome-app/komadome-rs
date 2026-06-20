@@ -79,7 +79,7 @@ pub fn build_person_index_context(data: &PersonIndexData) -> Result<Value> {
 
     let ctx = json!({
         "page_title": format!("公開中　作家リスト：{}行 | 青空文庫", display_char),
-        "bgcolor": "bg-sky-50",
+        "bgcolor": crate::tailwind::bgcolor::DEFAULT,
         "kana_column": data.kana_column,
         "display_char": display_char,
         "kana_all": kana_all,

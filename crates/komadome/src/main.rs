@@ -6,6 +6,7 @@ mod commands;
 mod config;
 mod data;
 mod generator;
+mod tailwind;
 
 use anyhow::Result;
 use clap::Parser;
@@ -40,6 +41,7 @@ fn main() -> Result<()> {
         }
         Commands::Stats => stats::run(&config)?,
         Commands::Validate => validate::run(&config)?,
+        Commands::TailwindSafelist => tailwind::print_safelist()?,
     }
 
     Ok(())
