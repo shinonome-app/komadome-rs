@@ -24,7 +24,9 @@ pub fn build_wip_work_index_context(data: &WipWorkIndexData) -> Result<Value> {
                 "subtitle": w.subtitle.as_deref().unwrap_or(""),
                 "kana_type_name": w.kana_type_name.as_deref().unwrap_or(""),
                 "author_name": w.author_name.as_deref().unwrap_or(""),
-                "author_id": w.author_id,
+                // 著者未割当の WIP 作品は author_id が null になりうる。契約は scalar(非null) を
+                // 要求するので、他フィールドと同様に空文字へデフォルト化する（表示は「()」）。
+                "author_id": w.author_id.map(|id| id.to_string()).unwrap_or_default(),
                 "base_author_name": w.base_author_name.as_deref().unwrap_or(""),
                 "translator_text": w.translator_text.as_deref().unwrap_or(""),
                 "inputer_text": w.inputer_text.as_deref().unwrap_or(""),

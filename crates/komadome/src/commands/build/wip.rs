@@ -59,7 +59,7 @@ pub fn build_wip_work_indexes_internal(
             Err(e) => {
                 stats.errors.fetch_add(1, Ordering::Relaxed);
                 eprintln!(
-                    "Error building WIP work index {}/{}: {}",
+                    "Error building WIP work index {}/{}: {:#}",
                     data.kana_symbol, data.page, e
                 );
             }
