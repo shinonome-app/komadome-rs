@@ -1,0 +1,25 @@
+# 手動ビルド（sysadmin「ビルドのみ」）専用の設定。
+# 定時ビルド(komadome.toml)とは出力先を分け、プレビューを見ている最中に
+# 定時ビルドで上書きされないようにする。DB url / 公開URL は env で上書きされる
+# （production と同じく KOMADOME_DATABASE_URL / KOMADOME_MAIN_SITE_URL）。
+
+[output]
+directory = "build-preview"
+main_site_url = "https://www.aozora.jp"
+
+[templates]
+directory = "templates"
+
+[data]
+directory = "data-preview"
+
+[build]
+default_jobs = 8
+page_size = 50
+
+[database]
+# プレースホルダ。実値は KOMADOME_DATABASE_URL で上書きされる。
+url = "postgres://localhost/shinonome"
+
+[assets]
+zip_dir = "data-preview/csv_zip"

@@ -48,13 +48,15 @@ COPY --from=tailwind /usr/local/bin/tailwindcss /usr/local/bin/tailwindcss
 COPY templates /app/templates
 COPY contracts /app/contracts
 COPY deploy/komadome.production.toml /app/config/komadome.toml
+COPY deploy/komadome.preview.toml /app/config/komadome.preview.toml
 COPY deploy/tailwind /app/tailwind
 COPY deploy/crontab /app/crontab
 COPY deploy/entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY deploy/run-build.sh /usr/local/bin/run-build.sh
+COPY deploy/check-and-build.sh /usr/local/bin/check-and-build.sh
 
-RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/run-build.sh \
- && mkdir -p /app/build /app/data \
+RUN chmod +x /usr/local/bin/entrypoint.sh /usr/local/bin/run-build.sh /usr/local/bin/check-and-build.sh \
+ && mkdir -p /app/build /app/data /app/build-preview /app/data-preview \
  && chown -R app:app /app
 
 USER app
