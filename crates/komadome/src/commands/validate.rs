@@ -90,6 +90,10 @@ pub fn run(config: &Config) -> Result<()> {
     let mut checked = 0usize;
     let mut skipped = 0usize;
 
+    // partial (include 先) はテンプレート横断で共有されるので、ループ外で 1 個だけ
+    // 生成して include キャッシュを契約間で効かせる。
+    let mut loader = FileIncludeLoader::new(templates_dir.to_path_buf());
+
     for name in &contract_names {
         let template_path = templates_dir.join(format!("{name}.ntzr"));
 
@@ -112,7 +116,6 @@ pub fn run(config: &Config) -> Result<()> {
             }
         };
 
-        let mut loader = FileIncludeLoader::new(templates_dir.to_path_buf());
         let errors = natsuzora_contract::check_template(parsed.template(), contract, &mut loader);
 
         checked += 1;
