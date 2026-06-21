@@ -4,7 +4,7 @@ use std::io::Write;
 use std::path::Path;
 
 use super::db_helpers::{KANA_PATTERN, wip_work_predicate};
-use super::export_helpers::write_jsonl_line;
+use super::export_helpers::{column_display, column_kana_chars, write_jsonl_line};
 use crate::data::models::{WipPersonIndexData, WipPersonItem, WipPersonSection};
 use crate::generator::kana::COLUMN_CHARS;
 
@@ -14,40 +14,6 @@ struct PersonRow {
     name: String,
     unpublished_count: i64,
     copyright_flag: bool,
-}
-
-/// Column display names (first kana in column)
-const COLUMN_DISPLAY: &[(&str, &str)] = &[
-    ("a", "あ"),
-    ("ka", "か"),
-    ("sa", "さ"),
-    ("ta", "た"),
-    ("na", "な"),
-    ("ha", "は"),
-    ("ma", "ま"),
-    ("ya", "や"),
-    ("ra", "ら"),
-    ("wa", "わ"),
-    ("zz", ""),
-];
-
-fn column_display(col: &str) -> &'static str {
-    COLUMN_DISPLAY
-        .iter()
-        .find(|(k, _)| *k == col)
-        .map(|(_, v)| *v)
-        .unwrap_or("他")
-}
-
-/// Get individual kana characters for a column
-fn column_kana_chars(kana_chars: &str) -> Vec<String> {
-    if kana_chars.is_empty() {
-        // For "zz" column, include "その他" section so consolidated page can use it.
-        // Per-column page builder will filter this out (Rails renders no sections for zz).
-        vec!["その他".to_string()]
-    } else {
-        kana_chars.chars().map(|c| c.to_string()).collect()
-    }
 }
 
 pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
@@ -87,7 +53,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
 
         let data = WipPersonIndexData {
             kana_column: column_key.to_string(),
-            column_display: column_display(column_key).to_string(),
+            column_display: column_display(column_key),
             sections,
         };
 

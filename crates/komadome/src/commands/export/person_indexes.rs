@@ -3,12 +3,10 @@ use sqlx::PgPool;
 use std::io::Write;
 use std::path::Path;
 
-use super::export_helpers::write_jsonl_line;
+use super::db_helpers::KANA_PATTERN;
+use super::export_helpers::{column_display, write_jsonl_line};
 use crate::data::models::{PersonIndexData, PersonIndexItem, PersonIndexSection};
 use crate::generator::kana::COLUMN_CHARS;
-
-// Regex pattern for all kana characters
-const KANA_PATTERN: &str = "^[あいうえおか-もやゆよら-ろわをんアイウエオカ-モヤユヨラ-ロワヲンヴ]";
 
 #[derive(sqlx::FromRow)]
 struct PersonRow {
@@ -30,12 +28,8 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     let mut count = 0;
 
     for (column_key, kana_chars) in COLUMN_CHARS {
-        let column_display = if kana_chars.is_empty() {
-            // For "zz" column, Rails uses empty display (Kana.new(:zz).to_chars returns [])
-            "".to_string()
-        } else {
-            kana_chars.chars().next().unwrap().to_string()
-        };
+        // "zz"(その他) 列は空表示 (Rails の Kana.new(:zz).to_chars が [] を返すのに対応)。
+        let column_display = column_display(column_key);
 
         let sections = if kana_chars.is_empty() {
             // For "zz" column, create one section with kana_char "他"
