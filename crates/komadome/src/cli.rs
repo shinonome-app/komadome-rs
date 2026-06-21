@@ -40,7 +40,7 @@ pub enum Commands {
     /// Build soramoyou (news) pages only
     Soramoyou(SoramoyouArgs),
 
-    /// Clean output directory
+    /// Clean output directory with `--data` option to also clean the data directory
     Clean(CleanArgs),
 
     /// Export data from PostgreSQL to JSONL files
@@ -118,6 +118,10 @@ pub struct CleanArgs {
     /// Force clean without confirmation
     #[arg(short, long)]
     pub force: bool,
+
+    /// Also clean the data directory (export results: jsonl / csv_zip)
+    #[arg(long)]
+    pub data: bool,
 }
 
 #[derive(Parser)]
