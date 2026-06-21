@@ -1,10 +1,9 @@
 use anyhow::{Context, Result};
-use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
-use rayon::prelude::*;
+use indicatif::MultiProgress;
 use std::fs;
-use std::sync::atomic::Ordering;
 
 use super::BuildStats;
+use super::runner;
 use crate::config::Config;
 use crate::data::loader;
 use crate::data::models::{PersonAllIndexData, WipPersonIndexData, WipWorkIndexData};
@@ -25,19 +24,17 @@ pub fn build_wip_work_indexes_internal(
 
     let all_data: Vec<WipWorkIndexData> = loader::load_jsonl(&indexes_path)?;
 
-    let pb = multi.add(ProgressBar::new(all_data.len() as u64));
-    pb.set_style(
-        ProgressStyle::default_bar()
-            .template("[wip_work] {bar:40.yellow/white} {pos}/{len} ({per_sec})")
-            .unwrap()
-            .progress_chars("=> "),
-    );
+    let pb = runner::styled_bar(multi, "wip_work", "40.yellow/white", all_data.len() as u64);
 
     let index_pages_dir = config.output.directory.join("index_pages");
     fs::create_dir_all(&index_pages_dir)?;
 
-    all_data.par_iter().for_each(|data| {
-        let result = (|| -> Result<()> {
+    runner::render_each(
+        &all_data,
+        &pb,
+        stats,
+        |s| &s.wip_built,
+        |data| {
             let ctx = wip_work_index::build_wip_work_index_context(data)?;
             let html = templates
                 .render("indexes/wip_works", ctx)
@@ -50,24 +47,9 @@ pub fn build_wip_work_indexes_internal(
             let filename = wip_work_index::wip_work_index_filename(&data.kana_symbol, data.page);
             fs::write(index_pages_dir.join(&filename), html)?;
             Ok(())
-        })();
-
-        match result {
-            Ok(_) => {
-                stats.wip_built.fetch_add(1, Ordering::Relaxed);
-            }
-            Err(e) => {
-                stats.errors.fetch_add(1, Ordering::Relaxed);
-                eprintln!(
-                    "Error building WIP work index {}/{}: {:#}",
-                    data.kana_symbol, data.page, e
-                );
-            }
-        }
-        pb.inc(1);
-    });
-
-    pb.finish_with_message("done");
+        },
+        |data| format!("WIP work index {}/{}", data.kana_symbol, data.page),
+    );
     Ok(())
 }
 
@@ -87,9 +69,11 @@ pub fn build_wip_person_indexes_internal(
     let index_pages_dir = config.output.directory.join("index_pages");
     fs::create_dir_all(&index_pages_dir)?;
 
-    let mut built = 0;
-    for data in &all_data {
-        let result: Result<()> = (|| {
+    let built = runner::render_each_seq(
+        &all_data,
+        stats,
+        |s| &s.wip_built,
+        |data| {
             let ctx = wip_person_index::build_wip_person_index_context(data)?;
             let html = templates
                 .render("indexes/wip_people", ctx)
@@ -99,21 +83,9 @@ pub fn build_wip_person_indexes_internal(
             let filename = wip_person_index::wip_person_index_filename(&data.kana_column);
             fs::write(index_pages_dir.join(&filename), html)?;
             Ok(())
-        })();
-        match result {
-            Ok(_) => {
-                stats.wip_built.fetch_add(1, Ordering::Relaxed);
-                built += 1;
-            }
-            Err(e) => {
-                stats.errors.fetch_add(1, Ordering::Relaxed);
-                eprintln!(
-                    "Error building WIP person index {}: {}",
-                    data.kana_column, e
-                );
-            }
-        }
-    }
+        },
+        |data| format!("WIP person index {}", data.kana_column),
+    );
 
     println!("Built {built} WIP person index pages");
     Ok(())
@@ -135,9 +107,11 @@ pub fn build_person_all_indexes_internal(
     let index_pages_dir = config.output.directory.join("index_pages");
     fs::create_dir_all(&index_pages_dir)?;
 
-    let mut built = 0;
-    for data in &all_data {
-        let result: Result<()> = (|| {
+    let built = runner::render_each_seq(
+        &all_data,
+        stats,
+        |s| &s.wip_built,
+        |data| {
             let ctx = person_all_index::build_person_all_index_context(data)?;
             let html = templates
                 .render("indexes/person_all_index", ctx)
@@ -147,21 +121,9 @@ pub fn build_person_all_indexes_internal(
             let filename = person_all_index::person_all_index_filename(&data.kana_column);
             fs::write(index_pages_dir.join(&filename), html)?;
             Ok(())
-        })();
-        match result {
-            Ok(_) => {
-                stats.wip_built.fetch_add(1, Ordering::Relaxed);
-                built += 1;
-            }
-            Err(e) => {
-                stats.errors.fetch_add(1, Ordering::Relaxed);
-                eprintln!(
-                    "Error building person_all index {}: {}",
-                    data.kana_column, e
-                );
-            }
-        }
-    }
+        },
+        |data| format!("person_all index {}", data.kana_column),
+    );
 
     println!("Built {built} person_all index pages");
     Ok(())

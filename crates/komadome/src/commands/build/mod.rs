@@ -3,6 +3,7 @@ mod cards;
 mod list_inp;
 mod people;
 mod person_indexes;
+mod runner;
 mod soramoyou;
 mod static_pages;
 mod whatsnew;

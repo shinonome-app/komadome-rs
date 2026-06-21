@@ -1,9 +1,9 @@
 use anyhow::{Context, Result};
-use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
+use indicatif::MultiProgress;
 use std::fs;
-use std::sync::atomic::Ordering;
 
 use super::BuildStats;
+use super::runner;
 use crate::config::Config;
 use crate::data::loader;
 use crate::data::masters::Masters;
@@ -26,13 +26,7 @@ pub fn build_whatsnew_internal(
 
     let all_data: Vec<WhatsnewData> = loader::load_jsonl(&whatsnew_path)?;
 
-    let pb = multi.add(ProgressBar::new(all_data.len() as u64));
-    pb.set_style(
-        ProgressStyle::default_bar()
-            .template("[whatsnew] {bar:40.red/white} {pos}/{len} ({per_sec})")
-            .unwrap()
-            .progress_chars("=> "),
-    );
+    let pb = runner::styled_bar(multi, "whatsnew", "40.red/white", all_data.len() as u64);
 
     // Collect all past years for year_links
     let year_links: Vec<i32> = {
@@ -54,8 +48,12 @@ pub fn build_whatsnew_internal(
     let index_pages_dir = config.output.directory.join("index_pages");
     fs::create_dir_all(&index_pages_dir)?;
 
-    for data in &all_data {
-        let result: Result<()> = (|| {
+    runner::render_each(
+        &all_data,
+        &pb,
+        stats,
+        |s| &s.whatsnew_built,
+        |data| {
             if data.year.is_none() {
                 // Current year -> index template
                 let ctx = whatsnew::build_whatsnew_index_context(data, &today, &year_links)?;
@@ -75,23 +73,8 @@ pub fn build_whatsnew_internal(
                 fs::write(index_pages_dir.join(&filename), html)?;
             }
             Ok(())
-        })();
-
-        match result {
-            Ok(_) => {
-                stats.whatsnew_built.fetch_add(1, Ordering::Relaxed);
-            }
-            Err(e) => {
-                stats.errors.fetch_add(1, Ordering::Relaxed);
-                eprintln!(
-                    "Error building whatsnew {:?}/{}: {}",
-                    data.year, data.page, e
-                );
-            }
-        }
-        pb.inc(1);
-    }
-
-    pb.finish_with_message("done");
+        },
+        |data| format!("whatsnew {:?}/{}", data.year, data.page),
+    );
     Ok(())
 }

@@ -1,10 +1,9 @@
 use anyhow::{Context, Result};
-use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
-use rayon::prelude::*;
+use indicatif::MultiProgress;
 use std::fs;
-use std::sync::atomic::Ordering;
 
 use super::BuildStats;
+use super::runner;
 use crate::config::Config;
 use crate::data::loader::JsonlIterator;
 use crate::data::models::PersonPageData;
@@ -26,13 +25,7 @@ pub fn build_people_internal(
     // Count lines for progress bar
     let total = crate::data::loader::count_jsonl_lines(&people_path)?;
 
-    let pb = multi.add(ProgressBar::new(total as u64));
-    pb.set_style(
-        ProgressStyle::default_bar()
-            .template("[people] {bar:40.green/white} {pos}/{len} ({per_sec})")
-            .unwrap()
-            .progress_chars("=> "),
-    );
+    let pb = runner::styled_bar(multi, "people", "40.green/white", total as u64);
 
     // Read all people into memory for parallel processing.
     // person_id=0 ("著者なし" placeholder) は public 公開対象から除外する。
@@ -41,21 +34,14 @@ pub fn build_people_internal(
         .filter(|p: &PersonPageData| p.person.id != 0)
         .collect();
 
-    // Process in parallel
-    people.par_iter().for_each(|person_data| {
-        match build_person(config, templates, person_data) {
-            Ok(_) => {
-                stats.people_built.fetch_add(1, Ordering::Relaxed);
-            }
-            Err(e) => {
-                stats.errors.fetch_add(1, Ordering::Relaxed);
-                eprintln!("Error building person {}: {}", person_data.person.id, e);
-            }
-        }
-        pb.inc(1);
-    });
-
-    pb.finish_with_message("done");
+    runner::render_each(
+        &people,
+        &pb,
+        stats,
+        |s| &s.people_built,
+        |person_data| build_person(config, templates, person_data),
+        |person_data| format!("person {}", person_data.person.id),
+    );
     Ok(())
 }
 

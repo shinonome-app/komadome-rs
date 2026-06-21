@@ -1,10 +1,9 @@
 use anyhow::{Context, Result};
-use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
-use rayon::prelude::*;
+use indicatif::MultiProgress;
 use std::fs;
-use std::sync::atomic::Ordering;
 
 use super::BuildStats;
+use super::runner;
 use crate::config::Config;
 use crate::data::loader::JsonlIterator;
 use crate::data::models::WorkIndexData;
@@ -26,37 +25,21 @@ pub fn build_work_indexes_internal(
     // Count lines for progress bar
     let total = crate::data::loader::count_jsonl_lines(&indexes_path)?;
 
-    let pb = multi.add(ProgressBar::new(total as u64));
-    pb.set_style(
-        ProgressStyle::default_bar()
-            .template("[work_idx] {bar:40.yellow/white} {pos}/{len} ({per_sec})")
-            .unwrap()
-            .progress_chars("=> "),
-    );
+    let pb = runner::styled_bar(multi, "work_idx", "40.yellow/white", total as u64);
 
     // Read all indexes into memory for parallel processing
     let indexes: Vec<WorkIndexData> = JsonlIterator::new(&indexes_path)?
         .filter_map(|r| r.ok())
         .collect();
 
-    // Process in parallel
-    indexes.par_iter().for_each(|index_data| {
-        match build_work_index(config, templates, index_data) {
-            Ok(_) => {
-                stats.indexes_built.fetch_add(1, Ordering::Relaxed);
-            }
-            Err(e) => {
-                stats.errors.fetch_add(1, Ordering::Relaxed);
-                eprintln!(
-                    "Error building work index {}/{}: {}",
-                    index_data.kana_symbol, index_data.page, e
-                );
-            }
-        }
-        pb.inc(1);
-    });
-
-    pb.finish_with_message("done");
+    runner::render_each(
+        &indexes,
+        &pb,
+        stats,
+        |s| &s.indexes_built,
+        |index_data| build_work_index(config, templates, index_data),
+        |index_data| format!("work index {}/{}", index_data.kana_symbol, index_data.page),
+    );
     Ok(())
 }
 

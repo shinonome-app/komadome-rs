@@ -1,10 +1,9 @@
 use anyhow::{Context, Result};
-use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
-use rayon::prelude::*;
+use indicatif::MultiProgress;
 use std::fs;
-use std::sync::atomic::Ordering;
 
 use super::BuildStats;
+use super::runner;
 use crate::config::Config;
 use crate::data::loader::JsonlIterator;
 use crate::data::masters::Masters;
@@ -28,13 +27,7 @@ pub fn build_cards_internal(
     // Count lines for progress bar
     let total = crate::data::loader::count_jsonl_lines(&cards_path)?;
 
-    let pb = multi.add(ProgressBar::new(total as u64));
-    pb.set_style(
-        ProgressStyle::default_bar()
-            .template("[cards] {bar:40.cyan/blue} {pos}/{len} ({per_sec})")
-            .unwrap()
-            .progress_chars("=> "),
-    );
+    let pb = runner::styled_bar(multi, "cards", "40.cyan/blue", total as u64);
 
     // Read all cards into memory for parallel processing.
     // first_author.id == 0 ("著者なし" placeholder) は public 公開対象から除外する。
@@ -43,21 +36,14 @@ pub fn build_cards_internal(
         .filter(|c: &CardData| c.authors.first().map(|a| a.id).unwrap_or(c.person_id) != 0)
         .collect();
 
-    // Process in parallel
-    cards.par_iter().for_each(|card_data| {
-        match build_card(config, masters, templates, card_data) {
-            Ok(_) => {
-                stats.cards_built.fetch_add(1, Ordering::Relaxed);
-            }
-            Err(e) => {
-                stats.errors.fetch_add(1, Ordering::Relaxed);
-                eprintln!("Error building card {}: {}", card_data.work_id, e);
-            }
-        }
-        pb.inc(1);
-    });
-
-    pb.finish_with_message("done");
+    runner::render_each(
+        &cards,
+        &pb,
+        stats,
+        |s| &s.cards_built,
+        |card_data| build_card(config, masters, templates, card_data),
+        |card_data| format!("card {}", card_data.work_id),
+    );
     Ok(())
 }
 
