@@ -30,6 +30,26 @@ jobs:
     name: Parity check (fixture)
     runs-on: ubuntu-latest
     if: github.event.inputs.mode != 'dev-db'
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: shinonome_development
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_USER: postgres
+      DATABASE_PASS: postgres
+      DATABASE_HOST: localhost
+      DATABASE_PORT: 5432
+      KOMADOME_DATABASE_URL: postgres://postgres:postgres@localhost:5432/shinonome_development
     steps:
       - name: Set date
         run: |
@@ -62,12 +82,6 @@ jobs:
 
       - name: Install nokogiri gem
         run: gem install nokogiri
-
-      - name: Setup PostgreSQL
-        uses: harmoniq007/setup-postgres@v1
-        with:
-          postgres-version: '15'
-          database: shinonome_development
 
       - name: Setup Ruby database
         working-directory: komadome
@@ -105,6 +119,26 @@ jobs:
     name: Parity check (dev DB)
     runs-on: ubuntu-latest
     if: github.event.inputs.mode == 'dev-db'
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: shinonome_development
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_USER: postgres
+      DATABASE_PASS: postgres
+      DATABASE_HOST: localhost
+      DATABASE_PORT: 5432
+      KOMADOME_DATABASE_URL: postgres://postgres:postgres@localhost:5432/shinonome_development
     steps:
       - name: Set date
         run: |
@@ -137,12 +171,6 @@ jobs:
 
       - name: Install nokogiri gem
         run: gem install nokogiri
-
-      - name: Setup PostgreSQL
-        uses: harmoniq007/setup-postgres@v1
-        with:
-          postgres-version: '15'
-          database: shinonome_development
 
       - name: Import database dump
         run: |
