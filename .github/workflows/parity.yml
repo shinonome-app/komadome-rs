@@ -24,6 +24,7 @@ on:
 
 env:
   DATE: ${{ inputs.date || '' }}
+  SKIP_TEST_DATABASE: 'true'
 
 jobs:
   parity-fixture:
