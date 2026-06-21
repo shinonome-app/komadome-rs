@@ -1,0 +1,179 @@
+name: Parity Check
+
+on:
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Build date (YYYY-MM-DD)'
+        required: false
+        default: ''
+      mode:
+        description: 'Test mode'
+        type: choice
+        options:
+          - dev-db
+          - fixture
+        default: 'fixture'
+  push:
+    branches: [main]
+    paths:
+      - 'crates/**'
+      - 'templates/**'
+      - 'contracts/**'
+      - 'scripts/compare_builds.rb'
+
+env:
+  DATE: ${{ inputs.date || '' }}
+
+jobs:
+  parity-fixture:
+    name: Parity check (fixture)
+    runs-on: ubuntu-latest
+    if: github.event.inputs.mode != 'dev-db'
+    steps:
+      - name: Set date
+        run: |
+          if [ -z "$DATE" ]; then
+            echo "DATE=$(date +%Y-%m-%d)" >> $GITHUB_ENV
+          else
+            echo "DATE=$DATE" >> $GITHUB_ENV
+          fi
+
+      - name: Checkout komadome-rs
+        uses: actions/checkout@v4
+        with:
+          path: komadome-rs
+
+      - name: Checkout komadome (Ruby)
+        uses: actions/checkout@v4
+        with:
+          repository: aozora/komadome
+          path: komadome
+
+      - name: Install Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+          working-directory: komadome
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install nokogiri gem
+        run: gem install nokogiri
+
+      - name: Setup PostgreSQL
+        uses: harmoniq007/setup-postgres@v1
+        with:
+          postgres-version: '15'
+          database: shinonome_development
+
+      - name: Setup Ruby database
+        working-directory: komadome
+        run: |
+          bundle exec rails db:schema:load
+          PARITY_FIXTURE=1 bundle exec rails db:seed
+
+      - name: Build Rust
+        working-directory: komadome-rs
+        run: |
+          cargo build --release
+          ./target/release/komadome --date "$DATE" export
+          ./target/release/komadome build
+
+      - name: Build Ruby with fixture
+        working-directory: komadome
+        run: |
+          KOMADOME_BUILD_DATE=${{ env.DATE }} bundle exec rake build:all
+
+      - name: Compare builds
+        working-directory: komadome-rs
+        run: ruby scripts/compare_builds.rb ../komadome/tmp/build build
+
+      - name: Upload build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-outputs-fixture-${{ env.DATE }}
+          path: |
+            komadome-rs/build/
+            komadome/tmp/build/
+          retention-days: 7
+
+  parity-dev:
+    name: Parity check (dev DB)
+    runs-on: ubuntu-latest
+    if: github.event.inputs.mode == 'dev-db'
+    steps:
+      - name: Set date
+        run: |
+          if [ -z "$DATE" ]; then
+            echo "DATE=$(date +%Y-%m-%d)" >> $GITHUB_ENV
+          else
+            echo "DATE=$DATE" >> $GITHUB_ENV
+          fi
+
+      - name: Checkout komadome-rs
+        uses: actions/checkout@v4
+        with:
+          path: komadome-rs
+
+      - name: Checkout komadome (Ruby)
+        uses: actions/checkout@v4
+        with:
+          repository: aozora/komadome
+          path: komadome
+
+      - name: Install Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+          working-directory: komadome
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install nokogiri gem
+        run: gem install nokogiri
+
+      - name: Setup PostgreSQL
+        uses: harmoniq007/setup-postgres@v1
+        with:
+          postgres-version: '15'
+          database: shinonome_development
+
+      - name: Import database dump
+        run: |
+          # TODO: Add database dump import when available
+          # For now, this workflow requires a pre-existing database
+          echo "Note: shinonome_development database must be available"
+
+      - name: Build Rust
+        working-directory: komadome-rs
+        run: |
+          cargo build --release
+          ./target/release/komadome --date "$DATE" export
+          ./target/release/komadome build
+
+      - name: Build Ruby
+        working-directory: komadome
+        run: |
+          bundle exec rake build:all
+        env:
+          KOMADOME_BUILD_DATE: ${{ env.DATE }}
+
+      - name: Compare builds
+        working-directory: komadome-rs
+        run: ruby scripts/compare_builds.rb ../komadome/tmp/build build
+
+      - name: Upload build artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-outputs-dev-${{ env.DATE }}
+          path: |
+            komadome-rs/build/
+            komadome/tmp/build/
+          retention-days: 7
