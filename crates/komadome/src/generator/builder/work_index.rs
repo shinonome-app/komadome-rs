@@ -59,31 +59,31 @@ pub fn build_work_index_context(data: &WorkIndexData) -> Result<Value> {
 pub fn build_pagination(current: usize, total: usize) -> Vec<Value> {
     build_pagination_series(current, total, 13)
         .iter()
-        .map(PagyItem::to_json)
+        .map(PageItem::to_json)
         .collect()
 }
 
 #[derive(Debug, Clone)]
-enum PagyItem {
+enum PageItem {
     Page(usize),
     Current(usize),
     Gap,
 }
 
-impl PagyItem {
+impl PageItem {
     fn to_json(&self) -> Value {
         match self {
-            PagyItem::Page(p) => json!({
+            PageItem::Page(p) => json!({
                 "page": p,
                 "is_current": false,
                 "is_gap": false,
             }),
-            PagyItem::Current(p) => json!({
+            PageItem::Current(p) => json!({
                 "page": p,
                 "is_current": true,
                 "is_gap": false,
             }),
-            PagyItem::Gap => json!({
+            PageItem::Gap => json!({
                 "page": null,
                 "is_current": false,
                 "is_gap": true,
@@ -124,13 +124,13 @@ pub fn build_pagination_nav_html(
     // Page links
     for item in &series {
         match item {
-            PagyItem::Gap => {
+            PageItem::Gap => {
                 parts.push("  <span class=\"page gap\">&hellip;</span>".to_string());
             }
-            PagyItem::Current(p) => {
+            PageItem::Current(p) => {
                 parts.push(format!("  <span class=\"text-2xl\">{p}</span>"));
             }
-            PagyItem::Page(p) => {
+            PageItem::Page(p) => {
                 parts.push(format!(
                     "  <a class=\"{}\" href=\"{}\">{}</a>",
                     LINK_CLASS,
@@ -156,20 +156,20 @@ pub fn build_pagination_nav_html(
     parts.join("\n")
 }
 
-/// Build pagination series (internal, returns PagyItem vec)
-fn build_pagination_series(current: usize, total: usize, size: usize) -> Vec<PagyItem> {
+/// Build pagination series (internal, returns PageItem vec)
+fn build_pagination_series(current: usize, total: usize, size: usize) -> Vec<PageItem> {
     if total == 0 || size == 0 {
         return vec![];
     }
 
-    let mut series: Vec<PagyItem> = Vec::new();
+    let mut series: Vec<PageItem> = Vec::new();
 
     if size >= total {
         for p in 1..=total {
             series.push(if p == current {
-                PagyItem::Current(p)
+                PageItem::Current(p)
             } else {
-                PagyItem::Page(p)
+                PageItem::Page(p)
             });
         }
     } else {
@@ -185,33 +185,33 @@ fn build_pagination_series(current: usize, total: usize, size: usize) -> Vec<Pag
 
         for p in start..start + size {
             series.push(if p == current {
-                PagyItem::Current(p)
+                PageItem::Current(p)
             } else {
-                PagyItem::Page(p)
+                PageItem::Page(p)
             });
         }
 
         if size >= 7 {
             series[0] = if current == 1 {
-                PagyItem::Current(1)
+                PageItem::Current(1)
             } else {
-                PagyItem::Page(1)
+                PageItem::Page(1)
             };
-            if let PagyItem::Page(p) | PagyItem::Current(p) = series[1] {
+            if let PageItem::Page(p) | PageItem::Current(p) = series[1] {
                 if p != 2 {
-                    series[1] = PagyItem::Gap;
+                    series[1] = PageItem::Gap;
                 }
             }
             let last_idx = series.len() - 1;
-            if let PagyItem::Page(p) | PagyItem::Current(p) = series[last_idx - 1] {
+            if let PageItem::Page(p) | PageItem::Current(p) = series[last_idx - 1] {
                 if p != total - 1 {
-                    series[last_idx - 1] = PagyItem::Gap;
+                    series[last_idx - 1] = PageItem::Gap;
                 }
             }
             series[last_idx] = if current == total {
-                PagyItem::Current(total)
+                PageItem::Current(total)
             } else {
-                PagyItem::Page(total)
+                PageItem::Page(total)
             };
         }
     }
