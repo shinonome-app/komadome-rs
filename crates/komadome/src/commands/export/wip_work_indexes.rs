@@ -6,9 +6,8 @@ use std::path::Path;
 use crate::data::models::{WipWorkIndexData, WipWorkIndexItem};
 use crate::generator::kana::ROMA2KANA;
 
+use super::db_helpers::{KANA_PATTERN, wip_work_predicate};
 use super::export_helpers::{PAGE_SIZE, calculate_total_pages, write_jsonl_line};
-
-const KANA_PATTERN: &str = "^[あいうえおか-もやゆよら-ろわをんアイウエオカ-モヤユヨラ-ロワヲンヴ]";
 
 #[derive(sqlx::FromRow)]
 struct WipWorkRow {
@@ -90,10 +89,14 @@ async fn fetch_wip_works(
     kana_char: Option<&str>,
     today: chrono::NaiveDate,
 ) -> Result<Vec<WipWorkRow>> {
-    let works = if let Some(kana) = kana_char {
-        let pattern = format!("^{kana}");
-        sqlx::query_as::<_, WipWorkRow>(
-            r#"
+    // 通常のカナ列は sortkey 先頭一致 (~)、"zz" 列はカナ以外 (!~) を集める。
+    let (kana_op, pattern) = match kana_char {
+        Some(kana) => ("~", format!("^{kana}")),
+        None => ("!~", KANA_PATTERN.to_string()),
+    };
+    let wip = wip_work_predicate("$1");
+    let sql = format!(
+        r#"
             SELECT w.id, w.title, w.subtitle,
                    kt.name AS kana_type_name,
                    CONCAT(COALESCE(author_p.last_name, ''), ' ', COALESCE(author_p.first_name, '')) AS author_name,
@@ -147,83 +150,16 @@ async fn fetch_wip_works(
                 ORDER BY ob.id
                 LIMIT 1
             ) teihon ON true
-            WHERE (w.work_status_id IN (3,4,5,6,7,8,9,10,11)
-                   OR (w.work_status_id = 1 AND w.started_on > $1))
-              AND w.sortkey ~ $2
+            WHERE {wip}
+              AND w.sortkey {kana_op} $2
             ORDER BY w.sortkey, w.id
-            "#,
-        )
+            "#
+    );
+    let works = sqlx::query_as::<_, WipWorkRow>(&sql)
         .bind(today)
         .bind(&pattern)
         .fetch_all(pool)
-        .await?
-    } else {
-        sqlx::query_as::<_, WipWorkRow>(
-            r#"
-            SELECT w.id, w.title, w.subtitle,
-                   kt.name AS kana_type_name,
-                   CONCAT(COALESCE(author_p.last_name, ''), ' ', COALESCE(author_p.first_name, '')) AS author_name,
-                   author_p.id AS author_id,
-                   CASE WHEN orig_p.id IS NULL THEN NULL
-                        ELSE CONCAT(COALESCE(orig_p.last_name, ''), ' ', COALESCE(orig_p.first_name, ''))
-                   END AS base_author_name,
-                   translators.translator_text,
-                   inputers.inputer_text,
-                   proofreaders.proofreader_text,
-                   ws.name AS work_status_name,
-                   w.started_on,
-                   teihon.title AS teihon_title,
-                   teihon.publisher AS teihon_publisher,
-                   teihon.input_edition AS teihon_input_edition
-            FROM works w
-            LEFT JOIN kana_types kt ON kt.id = w.kana_type_id
-            LEFT JOIN work_statuses ws ON ws.id = w.work_status_id
-            LEFT JOIN LATERAL (
-                SELECT pe.id, pe.last_name, pe.first_name
-                FROM work_people wp2
-                JOIN people pe ON pe.id = wp2.person_id
-                WHERE wp2.work_id = w.id AND wp2.role_id = 1
-                ORDER BY wp2.id
-                LIMIT 1
-            ) author_p ON true
-            LEFT JOIN base_people bp ON bp.person_id = author_p.id
-            LEFT JOIN people orig_p ON orig_p.id = bp.original_person_id
-            LEFT JOIN LATERAL (
-                SELECT string_agg(CONCAT(COALESCE(pe.last_name, ''), ' ', COALESCE(pe.first_name, '')), ', ') AS translator_text
-                FROM work_people wp2
-                JOIN people pe ON pe.id = wp2.person_id
-                WHERE wp2.work_id = w.id AND wp2.role_id = 2
-            ) translators ON true
-            LEFT JOIN LATERAL (
-                SELECT string_agg(wk.name, '、') AS inputer_text
-                FROM work_workers ww
-                JOIN workers wk ON wk.id = ww.worker_id
-                WHERE ww.work_id = w.id AND ww.worker_role_id = 1
-            ) inputers ON true
-            LEFT JOIN LATERAL (
-                SELECT string_agg(wk.name, '、') AS proofreader_text
-                FROM work_workers ww
-                JOIN workers wk ON wk.id = ww.worker_id
-                WHERE ww.work_id = w.id AND ww.worker_role_id = 2
-            ) proofreaders ON true
-            LEFT JOIN LATERAL (
-                SELECT ob.title, ob.publisher, ob.input_edition
-                FROM original_books ob
-                WHERE ob.work_id = w.id AND ob.booktype_id = 1
-                ORDER BY ob.id
-                LIMIT 1
-            ) teihon ON true
-            WHERE (w.work_status_id IN (3,4,5,6,7,8,9,10,11)
-                   OR (w.work_status_id = 1 AND w.started_on > $1))
-              AND w.sortkey !~ $2
-            ORDER BY w.sortkey, w.id
-            "#,
-        )
-        .bind(today)
-        .bind(KANA_PATTERN)
-        .fetch_all(pool)
-        .await?
-    };
+        .await?;
 
     Ok(works)
 }

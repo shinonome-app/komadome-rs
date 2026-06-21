@@ -3,11 +3,10 @@ use sqlx::PgPool;
 use std::io::Write;
 use std::path::Path;
 
+use super::db_helpers::{KANA_PATTERN, wip_work_predicate};
 use super::export_helpers::write_jsonl_line;
 use crate::data::models::{WipPersonIndexData, WipPersonItem, WipPersonSection};
 use crate::generator::kana::COLUMN_CHARS;
-
-const KANA_PATTERN: &str = "^[あいうえおか-もやゆよら-ろわをんアイウエオカ-モヤユヨラ-ロワヲンヴ]";
 
 #[derive(sqlx::FromRow)]
 struct PersonRow {
@@ -107,56 +106,35 @@ async fn fetch_wip_people(
     kana_char: &str,
     today: chrono::NaiveDate,
 ) -> Result<Vec<PersonRow>> {
-    let people = if column_chars.is_empty() {
-        // "zz" - non-kana characters
-        sqlx::query_as::<_, PersonRow>(
-            r#"
-            SELECT p.id,
-                   CONCAT(COALESCE(p.last_name, ''), ' ', COALESCE(p.first_name, '')) AS name,
-                   COUNT(DISTINCT CASE
-                       WHEN w.work_status_id IN (3,4,5,6,7,8,9,10,11)
-                            OR (w.work_status_id = 1 AND w.started_on > $2)
-                       THEN w.id
-                   END) AS unpublished_count,
-                   p.copyright_flag
-            FROM people p
-            LEFT JOIN work_people wp ON wp.person_id = p.id
-            LEFT JOIN works w ON w.id = wp.work_id
-            WHERE p.sortkey !~ $1
-            GROUP BY p.id, p.last_name, p.first_name, p.copyright_flag, p.sortkey, p.sortkey2
-            ORDER BY p.sortkey, p.sortkey2, p.id
-            "#,
-        )
-        .bind(KANA_PATTERN)
-        .bind(today)
-        .fetch_all(pool)
-        .await?
+    // "zz" 列はカナ以外 (!~)、通常の列は sortkey が指定文字で始まる (LIKE) ものを集める。
+    let (kana_op, pattern) = if column_chars.is_empty() {
+        ("!~", KANA_PATTERN.to_string())
     } else {
-        // Match sortkey starting with specific kana character
-        let pattern = format!("{kana_char}%");
-        sqlx::query_as::<_, PersonRow>(
-            r#"
+        ("LIKE", format!("{kana_char}%"))
+    };
+    let wip = wip_work_predicate("$2");
+    let sql = format!(
+        r#"
             SELECT p.id,
                    CONCAT(COALESCE(p.last_name, ''), ' ', COALESCE(p.first_name, '')) AS name,
                    COUNT(DISTINCT CASE
-                       WHEN w.work_status_id IN (3,4,5,6,7,8,9,10,11)
-                            OR (w.work_status_id = 1 AND w.started_on > $2)
+                       WHEN {wip}
                        THEN w.id
                    END) AS unpublished_count,
                    p.copyright_flag
             FROM people p
             LEFT JOIN work_people wp ON wp.person_id = p.id
             LEFT JOIN works w ON w.id = wp.work_id
-            WHERE p.sortkey LIKE $1
+            WHERE p.sortkey {kana_op} $1
             GROUP BY p.id, p.last_name, p.first_name, p.copyright_flag, p.sortkey, p.sortkey2
             ORDER BY p.sortkey, p.sortkey2, p.id
-            "#,
-        )
+            "#
+    );
+    let people = sqlx::query_as::<_, PersonRow>(&sql)
         .bind(&pattern)
         .bind(today)
         .fetch_all(pool)
-        .await?
-    };
+        .await?;
 
     Ok(people)
 }

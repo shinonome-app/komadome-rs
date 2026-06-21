@@ -6,10 +6,8 @@ use std::path::Path;
 use crate::data::models::{WorkIndexData, WorkIndexItem};
 use crate::generator::kana::ROMA2KANA;
 
+use super::db_helpers::{KANA_PATTERN, published_work_predicate};
 use super::export_helpers::{PAGE_SIZE, calculate_total_pages, write_jsonl_line};
-
-// Regex pattern for all kana characters (same as Ruby's KANA_PATTERN)
-const KANA_PATTERN: &str = "^[あいうえおか-もやゆよら-ろわをんアイウエオカ-モヤユヨラ-ロワヲンヴ]";
 
 #[derive(sqlx::FromRow)]
 struct WorkRow {
@@ -83,11 +81,15 @@ async fn fetch_works(
     kana_char: Option<&str>,
     today: chrono::NaiveDate,
 ) -> Result<Vec<WorkRow>> {
-    let works = if let Some(kana) = kana_char {
-        // Regular kana character - match sortkey starting with this char
-        let pattern = format!("^{kana}");
-        sqlx::query_as::<_, WorkRow>(
-            r#"
+    // 通常のカナ列は sortkey がその文字で始まるものに一致 (~)、
+    // "zz" 列はカナ以外 (KANA_PATTERN に一致しない = !~) を集める。
+    let (kana_op, pattern) = match kana_char {
+        Some(kana) => ("~", format!("^{kana}")),
+        None => ("!~", KANA_PATTERN.to_string()),
+    };
+    let published = published_work_predicate("$1");
+    let sql = format!(
+        r#"
             SELECT w.id, w.title, w.title_kana, w.subtitle,
                    CONCAT(COALESCE(p.last_name, ''), ' ', COALESCE(p.first_name, '')) AS author_name,
                    p.id AS person_id,
@@ -117,58 +119,16 @@ async fn fetch_works(
                 LIMIT 1
             ) p ON true
             LEFT JOIN kana_types kt ON kt.id = w.kana_type_id
-            WHERE w.work_status_id = 1 AND w.started_on <= $1
-              AND w.sortkey ~ $2
+            WHERE {published}
+              AND w.sortkey {kana_op} $2
             ORDER BY w.sortkey, w.id
-            "#,
-        )
+            "#
+    );
+    let works = sqlx::query_as::<_, WorkRow>(&sql)
         .bind(today)
         .bind(&pattern)
         .fetch_all(pool)
-        .await?
-    } else {
-        // "zz" - non-kana characters
-        sqlx::query_as::<_, WorkRow>(
-            r#"
-            SELECT w.id, w.title, w.title_kana, w.subtitle,
-                   CONCAT(COALESCE(p.last_name, ''), ' ', COALESCE(p.first_name, '')) AS author_name,
-                   p.id AS person_id,
-                   CASE WHEN p.id IS NOT NULL THEN LPAD(p.id::text, 6, '0') END AS card_person_id,
-                   kt.name AS kana_type,
-                   (SELECT string_agg(CONCAT(COALESCE(pe2.last_name, ''), ' ', COALESCE(pe2.first_name, '')), ', ' ORDER BY wp2.id)
-                    FROM work_people wp2
-                    JOIN people pe2 ON pe2.id = wp2.person_id
-                    WHERE wp2.work_id = w.id AND wp2.role_id = 1) AS author_text,
-                   COALESCE((SELECT string_agg(CONCAT(COALESCE(op.last_name, ''), ' ', COALESCE(op.first_name, '')), ', ' ORDER BY wp3.id)
-                    FROM work_people wp3
-                    JOIN people pe3 ON pe3.id = wp3.person_id
-                    JOIN base_people bp ON bp.person_id = pe3.id
-                    JOIN people op ON op.id = bp.original_person_id
-                    WHERE wp3.work_id = w.id AND wp3.role_id = 1), '') AS base_author_text,
-                   COALESCE((SELECT string_agg(CONCAT(COALESCE(pe4.last_name, ''), ' ', COALESCE(pe4.first_name, '')), ', ' ORDER BY wp4.id)
-                    FROM work_people wp4
-                    JOIN people pe4 ON pe4.id = wp4.person_id
-                    WHERE wp4.work_id = w.id AND wp4.role_id = 2), '') AS translator_text
-            FROM works w
-            LEFT JOIN LATERAL (
-                SELECT pe.id, pe.last_name, pe.first_name
-                FROM work_people wp2
-                JOIN people pe ON pe.id = wp2.person_id
-                WHERE wp2.work_id = w.id AND wp2.role_id = 1
-                ORDER BY wp2.id
-                LIMIT 1
-            ) p ON true
-            LEFT JOIN kana_types kt ON kt.id = w.kana_type_id
-            WHERE w.work_status_id = 1 AND w.started_on <= $1
-              AND w.sortkey !~ $2
-            ORDER BY w.sortkey, w.id
-            "#,
-        )
-        .bind(today)
-        .bind(KANA_PATTERN)
-        .fetch_all(pool)
-        .await?
-    };
+        .await?;
 
     Ok(works)
 }

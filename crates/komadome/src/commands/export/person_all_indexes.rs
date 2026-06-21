@@ -3,11 +3,10 @@ use sqlx::PgPool;
 use std::io::Write;
 use std::path::Path;
 
+use super::db_helpers::{KANA_PATTERN, published_work_predicate, wip_work_predicate};
 use super::export_helpers::write_jsonl_line;
 use crate::data::models::{PersonAllIndexData, PersonAllItem, PersonAllSection};
 use crate::generator::kana::COLUMN_CHARS;
-
-const KANA_PATTERN: &str = "^[あいうえおか-もやゆよら-ろわをんアイウエオカ-モヤユヨラ-ロワヲンヴ]";
 
 #[derive(sqlx::FromRow)]
 struct PersonRow {
@@ -111,56 +110,30 @@ async fn fetch_all_people(
     // Rails does Person.where(...) without ORDER BY, which returns results
     // in physical/ctid order. Using a simple SELECT with correlated subqueries
     // preserves this ordering, unlike GROUP BY which uses hash aggregation.
-    let people = if column_chars.is_empty() {
-        sqlx::query_as::<_, PersonRow>(
-            r#"
-            SELECT p.id,
-                   CONCAT(COALESCE(p.last_name, ''), ' ', COALESCE(p.first_name, '')) AS name,
-                   (SELECT COUNT(DISTINCT w.id)
-                    FROM work_people wp
-                    JOIN works w ON w.id = wp.work_id
-                    WHERE wp.person_id = p.id
-                      AND w.work_status_id = 1 AND w.started_on <= $2
-                   ) AS published_count,
-                   (SELECT COUNT(DISTINCT w.id)
-                    FROM work_people wp
-                    JOIN works w ON w.id = wp.work_id
-                    WHERE wp.person_id = p.id
-                      AND (w.work_status_id IN (3,4,5,6,7,8,9,10,11)
-                           OR (w.work_status_id = 1 AND w.started_on > $2))
-                   ) AS unpublished_count,
-                   (SELECT COUNT(DISTINCT w.id)
-                    FROM work_people wp
-                    JOIN works w ON w.id = wp.work_id
-                    WHERE wp.person_id = p.id
-                   ) AS total_count,
-                   p.copyright_flag
-            FROM people p
-            WHERE p.sortkey !~ $1
-            "#,
-        )
-        .bind(KANA_PATTERN)
-        .bind(today)
-        .fetch_all(pool)
-        .await?
+    // "zz" 列はカナ以外 (sortkey が KANA_PATTERN に一致しない = !~)、
+    // 通常の列は sortkey が指定文字で始まる (LIKE) ものを集める。
+    let (kana_op, pattern) = if column_chars.is_empty() {
+        ("!~", KANA_PATTERN.to_string())
     } else {
-        let pattern = format!("{kana_char}%");
-        sqlx::query_as::<_, PersonRow>(
-            r#"
+        ("LIKE", format!("{kana_char}%"))
+    };
+    let published = published_work_predicate("$2");
+    let wip = wip_work_predicate("$2");
+    let sql = format!(
+        r#"
             SELECT p.id,
                    CONCAT(COALESCE(p.last_name, ''), ' ', COALESCE(p.first_name, '')) AS name,
                    (SELECT COUNT(DISTINCT w.id)
                     FROM work_people wp
                     JOIN works w ON w.id = wp.work_id
                     WHERE wp.person_id = p.id
-                      AND w.work_status_id = 1 AND w.started_on <= $2
+                      AND {published}
                    ) AS published_count,
                    (SELECT COUNT(DISTINCT w.id)
                     FROM work_people wp
                     JOIN works w ON w.id = wp.work_id
                     WHERE wp.person_id = p.id
-                      AND (w.work_status_id IN (3,4,5,6,7,8,9,10,11)
-                           OR (w.work_status_id = 1 AND w.started_on > $2))
+                      AND {wip}
                    ) AS unpublished_count,
                    (SELECT COUNT(DISTINCT w.id)
                     FROM work_people wp
@@ -169,14 +142,14 @@ async fn fetch_all_people(
                    ) AS total_count,
                    p.copyright_flag
             FROM people p
-            WHERE p.sortkey LIKE $1
-            "#,
-        )
+            WHERE p.sortkey {kana_op} $1
+            "#
+    );
+    let people = sqlx::query_as::<_, PersonRow>(&sql)
         .bind(&pattern)
         .bind(today)
         .fetch_all(pool)
-        .await?
-    };
+        .await?;
 
     Ok(people)
 }

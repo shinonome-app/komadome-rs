@@ -4,6 +4,7 @@ use std::io::Write;
 use std::path::Path;
 
 use super::db_helpers;
+use super::db_helpers::{published_work_predicate, wip_work_predicate};
 use super::export_helpers::write_jsonl_line;
 use crate::data::models::{
     OtherBasePerson, Person, PersonPageData, PersonWorkInfo, SiteInfo, WorkPersonRef,
@@ -89,7 +90,8 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     let person_ids: Vec<i64> = people.iter().map(|p| p.id).collect();
 
     // Fetch published works for all people
-    let work_rows: Vec<PersonWorkRow> = sqlx::query_as(
+    let published = published_work_predicate("$2");
+    let published_sql = format!(
         r#"
         SELECT wp.person_id, w.id AS work_id, w.title, w.title_kana, w.subtitle,
                w.sortkey, w.subtitle_kana,
@@ -103,17 +105,19 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
         LEFT JOIN roles r ON r.id = wp.role_id
         LEFT JOIN kana_types kt ON kt.id = w.kana_type_id
         WHERE wp.person_id = ANY($1)
-          AND w.work_status_id = 1 AND w.started_on <= $2
+          AND {published}
         ORDER BY wp.person_id, w.sortkey, w.subtitle_kana, w.id
-        "#,
-    )
-    .bind(&person_ids)
-    .bind(today)
-    .fetch_all(pool)
-    .await?;
+        "#
+    );
+    let work_rows: Vec<PersonWorkRow> = sqlx::query_as(&published_sql)
+        .bind(&person_ids)
+        .bind(today)
+        .fetch_all(pool)
+        .await?;
 
     // Fetch unpublished works for all people
-    let unpublished_work_rows: Vec<PersonWorkRow> = sqlx::query_as(
+    let wip = wip_work_predicate("$2");
+    let unpublished_sql = format!(
         r#"
         SELECT wp.person_id, w.id AS work_id, w.title, w.title_kana, w.subtitle,
                w.sortkey, w.subtitle_kana,
@@ -127,15 +131,15 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
         LEFT JOIN roles r ON r.id = wp.role_id
         LEFT JOIN kana_types kt ON kt.id = w.kana_type_id
         WHERE wp.person_id = ANY($1)
-          AND (w.work_status_id IN (3,4,5,6,7,8,9,10,11)
-               OR (w.work_status_id = 1 AND w.started_on > $2))
+          AND {wip}
         ORDER BY wp.person_id, w.sortkey, w.subtitle_kana, w.id
-        "#,
-    )
-    .bind(&person_ids)
-    .bind(today)
-    .fetch_all(pool)
-    .await?;
+        "#
+    );
+    let unpublished_work_rows: Vec<PersonWorkRow> = sqlx::query_as(&unpublished_sql)
+        .bind(&person_ids)
+        .bind(today)
+        .fetch_all(pool)
+        .await?;
 
     // Fetch all work_people for published and unpublished works (for work_people field)
     let all_work_ids: Vec<i64> = work_rows

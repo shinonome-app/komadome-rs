@@ -1,6 +1,32 @@
 use std::collections::HashMap;
 use std::hash::Hash;
 
+/// kana 文字すべてにマッチする正規表現パターン (Ruby の KANA_PATTERN と同一)。
+/// sortkey が kana で始まるか (= 五十音のどの列に属するか) の判定に使う。
+pub const KANA_PATTERN: &str =
+    "^[あいうえおか-もやゆよら-ろわをんアイウエオカ-モヤユヨラ-ロワヲンヴ]";
+
+/// 作業中(WIP=未公開)とみなす work_status_id の一覧。
+/// 公開済み (work_status_id = 1 かつ started_on <= 基準日) 以外の進行中ステータス。
+pub const WIP_WORK_STATUS_IDS: &str = "3,4,5,6,7,8,9,10,11";
+
+/// 作業中(未公開)作品を表す SQL 述語を組み立てる。
+/// `date_param` には基準日のバインドプレースホルダ (例: "$1") を渡す。
+/// works テーブルが `w` エイリアスである前提。全体が括弧で囲まれるため
+/// `AND <predicate>` や `CASE WHEN <predicate> THEN ...` にそのまま埋め込める。
+pub fn wip_work_predicate(date_param: &str) -> String {
+    format!(
+        "(w.work_status_id IN ({WIP_WORK_STATUS_IDS}) \
+         OR (w.work_status_id = 1 AND w.started_on > {date_param}))"
+    )
+}
+
+/// 公開済み作品を表す SQL 述語を組み立てる。
+/// `date_param` には基準日のバインドプレースホルダを渡す。works テーブルが `w` エイリアス前提。
+pub fn published_work_predicate(date_param: &str) -> String {
+    format!("w.work_status_id = 1 AND w.started_on <= {date_param}")
+}
+
 /// Group a slice of items by a key extracted by the given function
 pub fn group_by<T, K, F>(items: &[T], key_fn: F) -> HashMap<K, Vec<&T>>
 where
