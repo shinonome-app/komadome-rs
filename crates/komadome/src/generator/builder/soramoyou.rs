@@ -49,8 +49,7 @@ fn build_entries(entries: &[crate::data::models::NewsEntry]) -> Vec<Value> {
                 .map(|d| format!("{}年{:02}月{:02}日", d.year(), d.month(), d.day()))
                 .unwrap_or_default();
 
-            // Convert newlines to <br> (HTML5 style, matching Rails sanitize output)
-            let body_html = e.body.replace("\r\n", "<br>").replace('\n', "<br>");
+            let body_html = super::nl2br(&e.body);
 
             json!({
                 "id": e.id,

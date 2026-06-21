@@ -22,8 +22,8 @@ pub fn build_work_index_context(data: &WorkIndexData) -> Result<Value> {
         "total_pages": data.total_pages,
         "has_prev": data.page > 1,
         "has_next": data.page < data.total_pages,
-        "prev_page": if data.page > 1 { Some(data.page - 1) } else { None },
-        "next_page": if data.page < data.total_pages { Some(data.page + 1) } else { None },
+        "prev_page": super::prev_page(data.page),
+        "next_page": super::next_page(data.page, data.total_pages),
 
         "works": data.works.iter().enumerate().map(|(i, w)| json!({
             "id": w.id,
@@ -57,82 +57,22 @@ pub fn build_work_index_context(data: &WorkIndexData) -> Result<Value> {
 /// - Otherwise, show `size` consecutive pages centered on current, with first/last pages
 ///   and gaps when ends=true and size >= 7
 pub fn build_pagination(current: usize, total: usize) -> Vec<Value> {
-    build_pagination_with_size(current, total, 13)
+    build_pagination_series(current, total, 13)
+        .iter()
+        .map(PagyItem::to_json)
+        .collect()
 }
 
-fn build_pagination_with_size(current: usize, total: usize, size: usize) -> Vec<Value> {
-    if total == 0 || size == 0 {
-        return vec![];
-    }
+#[derive(Debug, Clone)]
+enum PagyItem {
+    Page(usize),
+    Current(usize),
+    Gap,
+}
 
-    // Build the series of page numbers (matching Pagy's algorithm)
-    let mut series: Vec<PagyItem> = Vec::new();
-
-    if size >= total {
-        // Show all pages
-        for p in 1..=total {
-            series.push(if p == current {
-                PagyItem::Current(p)
-            } else {
-                PagyItem::Page(p)
-            });
-        }
-    } else {
-        // Calculate left half: floor((size - 1) / 2.0)
-        let left = (size - 1) / 2; // integer division floors for us
-
-        let start = if current <= left {
-            // Beginning pages
-            1
-        } else if current > total - size + left {
-            // End pages
-            total - size + 1
-        } else {
-            // Intermediate pages
-            current - left
-        };
-
-        // Fill with consecutive pages
-        for p in start..start + size {
-            series.push(if p == current {
-                PagyItem::Current(p)
-            } else {
-                PagyItem::Page(p)
-            });
-        }
-
-        // Set first and last pages plus gaps when ends=true and size >= 7
-        if size >= 7 {
-            series[0] = if current == 1 {
-                PagyItem::Current(1)
-            } else {
-                PagyItem::Page(1)
-            };
-            // Add gap after first page if second item is not page 2
-            if let PagyItem::Page(p) | PagyItem::Current(p) = series[1] {
-                if p != 2 {
-                    series[1] = PagyItem::Gap;
-                }
-            }
-            let last_idx = series.len() - 1;
-            // Add gap before last page if second-to-last item is not (total - 1)
-            if let PagyItem::Page(p) | PagyItem::Current(p) = series[last_idx - 1] {
-                if p != total - 1 {
-                    series[last_idx - 1] = PagyItem::Gap;
-                }
-            }
-            series[last_idx] = if current == total {
-                PagyItem::Current(total)
-            } else {
-                PagyItem::Page(total)
-            };
-        }
-    }
-
-    // Convert to JSON values
-    series
-        .into_iter()
-        .map(|item| match item {
+impl PagyItem {
+    fn to_json(&self) -> Value {
+        match self {
             PagyItem::Page(p) => json!({
                 "page": p,
                 "is_current": false,
@@ -148,15 +88,8 @@ fn build_pagination_with_size(current: usize, total: usize, size: usize) -> Vec<
                 "is_current": false,
                 "is_gap": true,
             }),
-        })
-        .collect()
-}
-
-#[derive(Debug, Clone)]
-enum PagyItem {
-    Page(usize),
-    Current(usize),
-    Gap,
+        }
+    }
 }
 
 const LINK_CLASS: &str =

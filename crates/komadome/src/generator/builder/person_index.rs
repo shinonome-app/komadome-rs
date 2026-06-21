@@ -2,7 +2,7 @@ use anyhow::Result;
 use serde_json::{Value, json};
 
 use crate::data::models::PersonIndexData;
-use crate::generator::kana::COLUMN_CHARS;
+use crate::generator::kana::{COLUMN_CHARS, column_display};
 
 /// Build person index page context
 pub fn build_person_index_context(data: &PersonIndexData) -> Result<Value> {
@@ -62,17 +62,11 @@ pub fn build_person_index_context(data: &PersonIndexData) -> Result<Value> {
     // Build footer columns nav - highlight current
     let footer_columns: Vec<Value> = COLUMN_CHARS
         .iter()
-        .map(|(sym, chars)| {
-            let display = if *sym == "zz" {
-                "他".to_string()
-            } else {
-                chars.chars().next().unwrap_or('あ').to_string()
-            };
-            let is_current = *sym == data.kana_column;
+        .map(|(sym, _)| {
             json!({
                 "symbol": sym,
-                "display": display,
-                "is_current": is_current,
+                "display": column_display(sym),
+                "is_current": *sym == data.kana_column,
             })
         })
         .collect();

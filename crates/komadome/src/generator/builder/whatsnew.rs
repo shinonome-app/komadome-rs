@@ -28,8 +28,8 @@ pub fn build_whatsnew_index_context(
         "total_pages": data.total_pages,
         "has_prev": data.page > 1,
         "has_next": data.page < data.total_pages,
-        "prev_page": if data.page > 1 { Some(data.page - 1) } else { None },
-        "next_page": if data.page < data.total_pages { Some(data.page + 1) } else { None },
+        "prev_page": super::prev_page(data.page),
+        "next_page": super::next_page(data.page, data.total_pages),
         "pagination": build_pagination(data.page, data.total_pages),
         "pagination_nav_html": &pagination_nav_html,
         "entries": data.entries.iter().map(|e| {
@@ -73,8 +73,8 @@ pub fn build_whatsnew_year_context(data: &WhatsnewData, today: &NaiveDate) -> Re
         "total_pages": data.total_pages,
         "has_prev": data.page > 1,
         "has_next": data.page < data.total_pages,
-        "prev_page": if data.page > 1 { Some(data.page - 1) } else { None },
-        "next_page": if data.page < data.total_pages { Some(data.page + 1) } else { None },
+        "prev_page": super::prev_page(data.page),
+        "next_page": super::next_page(data.page, data.total_pages),
         "pagination": build_pagination(data.page, data.total_pages),
         "pagination_nav_html": &pagination_nav_html,
         "entries": data.entries.iter().map(|e| {

@@ -1,22 +1,8 @@
 use anyhow::Result;
 use serde_json::{Value, json};
 
+use super::{build_column_nav, build_kana_all};
 use crate::data::models::WipPersonIndexData;
-use crate::generator::kana::COLUMN_CHARS;
-
-const COLUMN_DISPLAY: &[(&str, &str)] = &[
-    ("a", "あ"),
-    ("ka", "か"),
-    ("sa", "さ"),
-    ("ta", "た"),
-    ("na", "な"),
-    ("ha", "は"),
-    ("ma", "ま"),
-    ("ya", "や"),
-    ("ra", "ら"),
-    ("wa", "わ"),
-    ("zz", "他"),
-];
 
 pub fn build_wip_person_index_context(data: &WipPersonIndexData) -> Result<Value> {
     // For "zz" column (empty column_display), Rails renders no sections on per-column page.
@@ -48,21 +34,7 @@ pub fn build_wip_person_index_context(data: &WipPersonIndexData) -> Result<Value
             .collect()
     };
 
-    let column_nav: Vec<Value> = COLUMN_CHARS
-        .iter()
-        .map(|(col, _)| {
-            let display = COLUMN_DISPLAY
-                .iter()
-                .find(|(k, _)| k == col)
-                .map(|(_, v)| *v)
-                .unwrap_or("他");
-            json!({
-                "column": col,
-                "display": display,
-                "is_current": *col == data.kana_column,
-            })
-        })
-        .collect();
+    let column_nav = build_column_nav(Some(&data.kana_column));
 
     Ok(json!({
         "page_title": format!("作業中　作家リスト：{}行 | 青空文庫", data.column_display),
@@ -107,30 +79,8 @@ pub fn build_wip_person_consolidated_context(all_data: &[WipPersonIndexData]) ->
         }
     }
 
-    let column_nav: Vec<Value> = COLUMN_CHARS
-        .iter()
-        .map(|(col, _)| {
-            let display = COLUMN_DISPLAY
-                .iter()
-                .find(|(k, _)| k == col)
-                .map(|(_, v)| *v)
-                .unwrap_or("他");
-            json!({
-                "column": col,
-                "display": display,
-            })
-        })
-        .collect();
-
-    let kana_all: Vec<Value> = all_sections
-        .iter()
-        .map(|s| {
-            json!({
-                "char": s["kana_char"],
-                "section_index": s["section_index"],
-            })
-        })
-        .collect();
+    let column_nav = build_column_nav(None);
+    let kana_all = build_kana_all(&all_sections);
 
     Ok(json!({
         "page_title": "作業中　作家リスト：全て | 青空文庫",

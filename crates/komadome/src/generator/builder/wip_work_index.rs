@@ -48,8 +48,8 @@ pub fn build_wip_work_index_context(data: &WipWorkIndexData) -> Result<Value> {
         "page": data.page,
         "total_pages": data.total_pages,
         "has_pagination": data.total_pages > 1,
-        "prev_page": if data.page > 1 { Some(data.page - 1) } else { None },
-        "next_page": if data.page < data.total_pages { Some(data.page + 1) } else { None },
+        "prev_page": super::prev_page(data.page),
+        "next_page": super::next_page(data.page, data.total_pages),
         "works": works,
         "pagination": build_pagination(data.page, data.total_pages),
     }))

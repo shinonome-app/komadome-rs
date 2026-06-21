@@ -1,8 +1,16 @@
+use std::sync::LazyLock;
+
 use anyhow::Result;
+use regex::Regex;
 use serde_json::{Value, json};
 
 use crate::data::masters::Masters;
 use crate::data::models::{CardData, WorkfileInfo};
+use crate::generator::builder::nl2br;
+
+/// Old `link.js` script tags to strip from note fields.
+static LINK_JS_SCRIPT_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r#"<script[^>]*link\.js[^>]*></script>"#).unwrap());
 
 /// Build card page context from card data
 pub fn build_card_context(
@@ -73,7 +81,7 @@ pub fn build_card_context(
         "started_on": card.started_on.as_deref().unwrap_or(""),
         "note": card.note.as_ref().map(|n| cleanup_note(n)).unwrap_or_default(),
         "first_appearance": card.first_appearance.as_deref().unwrap_or(""),
-        "description": card.description.as_ref().map(|d| d.replace("\r\n", "<br>").replace('\n', "<br>")).unwrap_or_default(),
+        "description": card.description.as_deref().map(nl2br).unwrap_or_default(),
         "has_copyright": card.has_copyright(),
         "card_path": card.card_path(),
         "xhtml_url": xhtml_url,
@@ -150,7 +158,7 @@ pub fn build_card_context(
             "name_en": wp.name_en.as_deref().unwrap_or(""),
             "born_on": wp.born_on.as_deref().unwrap_or(""),
             "died_on": wp.died_on.as_deref().unwrap_or(""),
-            "description": wp.description.as_ref().map(|d| d.replace("\r\n", "<br>").replace('\n', "<br>")).unwrap_or_default(),
+            "description": wp.description.as_deref().map(nl2br).unwrap_or_default(),
         })).collect::<Vec<_>>(),
 
         "sites": card.sites.iter().map(|s| json!({
@@ -164,9 +172,7 @@ pub fn build_card_context(
 
 /// Clean up note field (remove old link.js references, etc.)
 fn cleanup_note(note: &str) -> String {
-    // Remove old link.js script tags
-    let re = regex::Regex::new(r#"<script[^>]*link\.js[^>]*></script>"#).unwrap();
-    re.replace_all(note, "").to_string()
+    LINK_JS_SCRIPT_RE.replace_all(note, "").to_string()
 }
 
 /// Build the href for the top "いますぐ XHTML 版で読む" link.

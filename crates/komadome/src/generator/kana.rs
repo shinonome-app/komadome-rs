@@ -164,6 +164,26 @@ impl Kana {
     }
 }
 
+/// Representative display character for a kana column (あ, か, ..., 他).
+///
+/// Single source of truth for the column labels used by the 作家リスト
+/// footer navigation and consolidated pages.
+pub fn column_display(column: &str) -> &'static str {
+    match column {
+        "a" => "あ",
+        "ka" => "か",
+        "sa" => "さ",
+        "ta" => "た",
+        "na" => "な",
+        "ha" => "は",
+        "ma" => "ま",
+        "ya" => "や",
+        "ra" => "ら",
+        "wa" => "わ",
+        _ => "他",
+    }
+}
+
 /// Get all symbols for a column (a, ka, sa, ...)
 pub fn symbols_in_column(column: &str) -> Vec<&'static str> {
     match column {
