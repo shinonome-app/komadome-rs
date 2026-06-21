@@ -5,6 +5,7 @@ use std::path::Path;
 
 use crate::data::models::{ListInpData, ListInpWorkItem};
 
+use super::db_helpers::{group_by, wip_work_predicate};
 use super::export_helpers::{PAGE_SIZE, calculate_total_pages, write_jsonl_line};
 
 #[derive(sqlx::FromRow)]
@@ -17,6 +18,7 @@ struct PersonWithCountRow {
 
 #[derive(sqlx::FromRow)]
 struct WorkRow {
+    person_id: i64,
     id: i64,
     title: String,
     subtitle: Option<String>,
@@ -41,7 +43,8 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     let today = crate::clock::build_date();
 
     // Find all persons who have unpublished works (any role)
-    let persons: Vec<PersonWithCountRow> = sqlx::query_as(
+    let wip = wip_work_predicate("$1");
+    let persons_sql = format!(
         r#"
         SELECT p.id,
                CONCAT(COALESCE(p.last_name, ''), ' ', COALESCE(p.first_name, '')) AS name,
@@ -49,23 +52,31 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
         FROM people p
         JOIN work_people wp ON wp.person_id = p.id
         JOIN works w ON w.id = wp.work_id
-        WHERE w.work_status_id IN (3,4,5,6,7,8,9,10,11)
-              OR (w.work_status_id = 1 AND w.started_on > $1)
+        WHERE {wip}
         GROUP BY p.id, p.last_name, p.first_name
         HAVING COUNT(DISTINCT w.id) > 0
         ORDER BY p.id
-        "#,
-    )
-    .bind(today)
-    .fetch_all(pool)
-    .await?;
+        "#
+    );
+    let persons: Vec<PersonWithCountRow> = sqlx::query_as(&persons_sql)
+        .bind(today)
+        .fetch_all(pool)
+        .await?;
+
+    // Fetch every person's unpublished works in a single batched query (avoids N+1),
+    // then group in memory by person_id. Rows are ordered by person_id first so each
+    // person's works keep their sortkey order within the grouped Vec.
+    let person_ids: Vec<i64> = persons.iter().map(|p| p.id).collect();
+    let all_works = fetch_persons_wip_works(pool, &person_ids, today).await?;
+    let works_by_person = group_by(&all_works, |w| w.person_id);
+    let empty: Vec<&WorkRow> = Vec::new();
 
     let mut file =
         std::io::BufWriter::new(std::fs::File::create(output_dir.join("list_inp.jsonl"))?);
     let mut count = 0;
 
     for person in &persons {
-        let works = fetch_person_wip_works(pool, person.id, today).await?;
+        let works = works_by_person.get(&person.id).unwrap_or(&empty);
         let total_pages = calculate_total_pages(works.len());
 
         for page in 1..=total_pages {
@@ -108,14 +119,15 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     Ok(count)
 }
 
-async fn fetch_person_wip_works(
+async fn fetch_persons_wip_works(
     pool: &PgPool,
-    person_id: i64,
+    person_ids: &[i64],
     today: chrono::NaiveDate,
 ) -> Result<Vec<WorkRow>> {
-    let works = sqlx::query_as::<_, WorkRow>(
+    let wip = wip_work_predicate("$2");
+    let sql = format!(
         r#"
-        SELECT DISTINCT w.id, w.title, w.subtitle,
+        SELECT DISTINCT wp.person_id, w.id, w.title, w.subtitle,
                kt.name AS kana_type_name,
                translators.translator_text,
                inputers.inputer_text,
@@ -127,7 +139,7 @@ async fn fetch_person_wip_works(
                teihon.input_edition AS teihon_input_edition,
                w.sortkey, w.subtitle_kana
         FROM works w
-        JOIN work_people wp ON wp.work_id = w.id AND wp.person_id = $1
+        JOIN work_people wp ON wp.work_id = w.id AND wp.person_id = ANY($1)
         LEFT JOIN kana_types kt ON kt.id = w.kana_type_id
         LEFT JOIN work_statuses ws ON ws.id = w.work_status_id
         LEFT JOIN LATERAL (
@@ -155,15 +167,15 @@ async fn fetch_person_wip_works(
             ORDER BY ob.id
             LIMIT 1
         ) teihon ON true
-        WHERE w.work_status_id IN (3,4,5,6,7,8,9,10,11)
-              OR (w.work_status_id = 1 AND w.started_on > $2)
-        ORDER BY w.sortkey, w.subtitle_kana, w.id
-        "#,
-    )
-    .bind(person_id)
-    .bind(today)
-    .fetch_all(pool)
-    .await?;
+        WHERE {wip}
+        ORDER BY wp.person_id, w.sortkey, w.subtitle_kana, w.id
+        "#
+    );
+    let works = sqlx::query_as::<_, WorkRow>(&sql)
+        .bind(person_ids)
+        .bind(today)
+        .fetch_all(pool)
+        .await?;
 
     Ok(works)
 }
