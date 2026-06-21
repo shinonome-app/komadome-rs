@@ -7,7 +7,7 @@ use std::io::Write;
 use std::path::Path;
 
 use super::db_helpers;
-use super::export_helpers::PAGE_SIZE;
+use super::export_helpers::{PAGE_SIZE, calculate_total_pages};
 use crate::data::models::WhatsnewEntry;
 
 const FIRST_YEAR: i32 = 2001;
@@ -202,7 +202,9 @@ fn write_paginated(
         return Ok(0);
     }
 
-    let total_pages = (entries.len() as f64 / PAGE_SIZE as f64).ceil() as usize;
+    // entries が空のケースは上で早期 return 済みなので calculate_total_pages の
+    // 「0 件でも 1 ページ」挙動には到達しない (= 従来の ceil と同値)。
+    let total_pages = calculate_total_pages(entries.len());
 
     let mut count = 0;
 

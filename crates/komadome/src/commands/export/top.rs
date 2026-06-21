@@ -11,6 +11,29 @@ struct LatestDateRow {
     started_on: Option<chrono::NaiveDate>,
 }
 
+/// 指定年に公開 (work_status_id = 1, started_on <= today) された作品の最新 started_on。
+async fn max_started_on(
+    pool: &PgPool,
+    today: chrono::NaiveDate,
+    year: i32,
+) -> Result<Option<chrono::NaiveDate>> {
+    let row: Option<LatestDateRow> = sqlx::query_as(
+        r#"
+        SELECT MAX(started_on) AS started_on
+        FROM works
+        WHERE work_status_id = 1
+          AND started_on IS NOT NULL
+          AND started_on <= $1
+          AND extract(year FROM started_on) = $2
+        "#,
+    )
+    .bind(today)
+    .bind(year)
+    .fetch_optional(pool)
+    .await?;
+    Ok(row.and_then(|r| r.started_on))
+}
+
 #[derive(sqlx::FromRow)]
 struct NewWorkRow {
     id: i64,
@@ -41,44 +64,11 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     let current_year = Datelike::year(&today);
 
     // Find the latest published date (try current year first, then previous year)
-    let latest_date: Option<chrono::NaiveDate> = {
-        let row: Option<LatestDateRow> = sqlx::query_as(
-            r#"
-            SELECT MAX(started_on) AS started_on
-            FROM works
-            WHERE work_status_id = 1
-              AND started_on IS NOT NULL
-              AND started_on <= $1
-              AND extract(year FROM started_on) = $2
-            "#,
-        )
-        .bind(today)
-        .bind(current_year)
-        .fetch_optional(pool)
-        .await?;
-
-        match row.and_then(|r| r.started_on) {
+    let latest_date: Option<chrono::NaiveDate> =
+        match max_started_on(pool, today, current_year).await? {
             Some(d) => Some(d),
-            None => {
-                // Try previous year
-                let row: Option<LatestDateRow> = sqlx::query_as(
-                    r#"
-                    SELECT MAX(started_on) AS started_on
-                    FROM works
-                    WHERE work_status_id = 1
-                      AND started_on IS NOT NULL
-                      AND started_on <= $1
-                      AND extract(year FROM started_on) = $2
-                    "#,
-                )
-                .bind(today)
-                .bind(current_year - 1)
-                .fetch_optional(pool)
-                .await?;
-                row.and_then(|r| r.started_on)
-            }
-        }
-    };
+            None => max_started_on(pool, today, current_year - 1).await?,
+        };
 
     // Fetch new works for that date
     let new_works_rows: Vec<NewWorkRow> = if let Some(date) = latest_date {
