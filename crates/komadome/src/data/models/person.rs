@@ -21,18 +21,49 @@ pub struct Person {
 }
 
 impl Person {
+    // first_name が無い場合でも末尾に空白を残す
     pub fn full_name(&self) -> String {
-        match &self.first_name {
-            Some(first) => format!("{} {}", self.last_name, first),
-            None => self.last_name.clone(),
-        }
+        format!(
+            "{} {}",
+            self.last_name,
+            self.first_name.as_deref().unwrap_or("")
+        )
     }
 
     pub fn full_name_kana(&self) -> String {
-        match &self.first_name_kana {
-            Some(first) => format!("{} {}", self.last_name_kana, first),
-            None => self.last_name_kana.clone(),
+        format!(
+            "{} {}",
+            self.last_name_kana,
+            self.first_name_kana.as_deref().unwrap_or("")
+        )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn person(last: &str, first: Option<&str>) -> Person {
+        Person {
+            id: 1,
+            last_name: last.to_string(),
+            first_name: first.map(str::to_string),
+            last_name_kana: last.to_string(),
+            first_name_kana: first.map(str::to_string),
+            name_en: None,
+            born_on: None,
+            died_on: None,
+            copyright_flag: false,
+            description: None,
+            sortkey: None,
         }
+    }
+
+    #[test]
+    fn full_name_keeps_trailing_space_without_first_name() {
+        // 姓のみのときも末尾に空白を残す。
+        assert_eq!(person("紫式部", None).full_name(), "紫式部 ");
+        assert_eq!(person("太宰", Some("治")).full_name(), "太宰 治");
     }
 }
 
