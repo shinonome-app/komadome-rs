@@ -73,7 +73,7 @@ jobs:
       - name: Install Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.3'
+          ruby-version: '3.4.2'
           bundler-cache: true
           working-directory: komadome
 
@@ -162,7 +162,7 @@ jobs:
       - name: Install Ruby
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.3'
+          ruby-version: '3.4.2'
           bundler-cache: true
           working-directory: komadome
 
@@ -172,11 +172,17 @@ jobs:
       - name: Install nokogiri gem
         run: gem install nokogiri
 
-      - name: Import database dump
+      - name: Checkout parity data
+        uses: actions/checkout@v4
+        with:
+          repository: shinonome-app/komadome-parity-data
+          path: parity-data
+
+      - name: Load schema and restore parity dump
+        working-directory: komadome
         run: |
-          # TODO: Add database dump import when available
-          # For now, this workflow requires a pre-existing database
-          echo "Note: shinonome_development database must be available"
+          bundle exec rails db:schema:load
+          gunzip -c ../parity-data/parity_dump.sql.gz | psql "$KOMADOME_DATABASE_URL"
 
       - name: Build Rust
         working-directory: komadome-rs
