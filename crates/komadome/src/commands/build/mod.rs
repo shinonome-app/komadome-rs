@@ -16,7 +16,9 @@ use std::fs;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Instant;
 
-use crate::cli::{BuildArgs, CardsArgs, IndexesArgs, PeopleArgs, SoramoyouArgs, WhatsnewArgs};
+use crate::cli::{
+    BuildArgs, CardsArgs, IndexType, IndexesArgs, PeopleArgs, SoramoyouArgs, WhatsnewArgs,
+};
 use crate::config::Config;
 use crate::data::masters::Masters;
 use crate::generator::templates::TemplateRegistry;
@@ -209,8 +211,11 @@ pub fn run_indexes(config: &Config, args: IndexesArgs) -> Result<()> {
         .ok();
 
     let start = Instant::now();
-    let index_type = args.r#type.as_deref().unwrap_or("all");
-    println!("Building {index_type} indexes with {jobs} threads...");
+    let index_type = args.r#type;
+    println!(
+        "Building {} indexes with {jobs} threads...",
+        index_type.label()
+    );
 
     // Load templates
     let templates = TemplateRegistry::load(&config.templates.directory)?;
@@ -221,17 +226,11 @@ pub fn run_indexes(config: &Config, args: IndexesArgs) -> Result<()> {
     let stats = BuildStats::default();
     let multi = MultiProgress::new();
 
-    match index_type {
-        "works" => {
-            work_indexes::build_work_indexes_internal(config, &templates, &stats, &multi)?;
-        }
-        "people" => {
-            person_indexes::build_person_indexes_internal(config, &templates, &stats, &multi)?;
-        }
-        _ => {
-            work_indexes::build_work_indexes_internal(config, &templates, &stats, &multi)?;
-            person_indexes::build_person_indexes_internal(config, &templates, &stats, &multi)?;
-        }
+    if matches!(index_type, IndexType::Works | IndexType::All) {
+        work_indexes::build_work_indexes_internal(config, &templates, &stats, &multi)?;
+    }
+    if matches!(index_type, IndexType::People | IndexType::All) {
+        person_indexes::build_person_indexes_internal(config, &templates, &stats, &multi)?;
     }
 
     multi.clear()?;

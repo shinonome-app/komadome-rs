@@ -1,5 +1,5 @@
 use chrono::NaiveDate;
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 use std::path::PathBuf;
 
 #[derive(Parser)]
@@ -95,8 +95,27 @@ pub struct IndexesArgs {
     pub jobs: Option<usize>,
 
     /// Index type to build
-    #[arg(long, value_parser = ["works", "people", "all"])]
-    pub r#type: Option<String>,
+    #[arg(long, value_enum, default_value_t = IndexType::All)]
+    pub r#type: IndexType,
+}
+
+/// 生成するインデックスの種別。
+#[derive(Clone, Copy, Debug, PartialEq, Eq, ValueEnum)]
+pub enum IndexType {
+    Works,
+    People,
+    All,
+}
+
+impl IndexType {
+    /// ログ表示用のラベル。
+    pub fn label(self) -> &'static str {
+        match self {
+            IndexType::Works => "works",
+            IndexType::People => "people",
+            IndexType::All => "all",
+        }
+    }
 }
 
 #[derive(Parser)]
