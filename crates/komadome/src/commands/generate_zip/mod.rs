@@ -7,10 +7,9 @@
 //!   - list_person_all_extended.zip / list_person_all_extended_utf8.zip
 //!   - list_inp_person_all.zip / list_inp_person_all_utf8.zip
 
-mod finished_basic;
+mod basic;
 mod finished_extended;
 mod headers;
-mod inp_basic;
 
 use anyhow::{Context, Result};
 use std::fs;
@@ -37,9 +36,9 @@ pub async fn run(config: &Config) -> Result<()> {
     let pool = db::connect(config).await?;
     let today = crate::clock::build_date();
 
-    finished_basic::generate(&pool, &zip_dir, today).await?;
+    basic::generate(&pool, &zip_dir, today, basic::BasicKind::Finished).await?;
     finished_extended::generate(&pool, &zip_dir, today, &config.output.main_site_url).await?;
-    inp_basic::generate(&pool, &zip_dir, today).await?;
+    basic::generate(&pool, &zip_dir, today, basic::BasicKind::Inp).await?;
 
     pool.close().await;
 

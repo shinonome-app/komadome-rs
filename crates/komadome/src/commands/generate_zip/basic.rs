@@ -1,13 +1,61 @@
-//! `list_person_all.zip` / `list_person_all_utf8.zip` の生成。
+//! 基本版 CSV (`list_inp_person_all*.zip` / `list_person_all*.zip`) の生成。
 //!
-//! Ruby `CsvCreator#write_finished` (csv_creator.rb:73-109) と同じ列構成・並び順を再現する。
-//! 公開作品 (`work_status_id = 1 AND started_on <= today`) を `(work, person)` 単位で展開。
+//! 未公開作品版 (Ruby `CsvCreator#write_inp`, csv_creator.rb:36-71) と
+//! 公開作品版 (Ruby `CsvCreator#write_finished`, csv_creator.rb:73-109) は
+//! 「対象作品の絞り込み条件」と「校正に使用した版」列の有無以外は同一なので、
+//! [`BasicKind`] で切り替える単一実装に統合している。
 
 use anyhow::Result;
 use sqlx::PgPool;
 use std::path::Path;
 
 use super::{headers, make_csv_writer, write_header, write_pair};
+use crate::commands::export::db_helpers::{published_work_predicate, wip_work_predicate};
+
+/// 基本版 CSV の種別。未公開作品 (inp) と公開作品 (finished) の差分を表す。
+#[derive(Clone, Copy)]
+pub enum BasicKind {
+    /// 未公開作品基本版 (`list_inp_person_all*.zip`)。
+    Inp,
+    /// 公開作品基本版 (`list_person_all*.zip`)。「校正に使用した版」列を含む。
+    Finished,
+}
+
+impl BasicKind {
+    fn log_label(self) -> &'static str {
+        match self {
+            BasicKind::Inp => "inp_basic",
+            BasicKind::Finished => "finished_basic",
+        }
+    }
+
+    fn header(self) -> &'static str {
+        match self {
+            BasicKind::Inp => headers::INP_BASIC,
+            BasicKind::Finished => headers::FINISHED_BASIC,
+        }
+    }
+
+    fn base_name(self) -> &'static str {
+        match self {
+            BasicKind::Inp => "list_inp_person_all",
+            BasicKind::Finished => "list_person_all",
+        }
+    }
+
+    /// 対象作品を絞り込む WHERE 述語。`$1` は基準日。
+    fn where_predicate(self) -> String {
+        match self {
+            BasicKind::Inp => wip_work_predicate("$1"),
+            BasicKind::Finished => published_work_predicate("$1"),
+        }
+    }
+
+    /// 「校正に使用した版」列を CSV に出力するか。
+    fn include_proof_edition(self) -> bool {
+        matches!(self, BasicKind::Finished)
+    }
+}
 
 #[derive(sqlx::FromRow)]
 struct Row {
@@ -27,9 +75,18 @@ struct Row {
     teihon_proof_edition: Option<String>,
 }
 
-pub async fn generate(pool: &PgPool, zip_dir: &Path, today: chrono::NaiveDate) -> Result<()> {
-    println!("[finished_basic] querying...");
-    let rows: Vec<Row> = sqlx::query_as(
+pub async fn generate(
+    pool: &PgPool,
+    zip_dir: &Path,
+    today: chrono::NaiveDate,
+    kind: BasicKind,
+) -> Result<()> {
+    println!("[{}] querying...", kind.log_label());
+
+    // proof_edition は両版とも SELECT する (inp 版では CSV に出さないだけ)。
+    // これにより Row と SQL を 1 つに保てる。
+    let where_predicate = kind.where_predicate();
+    let sql = format!(
         r#"
         SELECT
             p.id AS person_id,
@@ -79,27 +136,26 @@ pub async fn generate(pool: &PgPool, zip_dir: &Path, today: chrono::NaiveDate) -
             ORDER BY id
             LIMIT 1
         ) ob ON TRUE
-        WHERE w.work_status_id = 1 AND w.started_on <= $1
+        WHERE {where_predicate}
         -- Ruby: order(:sortkey, :sortkey2, :id, 'people.sortkey')
         -- works has no sortkey2; AR が unqualified にして Postgres が people.sortkey2 に解決する。
         ORDER BY w.sortkey, p.sortkey2, w.id, p.sortkey
-        "#,
-    )
-    .bind(today)
-    .fetch_all(pool)
-    .await?;
+        "#
+    );
+    let rows: Vec<Row> = sqlx::query_as(&sql).bind(today).fetch_all(pool).await?;
 
     println!("  -> {} rows", rows.len());
 
+    let include_proof = kind.include_proof_edition();
     let mut buf = Vec::with_capacity(rows.len() * 200);
-    write_header(&mut buf, headers::FINISHED_BASIC)?;
+    write_header(&mut buf, kind.header())?;
     {
         let mut w = make_csv_writer(&mut buf);
         for r in &rows {
             let person_id = r.person_id.to_string();
             let work_id = r.work_id.to_string();
             let started_on = r.started_on.map(|d| d.to_string()).unwrap_or_default();
-            w.write_record([
+            let mut record = vec![
                 person_id.as_str(),
                 r.person_name.as_str(),
                 work_id.as_str(),
@@ -113,12 +169,15 @@ pub async fn generate(pool: &PgPool, zip_dir: &Path, today: chrono::NaiveDate) -
                 r.teihon_title.as_deref().unwrap_or(""),
                 r.teihon_publisher.as_deref().unwrap_or(""),
                 r.teihon_input_edition.as_deref().unwrap_or(""),
-                r.teihon_proof_edition.as_deref().unwrap_or(""),
-            ])?;
+            ];
+            if include_proof {
+                record.push(r.teihon_proof_edition.as_deref().unwrap_or(""));
+            }
+            w.write_record(&record)?;
         }
         w.flush()?;
     }
 
-    write_pair(zip_dir, "list_person_all", &buf)?;
+    write_pair(zip_dir, kind.base_name(), &buf)?;
     Ok(())
 }
