@@ -51,11 +51,15 @@ jobs:
       DATABASE_HOST: localhost
       DATABASE_PORT: 5432
       KOMADOME_DATABASE_URL: postgres://postgres:postgres@localhost:5432/shinonome_development
+      # fixture は決定論のため基準日を固定する。seed(parity_fixture の BASE_DATE)と
+      # build(--date / KOMADOME_BUILD_DATE)が同じ DATE を見るようにする。
+      # 2026 年央。fixture の works(2026-01-01 公開 / 2027-01-01 未来除外)前提。経年で要見直し。
+      PARITY_FIXTURE_DATE: '2026-06-15'
     steps:
       - name: Set date
         run: |
           if [ -z "$DATE" ]; then
-            echo "DATE=$(date +%Y-%m-%d)" >> $GITHUB_ENV
+            echo "DATE=$PARITY_FIXTURE_DATE" >> $GITHUB_ENV
           else
             echo "DATE=$DATE" >> $GITHUB_ENV
           fi
