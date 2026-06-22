@@ -118,7 +118,8 @@ pub struct CardData {
 }
 
 impl CardData {
-    /// Check if any related person (author, translator, editor) has copyright
+    /// Check if any related person (of any role) has copyright.
+    /// `work_people_details` holds every author/translator/editor for the work.
     pub fn has_copyright(&self) -> bool {
         self.work_people_details.iter().any(|wp| wp.copyright_flag)
     }

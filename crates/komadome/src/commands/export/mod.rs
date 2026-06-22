@@ -15,10 +15,13 @@ mod wip_work_indexes;
 mod work_indexes;
 
 use anyhow::Result;
+use clap::ValueEnum;
+use sqlx::PgPool;
 use std::fs;
+use std::path::Path;
 use std::time::Instant;
 
-use crate::cli::ExportArgs;
+use crate::cli::{ExportArgs, ExportTarget};
 use crate::config::Config;
 
 pub async fn run(config: &Config, args: ExportArgs) -> Result<()> {
@@ -31,60 +34,13 @@ pub async fn run(config: &Config, args: ExportArgs) -> Result<()> {
 
     println!("Exporting to {}...\n", output_dir.display());
 
-    match args.only.as_deref() {
-        Some("masters") => {
-            masters::export(&pool, output_dir).await?;
-        }
-        Some("cards") => {
-            cards::export(&pool, output_dir).await?;
-        }
-        Some("person_pages") => {
-            person_pages::export(&pool, output_dir).await?;
-        }
-        Some("work_indexes") => {
-            work_indexes::export(&pool, output_dir).await?;
-        }
-        Some("person_indexes") => {
-            person_indexes::export(&pool, output_dir).await?;
-        }
-        Some("whatsnew") => {
-            whatsnew::export(&pool, output_dir).await?;
-        }
-        Some("news") => {
-            news::export(&pool, output_dir).await?;
-        }
-        Some("top") => {
-            top::export(&pool, output_dir).await?;
-        }
-        Some("wip_work_indexes") => {
-            wip_work_indexes::export(&pool, output_dir).await?;
-        }
-        Some("wip_person_indexes") => {
-            wip_person_indexes::export(&pool, output_dir).await?;
-        }
-        Some("person_all_indexes") => {
-            person_all_indexes::export(&pool, output_dir).await?;
-        }
-        Some("list_inp") => {
-            list_inp::export(&pool, output_dir).await?;
-        }
-        Some(other) => {
-            anyhow::bail!("Unknown export type: {other}");
-        }
+    match args.only {
+        Some(target) => export_one(target, &pool, output_dir).await?,
+        // `None` => 全種別を宣言順にエクスポート。
         None => {
-            // Export all
-            masters::export(&pool, output_dir).await?;
-            cards::export(&pool, output_dir).await?;
-            person_pages::export(&pool, output_dir).await?;
-            work_indexes::export(&pool, output_dir).await?;
-            person_indexes::export(&pool, output_dir).await?;
-            whatsnew::export(&pool, output_dir).await?;
-            news::export(&pool, output_dir).await?;
-            top::export(&pool, output_dir).await?;
-            wip_work_indexes::export(&pool, output_dir).await?;
-            wip_person_indexes::export(&pool, output_dir).await?;
-            person_all_indexes::export(&pool, output_dir).await?;
-            list_inp::export(&pool, output_dir).await?;
+            for &target in ExportTarget::value_variants() {
+                export_one(target, &pool, output_dir).await?;
+            }
         }
     }
 
@@ -93,5 +49,25 @@ pub async fn run(config: &Config, args: ExportArgs) -> Result<()> {
     let elapsed = start.elapsed();
     println!("\nExport complete in {:.2}s", elapsed.as_secs_f64());
 
+    Ok(())
+}
+
+/// 1種別をエクスポートする。網羅 match なので `ExportTarget` に追加すると
+/// コンパイルエラーで漏れを検知できる。
+async fn export_one(target: ExportTarget, pool: &PgPool, output_dir: &Path) -> Result<()> {
+    match target {
+        ExportTarget::Masters => masters::export(pool, output_dir).await?,
+        ExportTarget::Cards => cards::export(pool, output_dir).await?,
+        ExportTarget::PersonPages => person_pages::export(pool, output_dir).await?,
+        ExportTarget::WorkIndexes => work_indexes::export(pool, output_dir).await?,
+        ExportTarget::PersonIndexes => person_indexes::export(pool, output_dir).await?,
+        ExportTarget::Whatsnew => whatsnew::export(pool, output_dir).await?,
+        ExportTarget::News => news::export(pool, output_dir).await?,
+        ExportTarget::Top => top::export(pool, output_dir).await?,
+        ExportTarget::WipWorkIndexes => wip_work_indexes::export(pool, output_dir).await?,
+        ExportTarget::WipPersonIndexes => wip_person_indexes::export(pool, output_dir).await?,
+        ExportTarget::PersonAllIndexes => person_all_indexes::export(pool, output_dir).await?,
+        ExportTarget::ListInp => list_inp::export(pool, output_dir).await?,
+    };
     Ok(())
 }

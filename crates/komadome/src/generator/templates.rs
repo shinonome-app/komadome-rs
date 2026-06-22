@@ -15,8 +15,8 @@ impl TemplateRegistry {
     pub fn load(template_dir: &Path) -> Result<Self> {
         let mut templates = HashMap::new();
 
-        // Find all .tmpl files
-        let entries = Self::find_templates(template_dir)?;
+        // Find all .ntzr template files
+        let entries = super::find_files_with_ext(template_dir, "ntzr")?;
 
         for entry in entries {
             let rel_path = entry
@@ -64,31 +64,6 @@ impl TemplateRegistry {
     /// List all loaded template names
     pub fn names(&self) -> impl Iterator<Item = &String> {
         self.templates.keys()
-    }
-
-    fn find_templates(dir: &Path) -> Result<Vec<PathBuf>> {
-        let mut results = Vec::new();
-
-        if !dir.exists() {
-            return Ok(results);
-        }
-
-        Self::find_templates_recursive(dir, &mut results)?;
-        Ok(results)
-    }
-
-    fn find_templates_recursive(dir: &Path, results: &mut Vec<PathBuf>) -> Result<()> {
-        for entry in fs::read_dir(dir)? {
-            let entry = entry?;
-            let path = entry.path();
-
-            if path.is_dir() {
-                Self::find_templates_recursive(&path, results)?;
-            } else if path.extension().and_then(|s| s.to_str()) == Some("ntzr") {
-                results.push(path);
-            }
-        }
-        Ok(())
     }
 }
 

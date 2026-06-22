@@ -125,11 +125,3 @@ fn copy_dir_recursive(
     }
     Ok(())
 }
-
-pub fn build_404_page(config: &Config) -> Result<()> {
-    let html = include_str!("../../../static/404.html");
-    let output_path = config.output.directory.join("404.html");
-    fs::write(&output_path, html)?;
-    println!("Built 404 page: 404.html");
-    Ok(())
-}

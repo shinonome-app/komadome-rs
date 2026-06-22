@@ -11,17 +11,9 @@ fn load_fixture<T: serde::de::DeserializeOwned>(name: &str) -> T {
     serde_json::from_str(&content).unwrap_or_else(|e| panic!("Failed to parse fixture {name}: {e}"))
 }
 
-fn roundtrip_check<T: serde::de::DeserializeOwned>(name: &str) -> (T, serde_json::Value) {
-    let path = fixture_path(name);
-    let content = std::fs::read_to_string(&path).unwrap();
-    let original_value: serde_json::Value = serde_json::from_str(&content).unwrap();
-    let parsed: T = serde_json::from_str(&content).unwrap();
-    (parsed, original_value)
-}
-
 #[test]
 fn test_card_data_deserialization() {
-    let (card, _original): (CardData, _) = roundtrip_check("card_data.json");
+    let card: CardData = load_fixture("card_data.json");
     assert_eq!(card.work_id, 12345);
     assert_eq!(card.person_id, 100);
     assert_eq!(card.title, "Test Work Title");
@@ -53,7 +45,7 @@ fn test_card_data_methods() {
 
 #[test]
 fn test_person_page_data_deserialization() {
-    let (data, _original): (PersonPageData, _) = roundtrip_check("person_page_data.json");
+    let data: PersonPageData = load_fixture("person_page_data.json");
     assert_eq!(data.person.id, 100);
     assert_eq!(data.person.last_name, "Author");
     assert_eq!(data.person.first_name.as_deref(), Some("Name"));
@@ -73,7 +65,7 @@ fn test_person_page_data_deserialization() {
 
 #[test]
 fn test_work_index_data_deserialization() {
-    let (data, _original): (WorkIndexData, _) = roundtrip_check("work_index_data.json");
+    let data: WorkIndexData = load_fixture("work_index_data.json");
     assert_eq!(data.kana_symbol, "a");
     assert_eq!(data.pagination.page, 1);
     assert_eq!(data.pagination.total_pages, 3);
@@ -85,7 +77,7 @@ fn test_work_index_data_deserialization() {
 
 #[test]
 fn test_person_index_data_deserialization() {
-    let (data, _original): (PersonIndexData, _) = roundtrip_check("person_index_data.json");
+    let data: PersonIndexData = load_fixture("person_index_data.json");
     assert_eq!(data.kana_column, "a");
     assert_eq!(data.column_display, "あ");
     assert_eq!(data.sections.len(), 1);
@@ -97,7 +89,7 @@ fn test_person_index_data_deserialization() {
 
 #[test]
 fn test_whatsnew_data_deserialization() {
-    let (data, _original): (WhatsnewData, _) = roundtrip_check("whatsnew_data.json");
+    let data: WhatsnewData = load_fixture("whatsnew_data.json");
     assert_eq!(data.year, None);
     assert_eq!(data.pagination.page, 1);
     assert_eq!(data.pagination.total_pages, 2);
@@ -109,7 +101,7 @@ fn test_whatsnew_data_deserialization() {
 
 #[test]
 fn test_top_page_data_deserialization() {
-    let (data, _original): (TopPageData, _) = roundtrip_check("top_page_data.json");
+    let data: TopPageData = load_fixture("top_page_data.json");
     assert_eq!(data.new_works.len(), 1);
     assert_eq!(data.new_works[0].work_id, 555);
     assert_eq!(data.new_works[0].card_person_id, Some(200));
@@ -122,7 +114,7 @@ fn test_top_page_data_deserialization() {
 
 #[test]
 fn test_wip_work_index_data_deserialization() {
-    let (data, _original): (WipWorkIndexData, _) = roundtrip_check("wip_work_index_data.json");
+    let data: WipWorkIndexData = load_fixture("wip_work_index_data.json");
     assert_eq!(data.kana_symbol, "ka");
     assert_eq!(data.pagination.page, 1);
     assert_eq!(data.pagination.total_pages, 1);
@@ -134,7 +126,7 @@ fn test_wip_work_index_data_deserialization() {
 
 #[test]
 fn test_wip_person_index_data_deserialization() {
-    let (data, _original): (WipPersonIndexData, _) = roundtrip_check("wip_person_index_data.json");
+    let data: WipPersonIndexData = load_fixture("wip_person_index_data.json");
     assert_eq!(data.kana_column, "ka");
     assert_eq!(data.column_display, "か");
     assert_eq!(data.sections.len(), 1);
@@ -145,7 +137,7 @@ fn test_wip_person_index_data_deserialization() {
 
 #[test]
 fn test_person_all_index_data_deserialization() {
-    let (data, _original): (PersonAllIndexData, _) = roundtrip_check("person_all_index_data.json");
+    let data: PersonAllIndexData = load_fixture("person_all_index_data.json");
     assert_eq!(data.kana_column, "a");
     assert_eq!(data.sections.len(), 1);
     assert_eq!(data.sections[0].people.len(), 1);
@@ -157,7 +149,7 @@ fn test_person_all_index_data_deserialization() {
 
 #[test]
 fn test_list_inp_data_deserialization() {
-    let (data, _original): (ListInpData, _) = roundtrip_check("list_inp_data.json");
+    let data: ListInpData = load_fixture("list_inp_data.json");
     assert_eq!(data.person_id, 300);
     assert_eq!(data.person_name, "WIP Person");
     assert_eq!(data.pagination.page, 1);
@@ -168,7 +160,7 @@ fn test_list_inp_data_deserialization() {
 
 #[test]
 fn test_news_data_deserialization() {
-    let (data, _original): (NewsData, _) = roundtrip_check("news_data.json");
+    let data: NewsData = load_fixture("news_data.json");
     assert_eq!(data.year, 2024);
     assert_eq!(data.entries.len(), 1);
     assert_eq!(data.entries[0].id, 42);

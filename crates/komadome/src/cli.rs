@@ -145,7 +145,27 @@ pub struct CleanArgs {
 
 #[derive(Parser)]
 pub struct ExportArgs {
-    /// Export specific type only
-    #[arg(long, value_parser = ["masters", "cards", "person_pages", "work_indexes", "person_indexes", "whatsnew", "news", "top", "wip_work_indexes", "wip_person_indexes", "person_all_indexes", "list_inp"])]
-    pub only: Option<String>,
+    /// Export specific type only (omit to export everything)
+    #[arg(long, value_enum)]
+    pub only: Option<ExportTarget>,
+}
+
+/// Export対象の種別。`None` のときは全種別を宣言順にエクスポートする。
+/// 列挙順は「全件エクスポート」の実行順序を兼ねるので、依存関係に合わせて並べること。
+/// CLI 値は従来互換の snake_case を維持する。
+#[derive(Clone, Copy, Debug, PartialEq, Eq, ValueEnum)]
+#[value(rename_all = "snake_case")]
+pub enum ExportTarget {
+    Masters,
+    Cards,
+    PersonPages,
+    WorkIndexes,
+    PersonIndexes,
+    Whatsnew,
+    News,
+    Top,
+    WipWorkIndexes,
+    WipPersonIndexes,
+    PersonAllIndexes,
+    ListInp,
 }

@@ -15,6 +15,12 @@ use cli::{Cli, Commands};
 use commands::{build, clean, export, generate_zip, stats, validate};
 use config::Config;
 
+/// Run an async command to completion on a fresh single-threaded-capable Tokio runtime.
+/// The async commands (export / generate_zip) are I/O-bound DB work, not long-lived servers.
+fn block_on<F: std::future::Future<Output = Result<()>>>(fut: F) -> Result<()> {
+    tokio::runtime::Runtime::new()?.block_on(fut)
+}
+
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
@@ -31,14 +37,8 @@ fn main() -> Result<()> {
         Commands::Whatsnew(args) => build::run_whatsnew(&config, args)?,
         Commands::Soramoyou(args) => build::run_soramoyou(&config, args)?,
         Commands::Clean(args) => clean::run(&config, args)?,
-        Commands::Export(args) => {
-            let rt = tokio::runtime::Runtime::new()?;
-            rt.block_on(export::run(&config, args))?;
-        }
-        Commands::GenerateZip => {
-            let rt = tokio::runtime::Runtime::new()?;
-            rt.block_on(generate_zip::run(&config))?;
-        }
+        Commands::Export(args) => block_on(export::run(&config, args))?,
+        Commands::GenerateZip => block_on(generate_zip::run(&config))?,
         Commands::Stats => stats::run(&config)?,
         Commands::Validate => validate::run(&config)?,
         Commands::TailwindSafelist => tailwind::print_safelist()?,
