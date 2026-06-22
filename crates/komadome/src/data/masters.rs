@@ -5,6 +5,18 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
+/// マスタ Vec から id→name のルックアップマップを組み立てる。
+/// `f` は各要素から `(id, name)` を取り出すクロージャ。name が `None` の要素は除外する。
+fn id_name_map<T>(items: &[T], f: impl Fn(&T) -> (i64, Option<&str>)) -> HashMap<i64, String> {
+    items
+        .iter()
+        .filter_map(|item| {
+            let (id, name) = f(item);
+            name.map(|n| (id, n.to_string()))
+        })
+        .collect()
+}
+
 /// All master tables loaded from masters.json
 #[derive(Debug, Deserialize)]
 pub struct Masters {
@@ -121,43 +133,14 @@ impl Masters {
     }
 
     fn build_lookup_maps(&mut self) {
-        self.roles_map = self.roles.iter().map(|r| (r.id, r.name.clone())).collect();
-
-        self.work_statuses_map = self
-            .work_statuses
-            .iter()
-            .map(|s| (s.id, s.name.clone()))
-            .collect();
-
-        self.kana_types_map = self
-            .kana_types
-            .iter()
-            .map(|k| (k.id, k.name.clone()))
-            .collect();
-
-        self.filetypes_map = self
-            .filetypes
-            .iter()
-            .map(|f| (f.id, f.name.clone()))
-            .collect();
-
-        self.compresstypes_map = self
-            .compresstypes
-            .iter()
-            .map(|c| (c.id, c.name.clone()))
-            .collect();
-
-        self.booktypes_map = self
-            .booktypes
-            .iter()
-            .map(|b| (b.id, b.name.clone()))
-            .collect();
-
-        self.worker_roles_map = self
-            .worker_roles
-            .iter()
-            .filter_map(|w| w.name.as_ref().map(|n| (w.id, n.clone())))
-            .collect();
+        self.roles_map = id_name_map(&self.roles, |r| (r.id, Some(r.name.as_str())));
+        self.work_statuses_map = id_name_map(&self.work_statuses, |s| (s.id, Some(s.name.as_str())));
+        self.kana_types_map = id_name_map(&self.kana_types, |k| (k.id, Some(k.name.as_str())));
+        self.filetypes_map = id_name_map(&self.filetypes, |f| (f.id, Some(f.name.as_str())));
+        self.compresstypes_map =
+            id_name_map(&self.compresstypes, |c| (c.id, Some(c.name.as_str())));
+        self.booktypes_map = id_name_map(&self.booktypes, |b| (b.id, Some(b.name.as_str())));
+        self.worker_roles_map = id_name_map(&self.worker_roles, |w| (w.id, w.name.as_deref()));
     }
 
     /// Get the export date as NaiveDate, falling back to today if not set
