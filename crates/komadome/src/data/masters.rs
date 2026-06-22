@@ -106,6 +106,15 @@ impl Masters {
         let mut masters: Masters = serde_json::from_str(&content)
             .with_context(|| format!("Failed to parse masters file: {}", path.display()))?;
 
+        // exported_on が「存在するが不正フォーマット」の場合はビルド再現性が静かに
+        // 壊れるため、ここでエラーにする (欠落は exported_date() で wall-clock に
+        // フォールバックして良いが、不正値の黙殺は許さない)。
+        if let Some(s) = masters.exported_on.as_deref() {
+            NaiveDate::parse_from_str(s, "%Y-%m-%d").with_context(|| {
+                format!("Invalid `exported_on` in masters file {}: {s:?}", path.display())
+            })?;
+        }
+
         masters.build_lookup_maps();
 
         Ok(masters)
