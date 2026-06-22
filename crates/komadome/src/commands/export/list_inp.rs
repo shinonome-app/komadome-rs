@@ -3,7 +3,7 @@ use sqlx::PgPool;
 use std::io::Write;
 use std::path::Path;
 
-use crate::data::models::{ListInpData, ListInpWorkItem};
+use crate::data::models::{ListInpData, ListInpWorkItem, Pagination};
 
 use super::db_helpers::{group_by, wip_work_predicate};
 use super::export_helpers::{PAGE_SIZE, calculate_total_pages, write_jsonl_line};
@@ -104,8 +104,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
             let data = ListInpData {
                 person_id: person.id,
                 person_name: person.name.clone(),
-                page,
-                total_pages,
+                pagination: Pagination { page, total_pages },
                 works: page_works,
             };
 

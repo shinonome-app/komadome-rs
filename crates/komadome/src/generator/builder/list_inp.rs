@@ -12,7 +12,7 @@ pub fn build_list_inp_context(data: &ListInpData) -> Result<Value> {
         .iter()
         .enumerate()
         .map(|(idx, w)| {
-            let row_number = idx + 1 + ((data.page - 1) * PAGE_SIZE);
+            let row_number = idx + 1 + ((data.pagination.page - 1) * PAGE_SIZE);
             json!({
                 "row_number": row_number,
                 "id": w.id,
@@ -36,13 +36,13 @@ pub fn build_list_inp_context(data: &ListInpData) -> Result<Value> {
         "bgcolor": crate::tailwind::bgcolor::DEFAULT,
         "person_id": data.person_id,
         "person_name": data.person_name,
-        "page": data.page,
-        "total_pages": data.total_pages,
-        "has_pagination": data.total_pages > 1,
-        "prev_page": super::prev_page(data.page),
-        "next_page": super::next_page(data.page, data.total_pages),
+        "page": data.pagination.page,
+        "total_pages": data.pagination.total_pages,
+        "has_pagination": data.pagination.has_pagination(),
+        "prev_page": super::prev_page(data.pagination.page),
+        "next_page": super::next_page(data.pagination.page, data.pagination.total_pages),
         "works": works,
-        "pagination": build_pagination(data.page, data.total_pages),
+        "pagination": build_pagination(data.pagination.page, data.pagination.total_pages),
     }))
 }
 

@@ -41,13 +41,16 @@ pub fn build_list_inp_internal(
         |data| {
             let ctx = list_inp::build_list_inp_context(data)?;
             let html = templates.render("indexes/list_inp", ctx).with_context(|| {
-                format!("Failed to render list_inp {}/{}", data.person_id, data.page)
+                format!(
+                    "Failed to render list_inp {}/{}",
+                    data.person_id, data.pagination.page
+                )
             })?;
-            let filename = list_inp::list_inp_filename(data.person_id, data.page);
+            let filename = list_inp::list_inp_filename(data.person_id, data.pagination.page);
             fs::write(index_pages_dir.join(&filename), html)?;
             Ok(())
         },
-        |data| format!("list_inp {}/{}", data.person_id, data.page),
+        |data| format!("list_inp {}/{}", data.person_id, data.pagination.page),
     );
     Ok(())
 }

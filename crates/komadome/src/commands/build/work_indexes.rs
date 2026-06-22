@@ -38,7 +38,12 @@ pub fn build_work_indexes_internal(
         stats,
         |s| &s.indexes_built,
         |index_data| build_work_index(config, templates, index_data),
-        |index_data| format!("work index {}/{}", index_data.kana_symbol, index_data.page),
+        |index_data| {
+            format!(
+                "work index {}/{}",
+                index_data.kana_symbol, index_data.pagination.page
+            )
+        },
     );
     Ok(())
 }
@@ -53,11 +58,11 @@ fn build_work_index(
     let html = templates.render("indexes/works", ctx).with_context(|| {
         format!(
             "Failed to render work index {}/{}",
-            data.kana_symbol, data.page
+            data.kana_symbol, data.pagination.page
         )
     })?;
 
-    let filename = work_index::work_index_filename(&data.kana_symbol, data.page);
+    let filename = work_index::work_index_filename(&data.kana_symbol, data.pagination.page);
     let output_path = config.output.directory.join("index_pages").join(&filename);
 
     if let Some(parent) = output_path.parent() {

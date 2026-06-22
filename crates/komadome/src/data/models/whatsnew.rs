@@ -1,12 +1,14 @@
 use serde::{Deserialize, Serialize};
 
+use super::pagination::Pagination;
+
 /// Whatsnew data
 /// From whatsnew.jsonl
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WhatsnewData {
     pub year: Option<i32>,
-    pub page: usize,
-    pub total_pages: usize,
+    #[serde(flatten)]
+    pub pagination: Pagination,
     pub entries: Vec<WhatsnewEntry>,
 }
 

@@ -49,23 +49,29 @@ pub fn build_whatsnew_internal(
                 // Current year -> index template
                 let ctx = whatsnew::build_whatsnew_index_context(data, &today, &year_links)?;
                 let html = templates.render("whatsnew/index", ctx).with_context(|| {
-                    format!("Failed to render whatsnew index page {}", data.page)
+                    format!(
+                        "Failed to render whatsnew index page {}",
+                        data.pagination.page
+                    )
                 })?;
-                let filename = whatsnew::whatsnew_index_filename(data.page);
+                let filename = whatsnew::whatsnew_index_filename(data.pagination.page);
                 fs::write(index_pages_dir.join(&filename), html)?;
             } else {
                 // Past year -> year template
                 let year = data.year.unwrap();
                 let ctx = whatsnew::build_whatsnew_year_context(data, &today)?;
                 let html = templates.render("whatsnew/year", ctx).with_context(|| {
-                    format!("Failed to render whatsnew year page {}/{}", year, data.page)
+                    format!(
+                        "Failed to render whatsnew year page {}/{}",
+                        year, data.pagination.page
+                    )
                 })?;
-                let filename = whatsnew::whatsnew_year_filename(year, data.page);
+                let filename = whatsnew::whatsnew_year_filename(year, data.pagination.page);
                 fs::write(index_pages_dir.join(&filename), html)?;
             }
             Ok(())
         },
-        |data| format!("whatsnew {:?}/{}", data.year, data.page),
+        |data| format!("whatsnew {:?}/{}", data.year, data.pagination.page),
     );
     Ok(())
 }

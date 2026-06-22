@@ -1,13 +1,15 @@
 use serde::{Deserialize, Serialize};
 
+use super::pagination::Pagination;
+
 /// List Inp data (per-person WIP work lists)
 /// From list_inp.jsonl
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ListInpData {
     pub person_id: i64,
     pub person_name: String,
-    pub page: usize,
-    pub total_pages: usize,
+    #[serde(flatten)]
+    pub pagination: Pagination,
     pub works: Vec<ListInpWorkItem>,
 }
 

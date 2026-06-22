@@ -16,7 +16,7 @@ pub fn build_wip_work_index_context(data: &WipWorkIndexData) -> Result<Value> {
         .iter()
         .enumerate()
         .map(|(idx, w)| {
-            let row_number = idx + 1 + ((data.page - 1) * PAGE_SIZE);
+            let row_number = idx + 1 + ((data.pagination.page - 1) * PAGE_SIZE);
             json!({
                 "row_number": row_number,
                 "id": w.id,
@@ -45,13 +45,13 @@ pub fn build_wip_work_index_context(data: &WipWorkIndexData) -> Result<Value> {
         "bgcolor": crate::tailwind::bgcolor::DEFAULT,
         "kana_symbol": data.kana_symbol,
         "kana_display": display_char,
-        "page": data.page,
-        "total_pages": data.total_pages,
-        "has_pagination": data.total_pages > 1,
-        "prev_page": super::prev_page(data.page),
-        "next_page": super::next_page(data.page, data.total_pages),
+        "page": data.pagination.page,
+        "total_pages": data.pagination.total_pages,
+        "has_pagination": data.pagination.has_pagination(),
+        "prev_page": super::prev_page(data.pagination.page),
+        "next_page": super::next_page(data.pagination.page, data.pagination.total_pages),
         "works": works,
-        "pagination": build_pagination(data.page, data.total_pages),
+        "pagination": build_pagination(data.pagination.page, data.pagination.total_pages),
     }))
 }
 

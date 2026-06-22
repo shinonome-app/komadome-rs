@@ -3,7 +3,7 @@ use sqlx::PgPool;
 use std::io::Write;
 use std::path::Path;
 
-use crate::data::models::{WipWorkIndexData, WipWorkIndexItem};
+use crate::data::models::{Pagination, WipWorkIndexData, WipWorkIndexItem};
 use crate::generator::kana::ROMA2KANA;
 
 use super::db_helpers::{KANA_PATTERN, wip_work_predicate};
@@ -69,8 +69,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
 
             let data = WipWorkIndexData {
                 kana_symbol: symbol.to_string(),
-                page,
-                total_pages,
+                pagination: Pagination { page, total_pages },
                 works: page_works,
             };
 

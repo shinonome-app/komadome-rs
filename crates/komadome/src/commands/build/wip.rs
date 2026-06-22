@@ -41,14 +41,20 @@ pub fn build_wip_work_indexes_internal(
                 .with_context(|| {
                     format!(
                         "Failed to render WIP work index {}/{}",
-                        data.kana_symbol, data.page
+                        data.kana_symbol, data.pagination.page
                     )
                 })?;
-            let filename = wip_work_index::wip_work_index_filename(&data.kana_symbol, data.page);
+            let filename =
+                wip_work_index::wip_work_index_filename(&data.kana_symbol, data.pagination.page);
             fs::write(index_pages_dir.join(&filename), html)?;
             Ok(())
         },
-        |data| format!("WIP work index {}/{}", data.kana_symbol, data.page),
+        |data| {
+            format!(
+                "WIP work index {}/{}",
+                data.kana_symbol, data.pagination.page
+            )
+        },
     );
     Ok(())
 }

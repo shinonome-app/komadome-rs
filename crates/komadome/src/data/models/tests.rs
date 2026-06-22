@@ -75,8 +75,8 @@ fn test_person_page_data_deserialization() {
 fn test_work_index_data_deserialization() {
     let (data, _original): (WorkIndexData, _) = roundtrip_check("work_index_data.json");
     assert_eq!(data.kana_symbol, "a");
-    assert_eq!(data.page, 1);
-    assert_eq!(data.total_pages, 3);
+    assert_eq!(data.pagination.page, 1);
+    assert_eq!(data.pagination.total_pages, 3);
     assert_eq!(data.works.len(), 1);
     assert_eq!(data.works[0].id, 100);
     assert_eq!(data.works[0].person_id, Some(50));
@@ -99,8 +99,8 @@ fn test_person_index_data_deserialization() {
 fn test_whatsnew_data_deserialization() {
     let (data, _original): (WhatsnewData, _) = roundtrip_check("whatsnew_data.json");
     assert_eq!(data.year, None);
-    assert_eq!(data.page, 1);
-    assert_eq!(data.total_pages, 2);
+    assert_eq!(data.pagination.page, 1);
+    assert_eq!(data.pagination.total_pages, 2);
     assert_eq!(data.entries.len(), 1);
     assert_eq!(data.entries[0].work_id, 999);
     assert_eq!(data.entries[0].card_person_id, Some(100));
@@ -124,8 +124,8 @@ fn test_top_page_data_deserialization() {
 fn test_wip_work_index_data_deserialization() {
     let (data, _original): (WipWorkIndexData, _) = roundtrip_check("wip_work_index_data.json");
     assert_eq!(data.kana_symbol, "ka");
-    assert_eq!(data.page, 1);
-    assert_eq!(data.total_pages, 1);
+    assert_eq!(data.pagination.page, 1);
+    assert_eq!(data.pagination.total_pages, 1);
     assert_eq!(data.works.len(), 1);
     assert_eq!(data.works[0].id, 777);
     assert_eq!(data.works[0].author_id, Some(300));
@@ -160,7 +160,7 @@ fn test_list_inp_data_deserialization() {
     let (data, _original): (ListInpData, _) = roundtrip_check("list_inp_data.json");
     assert_eq!(data.person_id, 300);
     assert_eq!(data.person_name, "WIP Person");
-    assert_eq!(data.page, 1);
+    assert_eq!(data.pagination.page, 1);
     assert_eq!(data.works.len(), 1);
     assert_eq!(data.works[0].id, 888);
     assert_eq!(data.works[0].work_status_name.as_deref(), Some("校正中"));

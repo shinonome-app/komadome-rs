@@ -1,12 +1,14 @@
 use serde::{Deserialize, Serialize};
 
+use super::pagination::Pagination;
+
 /// Work index data (for index pages)
 /// From work_indexes.jsonl
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkIndexData {
     pub kana_symbol: String,
-    pub page: usize,
-    pub total_pages: usize,
+    #[serde(flatten)]
+    pub pagination: Pagination,
     pub works: Vec<WorkIndexItem>,
 }
 

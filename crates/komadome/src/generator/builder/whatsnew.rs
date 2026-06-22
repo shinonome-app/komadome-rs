@@ -15,7 +15,8 @@ pub fn build_whatsnew_index_context(
     let current_year = chrono::Datelike::year(today);
     let recent_cutoff = *today - chrono::Duration::days(7);
 
-    let pagination_nav_html = build_pagination_nav_html(data.page, data.total_pages, |p| {
+    let pg = &data.pagination;
+    let pagination_nav_html = build_pagination_nav_html(pg.page, pg.total_pages, |p| {
         format!("/index_pages/whatsnew{p}.html")
     });
 
@@ -24,13 +25,13 @@ pub fn build_whatsnew_index_context(
         "bgcolor": crate::tailwind::bgcolor::DEFAULT,
         "current_year": current_year,
         "today": today.format("%Y.%m.%d").to_string(),
-        "page": data.page,
-        "total_pages": data.total_pages,
-        "has_prev": data.page > 1,
-        "has_next": data.page < data.total_pages,
-        "prev_page": super::prev_page(data.page),
-        "next_page": super::next_page(data.page, data.total_pages),
-        "pagination": build_pagination(data.page, data.total_pages),
+        "page": pg.page,
+        "total_pages": pg.total_pages,
+        "has_prev": pg.has_prev(),
+        "has_next": pg.has_next(),
+        "prev_page": super::prev_page(pg.page),
+        "next_page": super::next_page(pg.page, pg.total_pages),
+        "pagination": build_pagination(pg.page, pg.total_pages),
         "pagination_nav_html": &pagination_nav_html,
         "entries": data.entries.iter().map(|e| {
             let is_recent = e.started_on.as_ref().is_some_and(|s| {
@@ -59,8 +60,9 @@ pub fn build_whatsnew_index_context(
 /// Build whatsnew year page context (past year)
 pub fn build_whatsnew_year_context(data: &WhatsnewData, today: &NaiveDate) -> Result<Value> {
     let year = data.year.unwrap_or(0);
+    let pg = &data.pagination;
 
-    let pagination_nav_html = build_pagination_nav_html(data.page, data.total_pages, |p| {
+    let pagination_nav_html = build_pagination_nav_html(pg.page, pg.total_pages, |p| {
         format!("/index_pages/whatsnew_{year}_{p}.html")
     });
 
@@ -69,13 +71,13 @@ pub fn build_whatsnew_year_context(data: &WhatsnewData, today: &NaiveDate) -> Re
         "bgcolor": crate::tailwind::bgcolor::DEFAULT,
         "year": year,
         "today": today.format("%Y.%m.%d").to_string(),
-        "page": data.page,
-        "total_pages": data.total_pages,
-        "has_prev": data.page > 1,
-        "has_next": data.page < data.total_pages,
-        "prev_page": super::prev_page(data.page),
-        "next_page": super::next_page(data.page, data.total_pages),
-        "pagination": build_pagination(data.page, data.total_pages),
+        "page": pg.page,
+        "total_pages": pg.total_pages,
+        "has_prev": pg.has_prev(),
+        "has_next": pg.has_next(),
+        "prev_page": super::prev_page(pg.page),
+        "next_page": super::next_page(pg.page, pg.total_pages),
+        "pagination": build_pagination(pg.page, pg.total_pages),
         "pagination_nav_html": &pagination_nav_html,
         "entries": data.entries.iter().map(|e| {
             json!({

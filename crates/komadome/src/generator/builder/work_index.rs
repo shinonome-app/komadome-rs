@@ -11,19 +11,20 @@ pub fn build_work_index_context(data: &WorkIndexData) -> Result<Value> {
     let kana = Kana::from_symbol(&data.kana_symbol);
     let display_char = kana.and_then(|k| k.display_char()).unwrap_or("");
 
-    let page_offset = (data.page - 1) * PAGE_SIZE;
+    let pg = &data.pagination;
+    let page_offset = (pg.page - 1) * PAGE_SIZE;
 
     let ctx = json!({
         "page_title": format!("公開中　作品一覧：{} | 青空文庫", display_char),
         "bgcolor": crate::tailwind::bgcolor::DEFAULT,
         "kana_symbol": data.kana_symbol,
         "display_char": display_char,
-        "page": data.page,
-        "total_pages": data.total_pages,
-        "has_prev": data.page > 1,
-        "has_next": data.page < data.total_pages,
-        "prev_page": super::prev_page(data.page),
-        "next_page": super::next_page(data.page, data.total_pages),
+        "page": pg.page,
+        "total_pages": pg.total_pages,
+        "has_prev": pg.has_prev(),
+        "has_next": pg.has_next(),
+        "prev_page": super::prev_page(pg.page),
+        "next_page": super::next_page(pg.page, pg.total_pages),
 
         "works": data.works.iter().enumerate().map(|(i, w)| json!({
             "id": w.id,
@@ -44,7 +45,7 @@ pub fn build_work_index_context(data: &WorkIndexData) -> Result<Value> {
         })).collect::<Vec<_>>(),
 
         // Pagination info for building URLs
-        "pagination": build_pagination(data.page, data.total_pages),
+        "pagination": build_pagination(pg.page, pg.total_pages),
     });
 
     Ok(ctx)
