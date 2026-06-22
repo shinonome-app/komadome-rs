@@ -1,5 +1,6 @@
 use anyhow::Result;
 use sqlx::PgPool;
+use std::collections::{HashMap, HashSet};
 use std::io::Write;
 use std::path::Path;
 
@@ -92,6 +93,209 @@ struct WorkSiteRow {
     work_id: i64,
     site_name: Option<String>,
     site_url: Option<String>,
+}
+
+// Row -> DTO conversions. Each関連レコードの「行→DTO」変換を1箇所に閉じ込める。
+impl From<&WorkfileRow> for WorkfileInfo {
+    fn from(wf: &WorkfileRow) -> Self {
+        WorkfileInfo {
+            id: wf.id,
+            filename: wf.filename.clone(),
+            filesize: wf.filesize,
+            filetype: wf.filetype_name.clone(),
+            filetype_id: wf.filetype_id,
+            is_html: wf.is_html,
+            compresstype: wf.compresstype_name.clone(),
+            charset: wf.charset_name.clone(),
+            file_encoding: wf.file_encoding_name.clone(),
+            url: wf.url.clone(),
+            registered_on: wf.registered_on.map(|d| d.to_string()),
+            last_updated_on: wf.last_updated_on.map(|d| d.to_string()),
+        }
+    }
+}
+
+impl From<&OriginalBookRow> for OriginalBookInfo {
+    fn from(ob: &OriginalBookRow) -> Self {
+        OriginalBookInfo {
+            title: ob.title.clone(),
+            publisher: ob.publisher.clone(),
+            first_pubdate: ob.first_pubdate.clone(),
+            input_edition: ob.input_edition.clone(),
+            proof_edition: ob.proof_edition.clone(),
+            booktype: ob.booktype_name.clone(),
+            booktype_id: ob.booktype_id,
+        }
+    }
+}
+
+impl From<&WorkWorkerRow> for WorkWorkerInfo {
+    fn from(ww: &WorkWorkerRow) -> Self {
+        WorkWorkerInfo {
+            name: ww.worker_name.clone(),
+            role: ww.worker_role_name.clone(),
+        }
+    }
+}
+
+impl From<&BibclassRow> for BibclassInfo {
+    fn from(bc: &BibclassRow) -> Self {
+        BibclassInfo {
+            name: bc.name.clone(),
+            num: bc.num.clone(),
+            note: bc.note.clone(),
+        }
+    }
+}
+
+impl From<&WorkSiteRow> for SiteInfo {
+    fn from(ws: &WorkSiteRow) -> Self {
+        SiteInfo {
+            name: ws.site_name.clone(),
+            url: ws.site_url.clone(),
+        }
+    }
+}
+
+impl From<&WorkPersonRow> for WorkPersonDetail {
+    fn from(wp: &WorkPersonRow) -> Self {
+        WorkPersonDetail {
+            role_name: wp.role_name.clone(),
+            person_id: wp.person_id,
+            name: wp.person_name.clone(),
+            name_kana: wp.person_name_kana.clone(),
+            name_en: wp.person_name_en.clone(),
+            born_on: wp.born_on.clone(),
+            died_on: wp.died_on.clone(),
+            description: wp.person_description.clone(),
+            copyright_flag: wp.copyright_flag,
+        }
+    }
+}
+
+/// `group_by` の結果から特定 work_id 分の行を取り出し、DTO へ変換する。
+fn collect_infos<R, T>(grouped: &HashMap<i64, Vec<&R>>, work_id: i64) -> Vec<T>
+where
+    for<'r> T: From<&'r R>,
+{
+    grouped
+        .get(&work_id)
+        .map(|rows| rows.iter().map(|&r| T::from(r)).collect())
+        .unwrap_or_default()
+}
+
+/// 1作品に紐づく関連データ(人物・ファイル・底本など)を組み立て済み DTO として束ねる。
+/// person ごとのカード生成では、ここに集約した値を clone して使う。
+struct WorkAssociations {
+    authors: Vec<AuthorInfo>,
+    translators: Vec<PersonRef>,
+    editors: Vec<PersonRef>,
+    workfiles: Vec<WorkfileInfo>,
+    original_books: Vec<OriginalBookInfo>,
+    work_workers: Vec<WorkWorkerInfo>,
+    bibclasses: Vec<BibclassInfo>,
+    sites: Vec<SiteInfo>,
+    work_people_details: Vec<WorkPersonDetail>,
+    note: Option<String>,
+    /// カードを生成する対象 person_id (role 不問・出現順・person_id=0 と重複を除外)。
+    person_ids: Vec<i64>,
+}
+
+impl WorkAssociations {
+    fn build(
+        work: &WorkRow,
+        people: &[&WorkPersonRow],
+        files_by_work: &HashMap<i64, Vec<&WorkfileRow>>,
+        books_by_work: &HashMap<i64, Vec<&OriginalBookRow>>,
+        workers_by_work: &HashMap<i64, Vec<&WorkWorkerRow>>,
+        bibclasses_by_work: &HashMap<i64, Vec<&BibclassRow>>,
+        sites_by_work: &HashMap<i64, Vec<&WorkSiteRow>>,
+    ) -> Self {
+        // Collect all unique person IDs related to this work (any role)
+        // Preserve insertion order (by work_people.id) to match Rails' .uniq behavior
+        // Skip person_id=0 ("著者なし" placeholder)
+        let person_ids: Vec<i64> = {
+            let mut seen = HashSet::new();
+            people
+                .iter()
+                .filter(|wp| wp.person_id != 0)
+                .filter_map(|wp| seen.insert(wp.person_id).then_some(wp.person_id))
+                .collect()
+        };
+
+        let authors: Vec<AuthorInfo> = people
+            .iter()
+            .filter(|wp| wp.role_id == 1)
+            .map(|wp| AuthorInfo {
+                id: wp.person_id,
+                name: wp.person_name.clone(),
+                name_kana: wp.person_name_kana.clone(),
+                copyright_flag: wp.copyright_flag,
+            })
+            .collect();
+
+        let person_refs = |role_id: i64| -> Vec<PersonRef> {
+            people
+                .iter()
+                .filter(|wp| wp.role_id == role_id)
+                .map(|wp| PersonRef {
+                    id: wp.person_id,
+                    name: wp.person_name.clone(),
+                    name_kana: wp.person_name_kana.clone(),
+                })
+                .collect()
+        };
+
+        // Rails: work.work_people.sort_by { |wp| [wp.role_id, wp.person_id] }
+        let work_people_details: Vec<WorkPersonDetail> = {
+            let mut sorted_people: Vec<&&WorkPersonRow> = people.iter().collect();
+            sorted_people.sort_by_key(|wp| (wp.role_id, wp.person_id));
+            sorted_people.iter().map(|wp| (**wp).into()).collect()
+        };
+
+        WorkAssociations {
+            authors,
+            translators: person_refs(2),
+            editors: person_refs(3),
+            workfiles: collect_infos(files_by_work, work.id),
+            original_books: collect_infos(books_by_work, work.id),
+            work_workers: collect_infos(workers_by_work, work.id),
+            bibclasses: collect_infos(bibclasses_by_work, work.id),
+            sites: collect_infos(sites_by_work, work.id),
+            work_people_details,
+            note: work.note.as_deref().map(remove_link_tag),
+            person_ids,
+        }
+    }
+}
+
+/// 1作品×1人物のカード DTO を組み立てる。
+fn build_card(work: &WorkRow, person_id: i64, assoc: &WorkAssociations) -> CardData {
+    CardData {
+        work_id: work.id,
+        person_id,
+        title: work.title.clone(),
+        title_kana: work.title_kana.clone(),
+        subtitle: work.subtitle.clone(),
+        subtitle_kana: work.subtitle_kana.clone(),
+        original_title: work.original_title.clone(),
+        collection: work.collection.clone(),
+        collection_kana: work.collection_kana.clone(),
+        kana_type: work.kana_type_name.clone(),
+        started_on: work.started_on.map(|d| d.to_string()),
+        note: assoc.note.clone(),
+        first_appearance: work.first_appearance.clone(),
+        description: work.description.clone(),
+        authors: assoc.authors.clone(),
+        translators: assoc.translators.clone(),
+        editors: assoc.editors.clone(),
+        workfiles: assoc.workfiles.clone(),
+        original_books: assoc.original_books.clone(),
+        work_workers: assoc.work_workers.clone(),
+        bibclasses: assoc.bibclasses.clone(),
+        sites: assoc.sites.clone(),
+        work_people_details: assoc.work_people_details.clone(),
+    }
 }
 
 pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
@@ -241,184 +445,23 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
     let mut file = std::io::BufWriter::new(std::fs::File::create(output_dir.join("cards.jsonl"))?);
     let mut count = 0;
 
+    let empty_people: Vec<&WorkPersonRow> = vec![];
     for work in &works {
-        let empty_people = vec![];
         let people = people_by_work.get(&work.id).unwrap_or(&empty_people);
 
-        // Collect all unique person IDs related to this work (any role)
-        // Preserve insertion order (by work_people.id) to match Rails' .uniq behavior
-        // Skip person_id=0 ("著者なし" placeholder)
-        let all_person_ids: Vec<i64> = {
-            let mut seen = std::collections::HashSet::new();
-            people
-                .iter()
-                .filter(|wp| wp.person_id != 0)
-                .filter_map(|wp| {
-                    if seen.insert(wp.person_id) {
-                        Some(wp.person_id)
-                    } else {
-                        None
-                    }
-                })
-                .collect()
-        };
+        let assoc = WorkAssociations::build(
+            work,
+            people,
+            &files_by_work,
+            &books_by_work,
+            &workers_by_work,
+            &bibclasses_by_work,
+            &sites_by_work,
+        );
 
-        if all_person_ids.is_empty() {
-            continue;
-        }
-
-        let authors: Vec<AuthorInfo> = people
-            .iter()
-            .filter(|wp| wp.role_id == 1)
-            .map(|wp| AuthorInfo {
-                id: wp.person_id,
-                name: wp.person_name.clone(),
-                name_kana: wp.person_name_kana.clone(),
-                copyright_flag: wp.copyright_flag,
-            })
-            .collect();
-
-        let translators: Vec<PersonRef> = people
-            .iter()
-            .filter(|wp| wp.role_id == 2)
-            .map(|wp| PersonRef {
-                id: wp.person_id,
-                name: wp.person_name.clone(),
-                name_kana: wp.person_name_kana.clone(),
-            })
-            .collect();
-
-        let editors: Vec<PersonRef> = people
-            .iter()
-            .filter(|wp| wp.role_id == 3)
-            .map(|wp| PersonRef {
-                id: wp.person_id,
-                name: wp.person_name.clone(),
-                name_kana: wp.person_name_kana.clone(),
-            })
-            .collect();
-
-        let empty_files = vec![];
-        let wf_list: Vec<WorkfileInfo> = files_by_work
-            .get(&work.id)
-            .unwrap_or(&empty_files)
-            .iter()
-            .map(|wf| WorkfileInfo {
-                id: wf.id,
-                filename: wf.filename.clone(),
-                filesize: wf.filesize,
-                filetype: wf.filetype_name.clone(),
-                filetype_id: wf.filetype_id,
-                is_html: wf.is_html,
-                compresstype: wf.compresstype_name.clone(),
-                charset: wf.charset_name.clone(),
-                file_encoding: wf.file_encoding_name.clone(),
-                url: wf.url.clone(),
-                registered_on: wf.registered_on.map(|d| d.to_string()),
-                last_updated_on: wf.last_updated_on.map(|d| d.to_string()),
-            })
-            .collect();
-
-        let empty_books = vec![];
-        let ob_list: Vec<OriginalBookInfo> = books_by_work
-            .get(&work.id)
-            .unwrap_or(&empty_books)
-            .iter()
-            .map(|ob| OriginalBookInfo {
-                title: ob.title.clone(),
-                publisher: ob.publisher.clone(),
-                first_pubdate: ob.first_pubdate.clone(),
-                input_edition: ob.input_edition.clone(),
-                proof_edition: ob.proof_edition.clone(),
-                booktype: ob.booktype_name.clone(),
-                booktype_id: ob.booktype_id,
-            })
-            .collect();
-
-        let empty_workers = vec![];
-        let ww_list: Vec<WorkWorkerInfo> = workers_by_work
-            .get(&work.id)
-            .unwrap_or(&empty_workers)
-            .iter()
-            .map(|ww| WorkWorkerInfo {
-                name: ww.worker_name.clone(),
-                role: ww.worker_role_name.clone(),
-            })
-            .collect();
-
-        let empty_bib = vec![];
-        let bc_list: Vec<BibclassInfo> = bibclasses_by_work
-            .get(&work.id)
-            .unwrap_or(&empty_bib)
-            .iter()
-            .map(|bc| BibclassInfo {
-                name: bc.name.clone(),
-                num: bc.num.clone(),
-                note: bc.note.clone(),
-            })
-            .collect();
-
-        let empty_sites = vec![];
-        let site_list: Vec<SiteInfo> = sites_by_work
-            .get(&work.id)
-            .unwrap_or(&empty_sites)
-            .iter()
-            .map(|ws| SiteInfo {
-                name: ws.site_name.clone(),
-                url: ws.site_url.clone(),
-            })
-            .collect();
-
-        let note = work.note.as_deref().map(remove_link_tag);
-
-        // Rails: work.work_people.sort_by { |wp| [wp.role_id, wp.person_id] }
-        let work_people_details: Vec<WorkPersonDetail> = {
-            let mut sorted_people: Vec<&&WorkPersonRow> = people.iter().collect();
-            sorted_people.sort_by_key(|wp| (wp.role_id, wp.person_id));
-            sorted_people
-                .iter()
-                .map(|wp| WorkPersonDetail {
-                    role_name: wp.role_name.clone(),
-                    person_id: wp.person_id,
-                    name: wp.person_name.clone(),
-                    name_kana: wp.person_name_kana.clone(),
-                    name_en: wp.person_name_en.clone(),
-                    born_on: wp.born_on.clone(),
-                    died_on: wp.died_on.clone(),
-                    description: wp.person_description.clone(),
-                    copyright_flag: wp.copyright_flag,
-                })
-                .collect()
-        };
-
-        // One card per related person
-        for person_id in &all_person_ids {
-            let card = CardData {
-                work_id: work.id,
-                person_id: *person_id,
-                title: work.title.clone(),
-                title_kana: work.title_kana.clone(),
-                subtitle: work.subtitle.clone(),
-                subtitle_kana: work.subtitle_kana.clone(),
-                original_title: work.original_title.clone(),
-                collection: work.collection.clone(),
-                collection_kana: work.collection_kana.clone(),
-                kana_type: work.kana_type_name.clone(),
-                started_on: work.started_on.map(|d| d.to_string()),
-                note: note.clone(),
-                first_appearance: work.first_appearance.clone(),
-                description: work.description.clone(),
-                authors: authors.clone(),
-                translators: translators.clone(),
-                editors: editors.clone(),
-                workfiles: wf_list.clone(),
-                original_books: ob_list.clone(),
-                work_workers: ww_list.clone(),
-                bibclasses: bc_list.clone(),
-                sites: site_list.clone(),
-                work_people_details: work_people_details.clone(),
-            };
-
+        // One card per related person (no related person -> no card)
+        for &person_id in &assoc.person_ids {
+            let card = build_card(work, person_id, &assoc);
             write_jsonl_line(&mut file, &card)?;
             count += 1;
         }

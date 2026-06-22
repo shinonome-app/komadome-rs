@@ -261,23 +261,12 @@ fn write_row(w: &mut csv::Writer<&mut Vec<u8>>, r: &Row, main_site_url: &str) ->
     let teihon = r.teihon_json.as_ref().and_then(|v| v.as_array());
     let oyahon = r.oyahon_json.as_ref().and_then(|v| v.as_array());
 
-    let teihon0_title = json_str(teihon, 0, "title");
-    let teihon0_publisher = json_str(teihon, 0, "publisher");
-    let teihon0_first_pubdate = json_str(teihon, 0, "first_pubdate");
-    let teihon0_input_edition = json_str(teihon, 0, "input_edition");
-    let teihon0_proof_edition = json_str(teihon, 0, "proof_edition");
-    let oyahon0_title = json_str(oyahon, 0, "title");
-    let oyahon0_publisher = json_str(oyahon, 0, "publisher");
-    let oyahon0_first_pubdate = json_str(oyahon, 0, "first_pubdate");
-
-    let teihon1_title = json_str(teihon, 1, "title");
-    let teihon1_publisher = json_str(teihon, 1, "publisher");
-    let teihon1_first_pubdate = json_str(teihon, 1, "first_pubdate");
-    let teihon1_input_edition = json_str(teihon, 1, "input_edition");
-    let teihon1_proof_edition = json_str(teihon, 1, "proof_edition");
-    let oyahon1_title = json_str(oyahon, 1, "title");
-    let oyahon1_publisher = json_str(oyahon, 1, "publisher");
-    let oyahon1_first_pubdate = json_str(oyahon, 1, "first_pubdate");
+    // 底本/親本は最大2冊ぶんを列展開する。idx 違いの取り出しを値オブジェクトに集約。
+    // (親本には input_edition/proof_edition がなく、その2フィールドは空のまま使わない)
+    let teihon0 = BookCols::from_json(teihon, 0);
+    let teihon1 = BookCols::from_json(teihon, 1);
+    let oyahon0 = BookCols::from_json(oyahon, 0);
+    let oyahon1 = BookCols::from_json(oyahon, 1);
 
     // text/html ファイルのダウンロード URL を Workfile#download_url と同形式で構築する。
     let text_dl_url = build_download_url(
@@ -339,23 +328,23 @@ fn write_row(w: &mut csv::Writer<&mut Vec<u8>>, r: &Row, main_site_url: &str) ->
         died_on,
         person_copyright,
         // 底本1 + 親本1 (28-35)
-        teihon0_title.as_str(),
-        teihon0_publisher.as_str(),
-        teihon0_first_pubdate.as_str(),
-        teihon0_input_edition.as_str(),
-        teihon0_proof_edition.as_str(),
-        oyahon0_title.as_str(),
-        oyahon0_publisher.as_str(),
-        oyahon0_first_pubdate.as_str(),
+        teihon0.title.as_str(),
+        teihon0.publisher.as_str(),
+        teihon0.first_pubdate.as_str(),
+        teihon0.input_edition.as_str(),
+        teihon0.proof_edition.as_str(),
+        oyahon0.title.as_str(),
+        oyahon0.publisher.as_str(),
+        oyahon0.first_pubdate.as_str(),
         // 底本2 + 親本2 (36-43)
-        teihon1_title.as_str(),
-        teihon1_publisher.as_str(),
-        teihon1_first_pubdate.as_str(),
-        teihon1_input_edition.as_str(),
-        teihon1_proof_edition.as_str(),
-        oyahon1_title.as_str(),
-        oyahon1_publisher.as_str(),
-        oyahon1_first_pubdate.as_str(),
+        teihon1.title.as_str(),
+        teihon1.publisher.as_str(),
+        teihon1.first_pubdate.as_str(),
+        teihon1.input_edition.as_str(),
+        teihon1.proof_edition.as_str(),
+        oyahon1.title.as_str(),
+        oyahon1.publisher.as_str(),
+        oyahon1.first_pubdate.as_str(),
         // 入力者・校正者 (44-45)
         r.inputer_text.as_deref().unwrap_or(""),
         r.proofreader_text.as_deref().unwrap_or(""),
@@ -373,6 +362,28 @@ fn write_row(w: &mut csv::Writer<&mut Vec<u8>>, r: &Row, main_site_url: &str) ->
         html_revision.as_str(),
     ])?;
     Ok(())
+}
+
+/// 底本/親本1冊ぶんの CSV 列。json_agg 配列の `idx` 番目要素から取り出す。
+/// 親本には input_edition/proof_edition が無く、その場合は空文字のままになる。
+struct BookCols {
+    title: String,
+    publisher: String,
+    first_pubdate: String,
+    input_edition: String,
+    proof_edition: String,
+}
+
+impl BookCols {
+    fn from_json(arr: Option<&Vec<Value>>, idx: usize) -> Self {
+        BookCols {
+            title: json_str(arr, idx, "title"),
+            publisher: json_str(arr, idx, "publisher"),
+            first_pubdate: json_str(arr, idx, "first_pubdate"),
+            input_edition: json_str(arr, idx, "input_edition"),
+            proof_edition: json_str(arr, idx, "proof_edition"),
+        }
+    }
 }
 
 /// JSON array の `idx` 番目要素から文字列フィールドを取り出す。なければ空文字。

@@ -1,7 +1,13 @@
 use anyhow::Result;
+use regex::Regex;
 use std::fs;
+use std::sync::LazyLock;
 
 use crate::config::Config;
+
+/// Rails asset fingerprint pattern: `name-hexhash.ext` (hash is 8+ hex chars).
+static FINGERPRINT_RE: LazyLock<Regex> =
+    LazyLock::new(|| Regex::new(r"^(.+)-[0-9a-f]{8,}(\.css(?:\.gz)?|\.js(?:\.gz)?)$").unwrap());
 
 pub fn copy_assets(config: &Config) -> Result<()> {
     let assets_config = match &config.assets {
@@ -95,9 +101,8 @@ pub fn copy_assets(config: &Config) -> Result<()> {
 /// e.g., "tailwind-ffccb42b.css" -> "tailwind.css"
 ///       "inter-font-8c3e82af.css" -> "inter-font.css"
 fn strip_fingerprint(filename: &str) -> Option<String> {
-    // Match pattern: name-hexhash.ext (hash is 8+ hex chars)
-    let re = regex::Regex::new(r"^(.+)-[0-9a-f]{8,}(\.css(?:\.gz)?|\.js(?:\.gz)?)$").unwrap();
-    re.captures(filename)
+    FINGERPRINT_RE
+        .captures(filename)
         .map(|caps| format!("{}{}", &caps[1], &caps[2]))
 }
 
