@@ -1,6 +1,6 @@
 [output]
 directory = "build"
-main_site_url = "https://www.aozora.jp"
+main_site_url = "https://aozora-renewal.cloud"
 
 [templates]
 directory = "templates"
