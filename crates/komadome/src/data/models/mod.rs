@@ -7,7 +7,6 @@ mod person_index;
 mod top;
 mod whatsnew;
 mod wip;
-mod work;
 mod work_index;
 
 pub use card::*;
