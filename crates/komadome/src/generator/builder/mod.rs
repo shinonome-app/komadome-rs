@@ -101,6 +101,9 @@ mod tests {
 
     #[test]
     fn card_relative_path_zero_pads_person_dir() {
-        assert_eq!(card_relative_path(100, 12345), "cards/000100/card12345.html");
+        assert_eq!(
+            card_relative_path(100, 12345),
+            "cards/000100/card12345.html"
+        );
     }
 }
