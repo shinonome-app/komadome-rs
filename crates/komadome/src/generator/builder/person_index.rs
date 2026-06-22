@@ -2,7 +2,6 @@ use anyhow::Result;
 use serde_json::{Value, json};
 
 use crate::data::models::PersonIndexData;
-use crate::generator::kana::{COLUMN_CHARS, column_display};
 
 /// Build person index page context
 pub fn build_person_index_context(data: &PersonIndexData) -> Result<Value> {
@@ -59,18 +58,8 @@ pub fn build_person_index_context(data: &PersonIndexData) -> Result<Value> {
             .collect()
     };
 
-    // Build footer columns nav - highlight current
-    let footer_columns: Vec<Value> = COLUMN_CHARS
-        .iter()
-        .map(|(sym, _)| {
-            json!({
-                "symbol": sym,
-                "display": column_display(sym),
-                "is_current": *sym == data.kana_column,
-            })
-        })
-        .collect();
-
+    // NOTE: かな列フッターは people.ntzr 側で静的にハードコードされており、
+    // ビルダーからは context データを渡していない (テンプレート未参照のため)。
     let ctx = json!({
         "page_title": format!("公開中　作家リスト：{}行 | 青空文庫", display_char),
         "bgcolor": crate::tailwind::bgcolor::DEFAULT,
@@ -78,7 +67,6 @@ pub fn build_person_index_context(data: &PersonIndexData) -> Result<Value> {
         "display_char": display_char,
         "kana_all": kana_all,
         "sections": sections,
-        "footer_columns": footer_columns,
     });
 
     Ok(ctx)
