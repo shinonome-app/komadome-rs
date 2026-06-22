@@ -1,11 +1,9 @@
 use anyhow::Result;
 use serde_json::{Value, json};
 
+use super::pagination::{PAGE_SIZE, build_pagination};
 use crate::data::models::WipWorkIndexData;
-use crate::generator::builder::work_index::build_pagination;
 use crate::generator::kana::Kana;
-
-const PAGE_SIZE: usize = 50;
 
 pub fn build_wip_work_index_context(data: &WipWorkIndexData) -> Result<Value> {
     let kana = Kana::from_symbol(&data.kana_symbol);

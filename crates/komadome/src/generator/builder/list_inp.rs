@@ -1,10 +1,8 @@
 use anyhow::Result;
 use serde_json::{Value, json};
 
+use super::pagination::{PAGE_SIZE, build_pagination};
 use crate::data::models::ListInpData;
-use crate::generator::builder::work_index::build_pagination;
-
-const PAGE_SIZE: usize = 50;
 
 pub fn build_list_inp_context(data: &ListInpData) -> Result<Value> {
     let works: Vec<Value> = data

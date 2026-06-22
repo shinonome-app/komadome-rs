@@ -1,5 +1,6 @@
 pub mod card;
 pub mod list_inp;
+pub mod pagination;
 pub mod person;
 pub mod person_all_index;
 pub mod person_index;

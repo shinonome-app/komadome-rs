@@ -4,7 +4,7 @@ use serde_json::{Value, json};
 
 use crate::data::models::WhatsnewData;
 
-use super::work_index::build_pagination;
+use super::pagination::build_pagination;
 
 /// Build whatsnew index page context (current year)
 pub fn build_whatsnew_index_context(
@@ -100,7 +100,7 @@ pub fn whatsnew_year_filename(year: i32, page: usize) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::super::work_index::build_pagination_nav_html;
+    use super::super::pagination::build_pagination_nav_html;
     use super::*;
 
     /// whatsnew index 用ページネーション nav の構造化テンプレート版。
