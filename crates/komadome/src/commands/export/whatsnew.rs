@@ -10,7 +10,7 @@ use super::db_helpers;
 use super::export_helpers::{PAGE_SIZE, calculate_total_pages};
 use crate::data::models::WhatsnewEntry;
 
-const FIRST_YEAR: i32 = 2001;
+use crate::commands::WHATSNEW_FIRST_YEAR as FIRST_YEAR;
 
 #[derive(sqlx::FromRow)]
 struct WorkRow {

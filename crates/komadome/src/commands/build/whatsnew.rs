@@ -28,23 +28,14 @@ pub fn build_whatsnew_internal(
 
     let pb = runner::styled_bar(multi, "whatsnew", "40.red/white", all_data.len() as u64);
 
-    // Collect all past years for year_links
-    let year_links: Vec<i32> = {
-        let mut years: Vec<i32> = all_data
-            .iter()
-            .filter_map(|d| d.year)
-            .collect::<std::collections::BTreeSet<_>>()
-            .into_iter()
-            .collect();
-        years.sort();
-        years
-    };
-
     // 「最終更新日」は JSONL export 時刻 (= DB を読み出した時点) を表す。
     // build を再実行しても export し直さない限り表示が変わらない (idempotent)。
-    // Ruby (komadome) は build 時刻を使うため、再 export しないと両者の表示日付は
-    // ズレることがあるが、Rust 側の意味は data freshness なので意図的にこちらを優先する。
     let today = masters.exported_date();
+
+    // year_links は footer の年アーカイブリンク。WHATSNEW_FIRST_YEAR(1997)..前年を昇順で全て出す。
+    let year_links: Vec<i32> =
+        (crate::commands::WHATSNEW_FIRST_YEAR..chrono::Datelike::year(&today)).collect();
+
     let index_pages_dir = config.output.directory.join("index_pages");
     fs::create_dir_all(&index_pages_dir)?;
 
