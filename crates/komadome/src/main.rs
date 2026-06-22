@@ -12,7 +12,7 @@ use anyhow::Result;
 use clap::Parser;
 
 use cli::{Cli, Commands};
-use commands::{build, clean, export, generate_zip, stats, validate};
+use commands::{build, clean, export, generate_zip, stats, validate, validate_data};
 use config::Config;
 
 /// Run an async command to completion on a fresh single-threaded-capable Tokio runtime.
@@ -41,6 +41,7 @@ fn main() -> Result<()> {
         Commands::GenerateZip => block_on(generate_zip::run(&config))?,
         Commands::Stats => stats::run(&config)?,
         Commands::Validate => validate::run(&config)?,
+        Commands::ValidateData(args) => validate_data::run(&config, args)?,
         Commands::TailwindSafelist => tailwind::print_safelist()?,
     }
 

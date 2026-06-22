@@ -55,6 +55,9 @@ pub enum Commands {
     /// Validate templates against contracts
     Validate,
 
+    /// Validate exported data files (JSONL/JSON) against their DTOs
+    ValidateData(ValidateDataArgs),
+
     /// Print the tailwind safelist (dynamic classes) as JSON
     TailwindSafelist,
 }
@@ -130,6 +133,17 @@ pub struct SoramoyouArgs {
     /// Number of parallel jobs
     #[arg(short, long)]
     pub jobs: Option<usize>,
+}
+
+#[derive(Parser)]
+pub struct ValidateDataArgs {
+    /// 人間が目視確認する HTML 検査レポートの出力先 (指定時のみ生成)
+    #[arg(long, value_name = "FILE")]
+    pub report: Option<PathBuf>,
+
+    /// 各ファイルでサンプル表示するレコード件数
+    #[arg(long, default_value_t = 10)]
+    pub sample: usize,
 }
 
 #[derive(Parser)]
