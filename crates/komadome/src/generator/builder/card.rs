@@ -83,7 +83,7 @@ pub fn build_card_context(
         "first_appearance": card.first_appearance.as_deref().unwrap_or(""),
         "description": card.description.as_deref().map(nl2br).unwrap_or_default(),
         "has_copyright": card.has_copyright(),
-        "card_path": card.card_path(),
+        "card_path": super::card_relative_path(card.person_id, card.work_id),
         "xhtml_url": xhtml_url,
         "bibclasses_text": bibclasses_text,
 

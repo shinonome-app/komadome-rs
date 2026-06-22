@@ -59,7 +59,10 @@ fn build_card(
         .render("cards/show", ctx)
         .with_context(|| format!("Failed to render card {}", card_data.work_id))?;
 
-    let output_path = config.output.directory.join(card_data.card_path());
+    let output_path = config.output.directory.join(crate::generator::builder::card_relative_path(
+        card_data.person_id,
+        card_data.work_id,
+    ));
 
     if let Some(parent) = output_path.parent() {
         fs::create_dir_all(parent)?;

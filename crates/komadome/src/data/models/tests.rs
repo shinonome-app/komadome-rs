@@ -49,7 +49,6 @@ fn test_card_data_methods() {
     let card: CardData = load_fixture("card_data.json");
     assert!(!card.has_copyright());
     assert_eq!(card.primary_author().unwrap().id, 100);
-    assert_eq!(card.card_path(), "cards/000100/card12345.html");
 }
 
 #[test]

@@ -127,10 +127,4 @@ impl CardData {
     pub fn primary_author(&self) -> Option<&AuthorInfo> {
         self.authors.first()
     }
-
-    /// Get card path (e.g., "cards/000001/card12345.html")
-    pub fn card_path(&self) -> String {
-        let person_dir = format!("{:06}", self.person_id);
-        format!("cards/{}/card{}.html", person_dir, self.work_id)
-    }
 }

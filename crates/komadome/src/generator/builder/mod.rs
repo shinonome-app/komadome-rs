@@ -42,6 +42,14 @@ pub fn card_person_dir(id: i64) -> String {
     format!("{id:06}")
 }
 
+/// 図書カード HTML の出力相対パス (例: "cards/000001/card12345.html")。
+///
+/// サイトのファイル配置規約はジェネレータ層の責務として一箇所に置き、
+/// データ DTO (`CardData`) には持たせない。
+pub fn card_relative_path(person_id: i64, work_id: i64) -> String {
+    format!("cards/{}/card{}.html", card_person_dir(person_id), work_id)
+}
+
 /// Build the kana column footer navigation shared by the 作家リスト pages.
 ///
 /// Pass `Some(column)` to mark the current column with `is_current`; pass `None`
@@ -89,5 +97,10 @@ mod tests {
         assert_eq!(news_anchor(101), "000101");
         assert_eq!(news_anchor(1), "000001");
         assert_eq!(news_anchor(1234567), "1234567");
+    }
+
+    #[test]
+    fn card_relative_path_zero_pads_person_dir() {
+        assert_eq!(card_relative_path(100, 12345), "cards/000100/card12345.html");
     }
 }
