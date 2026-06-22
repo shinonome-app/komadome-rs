@@ -1,4 +1,9 @@
 bgcolor: scalar
+column_nav: []{
+  column: scalar
+  display: scalar
+  is_current: bool
+}
 display_char: scalar
 kana_all: []{
   char: scalar
