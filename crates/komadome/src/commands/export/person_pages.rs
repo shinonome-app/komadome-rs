@@ -38,7 +38,7 @@ struct PersonWorkRow {
     role_name: Option<String>,
     role_id: i64,
     kana_type_name: Option<String>,
-    card_person_id: Option<String>,
+    card_person_id: Option<i64>,
 }
 
 #[derive(sqlx::FromRow)]
@@ -97,7 +97,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
                w.sortkey, w.subtitle_kana,
                r.name AS role_name, wp.role_id,
                kt.name AS kana_type_name,
-               (SELECT LPAD(wp2.person_id::text, 6, '0') FROM work_people wp2
+               (SELECT wp2.person_id FROM work_people wp2
                 WHERE wp2.work_id = w.id AND wp2.role_id = 1
                 ORDER BY wp2.id LIMIT 1) AS card_person_id
         FROM work_people wp
@@ -123,7 +123,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
                w.sortkey, w.subtitle_kana,
                r.name AS role_name, wp.role_id,
                kt.name AS kana_type_name,
-               (SELECT LPAD(wp2.person_id::text, 6, '0') FROM work_people wp2
+               (SELECT wp2.person_id FROM work_people wp2
                 WHERE wp2.work_id = w.id AND wp2.role_id = 1
                 ORDER BY wp2.id LIMIT 1) AS card_person_id
         FROM work_people wp
@@ -240,7 +240,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
                         role: wr.role_name.clone(),
                         role_id: wr.role_id,
                         kana_type: wr.kana_type_name.clone(),
-                        card_person_id: wr.card_person_id.clone(),
+                        card_person_id: wr.card_person_id,
                         work_people,
                     }
                 })

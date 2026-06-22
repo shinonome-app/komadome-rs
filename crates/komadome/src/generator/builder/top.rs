@@ -9,10 +9,7 @@ pub fn build_top_context(data: &TopPageData) -> Result<Value> {
         .new_works
         .iter()
         .map(|w| {
-            let card_person_dir = w
-                .card_person_id
-                .map(|id| format!("{id:06}"))
-                .unwrap_or_default();
+            let card_person_dir = w.card_person_id.map(super::card_person_dir).unwrap_or_default();
             json!({
                 "work_id": w.work_id,
                 "title": &w.title,

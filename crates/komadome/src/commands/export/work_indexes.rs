@@ -17,7 +17,7 @@ struct WorkRow {
     subtitle: Option<String>,
     author_name: Option<String>,
     person_id: Option<i64>,
-    card_person_id: Option<String>,
+    card_person_id: Option<i64>,
     kana_type: Option<String>,
     author_text: Option<String>,
     base_author_text: String,
@@ -51,7 +51,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
                     subtitle: w.subtitle.clone(),
                     author_name: w.author_name.clone(),
                     person_id: w.person_id,
-                    card_person_id: w.card_person_id.clone(),
+                    card_person_id: w.card_person_id,
                     kana_type: w.kana_type.clone(),
                     author_text: w.author_text.clone(),
                     base_author_text: Some(w.base_author_text.clone()),
@@ -93,7 +93,7 @@ async fn fetch_works(
             SELECT w.id, w.title, w.title_kana, w.subtitle,
                    CONCAT(COALESCE(p.last_name, ''), ' ', COALESCE(p.first_name, '')) AS author_name,
                    p.id AS person_id,
-                   CASE WHEN p.id IS NOT NULL THEN LPAD(p.id::text, 6, '0') END AS card_person_id,
+                   p.id AS card_person_id,
                    kt.name AS kana_type,
                    (SELECT string_agg(CONCAT(COALESCE(pe2.last_name, ''), ' ', COALESCE(pe2.first_name, '')), ', ' ORDER BY wp2.id)
                     FROM work_people wp2

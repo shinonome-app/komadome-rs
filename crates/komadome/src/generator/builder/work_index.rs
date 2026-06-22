@@ -34,7 +34,7 @@ pub fn build_work_index_context(data: &WorkIndexData) -> Result<Value> {
             "person_id": w.person_id,
             "has_person_id": w.person_id.is_some(),
             "card_path": format!("/cards/{}/card{}.html",
-                w.card_person_id.as_deref().unwrap_or(&format!("{:06}", w.person_id.unwrap_or(0))),
+                super::card_person_dir(w.card_person_id.or(w.person_id).unwrap_or(0)),
                 w.id),
             "row_number": page_offset + i + 1,
             "kana_type": w.kana_type.as_deref().unwrap_or(""),

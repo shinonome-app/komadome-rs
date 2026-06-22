@@ -21,7 +21,7 @@
       "role": "著者",
       "role_id": 1,
       "kana_type": "新字新仮名",
-      "card_person_id": "000100",
+      "card_person_id": 100,
       "work_people": [
         {"person_id": 200, "name": "Translator Name", "role_name": "翻訳者"}
       ]

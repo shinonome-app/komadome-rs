@@ -34,6 +34,14 @@ pub fn news_anchor(id: i64) -> String {
     format!("{id:06}")
 }
 
+/// 図書カードのディレクトリ名 (人物IDの6桁ゼロ埋め)。
+///
+/// `cards/{:06}/...` のパス規約を表現する単一の出所。export 側 (SQL の LPAD) を
+/// 廃し、人物IDは i64 のまま持ち回って描画時にここで整形する。
+pub fn card_person_dir(id: i64) -> String {
+    format!("{id:06}")
+}
+
 /// Build the kana column footer navigation shared by the 作家リスト pages.
 ///
 /// Pass `Some(column)` to mark the current column with `is_current`; pass `None`

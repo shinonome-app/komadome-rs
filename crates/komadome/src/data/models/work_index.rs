@@ -19,7 +19,7 @@ pub struct WorkIndexItem {
     pub author_name: Option<String>,
     pub person_id: Option<i64>,
     #[serde(default)]
-    pub card_person_id: Option<String>,
+    pub card_person_id: Option<i64>,
     #[serde(default)]
     pub kana_type: Option<String>,
     #[serde(default)]

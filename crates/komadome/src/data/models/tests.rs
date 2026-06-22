@@ -81,7 +81,7 @@ fn test_work_index_data_deserialization() {
     assert_eq!(data.works.len(), 1);
     assert_eq!(data.works[0].id, 100);
     assert_eq!(data.works[0].person_id, Some(50));
-    assert_eq!(data.works[0].card_person_id.as_deref(), Some("000050"));
+    assert_eq!(data.works[0].card_person_id, Some(50));
 }
 
 #[test]

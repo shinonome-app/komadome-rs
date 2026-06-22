@@ -59,7 +59,7 @@ pub fn build_person_context(data: &PersonPageData) -> Result<Value> {
             "role": w.role.as_deref().unwrap_or(""),
             "role_id": w.role_id,
             "kana_type": w.kana_type.as_deref().unwrap_or(""),
-            "card_person_id": w.card_person_id.as_deref().unwrap_or(""),
+            "card_person_id": w.card_person_id.map(super::card_person_dir).unwrap_or_default(),
             "work_people": w.work_people.iter().map(|wp| json!({
                 "person_id": wp.person_id,
                 "name": &wp.name,
@@ -76,7 +76,7 @@ pub fn build_person_context(data: &PersonPageData) -> Result<Value> {
             "role": w.role.as_deref().unwrap_or(""),
             "role_id": w.role_id,
             "kana_type": w.kana_type.as_deref().unwrap_or(""),
-            "card_person_id": w.card_person_id.as_deref().unwrap_or(""),
+            "card_person_id": w.card_person_id.map(super::card_person_dir).unwrap_or_default(),
             "work_people": w.work_people.iter().map(|wp| json!({
                 "person_id": wp.person_id,
                 "name": &wp.name,

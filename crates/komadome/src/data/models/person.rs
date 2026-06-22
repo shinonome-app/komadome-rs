@@ -109,7 +109,7 @@ pub struct PersonWorkInfo {
     pub role_id: i64,
     pub kana_type: Option<String>,
     #[serde(default)]
-    pub card_person_id: Option<String>,
+    pub card_person_id: Option<i64>,
     #[serde(default)]
     pub work_people: Vec<WorkPersonRef>,
 }
