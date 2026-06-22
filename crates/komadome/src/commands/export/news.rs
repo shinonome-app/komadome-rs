@@ -32,7 +32,7 @@ pub async fn export(pool: &PgPool, output_dir: &Path) -> Result<usize> {
             SELECT id, title, body, published_on, flag
             FROM news_entries
             WHERE extract(year FROM published_on) = $1
-            ORDER BY published_on DESC, id DESC
+            ORDER BY published_on DESC, id ASC
             "#,
         )
         .bind(year)
