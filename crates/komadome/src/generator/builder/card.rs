@@ -9,8 +9,12 @@ use crate::data::models::{CardData, WorkfileInfo};
 use crate::generator::builder::nl2br;
 
 /// Old `link.js` script tags to strip from note fields.
-static LINK_JS_SCRIPT_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r#"(<br\s*/?>)?<div id=?"?link"?></div><script[^>]*src="[^"]*link\.js"[^>]*></script>"#).unwrap());
+static LINK_JS_SCRIPT_RE: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(
+        r#"(<br\s*/?>)?<div id=?"?link"?></div><script[^>]*src="[^"]*link\.js"[^>]*></script>"#,
+    )
+    .unwrap()
+});
 
 /// Build card page context from card data
 pub fn build_card_context(

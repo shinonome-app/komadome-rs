@@ -123,7 +123,10 @@ impl Masters {
         // フォールバックして良いが、不正値の黙殺は許さない)。
         if let Some(s) = masters.exported_on.as_deref() {
             NaiveDate::parse_from_str(s, "%Y-%m-%d").with_context(|| {
-                format!("Invalid `exported_on` in masters file {}: {s:?}", path.display())
+                format!(
+                    "Invalid `exported_on` in masters file {}: {s:?}",
+                    path.display()
+                )
             })?;
         }
 
@@ -134,7 +137,8 @@ impl Masters {
 
     fn build_lookup_maps(&mut self) {
         self.roles_map = id_name_map(&self.roles, |r| (r.id, Some(r.name.as_str())));
-        self.work_statuses_map = id_name_map(&self.work_statuses, |s| (s.id, Some(s.name.as_str())));
+        self.work_statuses_map =
+            id_name_map(&self.work_statuses, |s| (s.id, Some(s.name.as_str())));
         self.kana_types_map = id_name_map(&self.kana_types, |k| (k.id, Some(k.name.as_str())));
         self.filetypes_map = id_name_map(&self.filetypes, |f| (f.id, Some(f.name.as_str())));
         self.compresstypes_map =
