@@ -50,7 +50,7 @@ pub fn build_whatsnew_index_context(
                 "is_recent": is_recent,
             })
         }).collect::<Vec<_>>(),
-        "year_links": year_links.iter().rev().map(|y| json!({"year": y})).collect::<Vec<_>>(),
+        "year_links": year_links.iter().map(|y| json!({"year": y})).collect::<Vec<_>>(),
     });
 
     Ok(ctx)
