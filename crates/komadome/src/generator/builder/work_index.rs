@@ -93,13 +93,19 @@ impl PageItem {
     }
 }
 
+#[cfg(test)]
 const LINK_CLASS: &str =
     "text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline";
 
-/// Build pagination nav HTML matching Rails' PagyNav component output.
+/// ページネーション nav の HTML を組み立てる Rails `PagyNav` 互換の参照実装。
+///
+/// 本番の描画は natsuzora テンプレート (`works.ntzr` / `whatsnew/*.ntzr`) 側が担う。
+/// この関数はテンプレート出力がバイト単位で一致することを検証する **テスト用オラクル**
+/// としてのみ残している (production からは呼ばれない)。
 ///
 /// Generates the inner content of the `<nav>` element for pagination.
 /// The `page_url_fn` closure takes a page number and returns the URL for that page.
+#[cfg(test)]
 pub fn build_pagination_nav_html(
     current: usize,
     total: usize,

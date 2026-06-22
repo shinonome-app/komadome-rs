@@ -4,7 +4,7 @@ use serde_json::{Value, json};
 
 use crate::data::models::WhatsnewData;
 
-use super::work_index::{build_pagination, build_pagination_nav_html};
+use super::work_index::build_pagination;
 
 /// Build whatsnew index page context (current year)
 pub fn build_whatsnew_index_context(
@@ -16,9 +16,6 @@ pub fn build_whatsnew_index_context(
     let recent_cutoff = *today - chrono::Duration::days(7);
 
     let pg = &data.pagination;
-    let pagination_nav_html = build_pagination_nav_html(pg.page, pg.total_pages, |p| {
-        format!("/index_pages/whatsnew{p}.html")
-    });
 
     let ctx = json!({
         "page_title": "新規公開作品 | 青空文庫",
@@ -32,7 +29,6 @@ pub fn build_whatsnew_index_context(
         "prev_page": super::prev_page(pg.page),
         "next_page": super::next_page(pg.page, pg.total_pages),
         "pagination": build_pagination(pg.page, pg.total_pages),
-        "pagination_nav_html": &pagination_nav_html,
         "entries": data.entries.iter().map(|e| {
             let is_recent = e.started_on.as_ref().is_some_and(|s| {
                 NaiveDate::parse_from_str(s, "%Y-%m-%d")
@@ -62,10 +58,6 @@ pub fn build_whatsnew_year_context(data: &WhatsnewData, today: &NaiveDate) -> Re
     let year = data.year.unwrap_or(0);
     let pg = &data.pagination;
 
-    let pagination_nav_html = build_pagination_nav_html(pg.page, pg.total_pages, |p| {
-        format!("/index_pages/whatsnew_{year}_{p}.html")
-    });
-
     let ctx = json!({
         "page_title": format!("公開作品 {}年公開分 | 青空文庫", year),
         "bgcolor": crate::tailwind::bgcolor::DEFAULT,
@@ -78,7 +70,6 @@ pub fn build_whatsnew_year_context(data: &WhatsnewData, today: &NaiveDate) -> Re
         "prev_page": super::prev_page(pg.page),
         "next_page": super::next_page(pg.page, pg.total_pages),
         "pagination": build_pagination(pg.page, pg.total_pages),
-        "pagination_nav_html": &pagination_nav_html,
         "entries": data.entries.iter().map(|e| {
             json!({
                 "work_id": e.work_id,
@@ -109,7 +100,93 @@ pub fn whatsnew_year_filename(year: i32, page: usize) -> String {
 
 #[cfg(test)]
 mod tests {
+    use super::super::work_index::build_pagination_nav_html;
     use super::*;
+
+    /// whatsnew index 用ページネーション nav の構造化テンプレート版。
+    /// `templates/indexes/works.ntzr` の nav ブロックと同型で、URL だけ whatsnew 用。
+    /// この markup を whatsnew/index.ntzr の `<nav>` にそのまま埋め込む。
+    const NAV_INDEX: &str = r#"        <nav aria-label="pager" class="pagy_nav pagination" role="navigation">{[-#if has_prev]}
+  <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" rel="prev" aria-label="previous" href="/index_pages/whatsnew{[ prev_page ]}.html">前の50件</a>{[/if]}{[-#unless has_prev]}
+  <span class="prev disabled"><!-- 前の50件 --></span>{[/unless]}
+  <span class="px-1">&nbsp;</span>
+  ページ:{[-#each pagination as item]}{[-#if item.is_gap]}
+  <span class="page gap">&hellip;</span>{[/if]}{[-#unless item.is_gap]}{[-#if item.is_current]}
+  <span class="text-2xl">{[ item.page ]}</span>{[/if]}{[-#unless item.is_current]}
+  <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/whatsnew{[ item.page ]}.html">{[ item.page ]}</a>{[/unless]}{[/unless]}{[/each]}{[-#if has_next]}
+  <span class="px-1">&nbsp;</span>
+  <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" rel="next" aria-label="next" href="/index_pages/whatsnew{[ next_page ]}.html">次の50件</a>{[/if]}{[-#unless has_next]}
+  <span class="next disabled"><!-- 次の50件 --></span>{[/unless]}
+</nav>"#;
+
+    /// whatsnew year 用。NAV_INDEX と URL パターンのみ違う (`whatsnew_{year}_{page}.html`)。
+    const NAV_YEAR: &str = r#"        <nav aria-label="pager" class="pagy_nav pagination" role="navigation">{[-#if has_prev]}
+  <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" rel="prev" aria-label="previous" href="/index_pages/whatsnew_{[ year ]}_{[ prev_page ]}.html">前の50件</a>{[/if]}{[-#unless has_prev]}
+  <span class="prev disabled"><!-- 前の50件 --></span>{[/unless]}
+  <span class="px-1">&nbsp;</span>
+  ページ:{[-#each pagination as item]}{[-#if item.is_gap]}
+  <span class="page gap">&hellip;</span>{[/if]}{[-#unless item.is_gap]}{[-#if item.is_current]}
+  <span class="text-2xl">{[ item.page ]}</span>{[/if]}{[-#unless item.is_current]}
+  <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/whatsnew_{[ year ]}_{[ item.page ]}.html">{[ item.page ]}</a>{[/unless]}{[/unless]}{[/each]}{[-#if has_next]}
+  <span class="px-1">&nbsp;</span>
+  <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" rel="next" aria-label="next" href="/index_pages/whatsnew_{[ year ]}_{[ next_page ]}.html">次の50件</a>{[/if]}{[-#unless has_next]}
+  <span class="next disabled"><!-- 次の50件 --></span>{[/unless]}
+</nav>"#;
+
+    /// テンプレート描画した nav が、旧 `build_pagination_nav_html` を `<nav>` で
+    /// 包んだ出力とバイト単位で一致することを確認する（テンプレート移譲の回帰防止）。
+    #[test]
+    fn structured_nav_template_matches_legacy_html() {
+        let cases = [
+            (1, 1),
+            (1, 6),
+            (3, 6),
+            (2, 5),
+            (1, 20),
+            (10, 20),
+            (20, 20),
+            (5, 20),
+            (16, 20),
+            (1, 14),
+        ];
+
+        let nav_index =
+            natsuzora::Natsuzora::parse_with_includes(NAV_INDEX, std::path::Path::new("."))
+                .unwrap();
+        let nav_year =
+            natsuzora::Natsuzora::parse_with_includes(NAV_YEAR, std::path::Path::new(".")).unwrap();
+
+        for (cur, total) in cases {
+            let mut ctx = json!({
+                "has_prev": super::super::prev_page(cur).is_some(),
+                "has_next": super::super::next_page(cur, total).is_some(),
+                "prev_page": super::super::prev_page(cur),
+                "next_page": super::super::next_page(cur, total),
+                "pagination": build_pagination(cur, total),
+            });
+
+            // index URL パターン
+            let rendered = nav_index.render(ctx.clone()).unwrap();
+            let expected = wrap_nav(build_pagination_nav_html(cur, total, |p| {
+                format!("/index_pages/whatsnew{p}.html")
+            }));
+            assert_eq!(rendered, expected, "index mismatch for page {cur}/{total}");
+
+            // year URL パターン
+            ctx["year"] = json!(2023);
+            let rendered = nav_year.render(ctx).unwrap();
+            let expected = wrap_nav(build_pagination_nav_html(cur, total, |p| {
+                format!("/index_pages/whatsnew_2023_{p}.html")
+            }));
+            assert_eq!(rendered, expected, "year mismatch for page {cur}/{total}");
+        }
+    }
+
+    fn wrap_nav(inner: String) -> String {
+        format!(
+            "        <nav aria-label=\"pager\" class=\"pagy_nav pagination\" role=\"navigation\">\n{inner}\n</nav>"
+        )
+    }
 
     #[test]
     fn whatsnew_index_context_matches_contract() {

@@ -10,6 +10,8 @@ entries: []{
   translator_text: scalar
   work_id: scalar
 }
+has_next: bool
+has_prev: bool
 next_page: scalar?
 page_title: scalar
 pagination: []{
@@ -17,7 +19,6 @@ pagination: []{
   is_gap: bool
   page: scalar?
 }
-pagination_nav_html: scalar
 prev_page: scalar?
 today: scalar
 year: scalar

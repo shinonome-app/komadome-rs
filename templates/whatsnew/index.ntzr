@@ -46,8 +46,17 @@
     <div class="lg:w-3/4">
 
       <div class="text-right py-4">
-        <nav aria-label="pager" class="pagy_nav pagination" role="navigation">
-{[!unsecure pagination_nav_html]}
+        <nav aria-label="pager" class="pagy_nav pagination" role="navigation">{[-#if has_prev]}
+  <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" rel="prev" aria-label="previous" href="/index_pages/whatsnew{[ prev_page ]}.html">前の50件</a>{[/if]}{[-#unless has_prev]}
+  <span class="prev disabled"><!-- 前の50件 --></span>{[/unless]}
+  <span class="px-1">&nbsp;</span>
+  ページ:{[-#each pagination as item]}{[-#if item.is_gap]}
+  <span class="page gap">&hellip;</span>{[/if]}{[-#unless item.is_gap]}{[-#if item.is_current]}
+  <span class="text-2xl">{[ item.page ]}</span>{[/if]}{[-#unless item.is_current]}
+  <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/whatsnew{[ item.page ]}.html">{[ item.page ]}</a>{[/unless]}{[/unless]}{[/each]}{[-#if has_next]}
+  <span class="px-1">&nbsp;</span>
+  <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" rel="next" aria-label="next" href="/index_pages/whatsnew{[ next_page ]}.html">次の50件</a>{[/if]}{[-#unless has_next]}
+  <span class="next disabled"><!-- 次の50件 --></span>{[/unless]}
 </nav>
 
       </div>
@@ -81,8 +90,17 @@
       </table>
 
       <div class="text-right py-4">
-        <nav aria-label="pager" class="pagy_nav pagination" role="navigation">
-{[!unsecure pagination_nav_html]}
+        <nav aria-label="pager" class="pagy_nav pagination" role="navigation">{[-#if has_prev]}
+  <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" rel="prev" aria-label="previous" href="/index_pages/whatsnew{[ prev_page ]}.html">前の50件</a>{[/if]}{[-#unless has_prev]}
+  <span class="prev disabled"><!-- 前の50件 --></span>{[/unless]}
+  <span class="px-1">&nbsp;</span>
+  ページ:{[-#each pagination as item]}{[-#if item.is_gap]}
+  <span class="page gap">&hellip;</span>{[/if]}{[-#unless item.is_gap]}{[-#if item.is_current]}
+  <span class="text-2xl">{[ item.page ]}</span>{[/if]}{[-#unless item.is_current]}
+  <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" href="/index_pages/whatsnew{[ item.page ]}.html">{[ item.page ]}</a>{[/unless]}{[/unless]}{[/each]}{[-#if has_next]}
+  <span class="px-1">&nbsp;</span>
+  <a class="text-blue-700 hover:text-gray-100 hover:bg-blue-700 visited:text-purple-600 underline" rel="next" aria-label="next" href="/index_pages/whatsnew{[ next_page ]}.html">次の50件</a>{[/if]}{[-#unless has_next]}
+  <span class="next disabled"><!-- 次の50件 --></span>{[/unless]}
 </nav>
 
       </div>
