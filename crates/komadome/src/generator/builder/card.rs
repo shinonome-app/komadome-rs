@@ -10,7 +10,7 @@ use crate::generator::builder::nl2br;
 
 /// Old `link.js` script tags to strip from note fields.
 static LINK_JS_SCRIPT_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r#"<script[^>]*link\.js[^>]*></script>"#).unwrap());
+    LazyLock::new(|| Regex::new(r#"(<br\s*/?>)?<div id=?"?link"?></div><script[^>]*src="[^"]*link\.js"[^>]*></script>"#).unwrap());
 
 /// Build card page context from card data
 pub fn build_card_context(
@@ -219,9 +219,10 @@ mod tests {
 
     #[test]
     fn test_cleanup_note() {
-        let note = r#"Some text <script src="link.js"></script> more text"#;
+        // 実データの書式（空 div + script、引用符欠け・相対 src 込み）を丸ごと除去する。
+        let note = r#"本文<br><div id=link"></div><script type="text/javascript" src="../link.js"></script>後ろ"#;
         let cleaned = cleanup_note(note);
-        assert_eq!(cleaned, "Some text  more text");
+        assert_eq!(cleaned, "本文後ろ");
     }
 
     #[test]
@@ -245,7 +246,10 @@ mod tests {
         let ctx = build_card_context(&card, &masters, "https://www.aozora.gr.jp").unwrap();
 
         assert_eq!(ctx["description"], "一行目<br>二行目<br>三行目");
-        assert_eq!(ctx["work_people_details"][0]["description"], "人物<br>説明<br>行");
+        assert_eq!(
+            ctx["work_people_details"][0]["description"],
+            "人物<br>説明<br>行"
+        );
     }
 
     #[test]
