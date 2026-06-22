@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use super::kana_index::{KanaIndexData, KanaIndexSection};
+
 /// WIP Work index data (for WIP index pages)
 /// From wip_work_indexes.jsonl
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -29,21 +31,9 @@ pub struct WipWorkIndexItem {
     pub teihon_input_edition: Option<String>,
 }
 
-/// WIP Person index data
-/// From wip_person_indexes.jsonl
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WipPersonIndexData {
-    pub kana_column: String,
-    pub column_display: String,
-    pub sections: Vec<WipPersonSection>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct WipPersonSection {
-    pub kana_char: String,
-    pub section_index: usize,
-    pub people: Vec<WipPersonItem>,
-}
+/// WIP Person index data (from wip_person_indexes.jsonl)
+pub type WipPersonIndexData = KanaIndexData<WipPersonItem>;
+pub type WipPersonSection = KanaIndexSection<WipPersonItem>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WipPersonItem {

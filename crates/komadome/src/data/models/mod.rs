@@ -1,4 +1,5 @@
 mod card;
+mod kana_index;
 mod list_inp;
 mod news;
 mod person;

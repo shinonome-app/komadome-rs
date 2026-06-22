@@ -1,20 +1,10 @@
 use serde::{Deserialize, Serialize};
 
-/// Person index data
-/// From person_indexes.jsonl
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PersonIndexData {
-    pub kana_column: String,
-    pub column_display: String,
-    pub sections: Vec<PersonIndexSection>,
-}
+use super::kana_index::{KanaIndexData, KanaIndexSection};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PersonIndexSection {
-    pub kana_char: String,
-    pub section_index: usize,
-    pub people: Vec<PersonIndexItem>,
-}
+/// Person index data (from person_indexes.jsonl)
+pub type PersonIndexData = KanaIndexData<PersonIndexItem>;
+pub type PersonIndexSection = KanaIndexSection<PersonIndexItem>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PersonIndexItem {
