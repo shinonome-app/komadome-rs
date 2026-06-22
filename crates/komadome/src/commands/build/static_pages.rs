@@ -25,15 +25,22 @@ pub fn build_static_pages_internal(config: &Config, templates: &TemplateRegistry
         .with_context(|| "Failed to render index_all page")?;
     fs::write(index_pages_dir.join("index_all.html"), html)?;
 
-    // person_all.html (consolidated all-authors page)
+    // person_all.html (公開中 consolidated) と person_all_all.html (登録全作家 consolidated)
     let person_all_path = config.data.directory.join("person_all_indexes.jsonl");
     if person_all_path.exists() {
         let all_data: Vec<PersonAllIndexData> = loader::load_jsonl(&person_all_path)?;
+
         let ctx = person_all_index::build_person_all_consolidated_context(&all_data)?;
         let html = templates
             .render("indexes/person_all_consolidated", ctx)
             .with_context(|| "Failed to render person_all consolidated page")?;
         fs::write(index_pages_dir.join("person_all.html"), html)?;
+
+        let ctx = person_all_index::build_person_all_all_context(&all_data)?;
+        let html = templates
+            .render("indexes/person_all_all", ctx)
+            .with_context(|| "Failed to render person_all_all page")?;
+        fs::write(index_pages_dir.join("person_all_all.html"), html)?;
     }
 
     // person_inp_all.html (consolidated WIP all-authors page)
@@ -48,7 +55,7 @@ pub fn build_static_pages_internal(config: &Config, templates: &TemplateRegistry
     }
 
     println!(
-        "Built static pages: index_top.html, index_all.html, person_all.html, person_inp_all.html"
+        "Built static pages: index_top.html, index_all.html, person_all.html, person_all_all.html, person_inp_all.html"
     );
     Ok(())
 }

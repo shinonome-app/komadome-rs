@@ -51,9 +51,8 @@ pub fn person_all_index_filename(kana_column: &str) -> String {
     format!("person_all_{kana_column}.html")
 }
 
-/// Build context for the consolidated person_all.html page (all columns merged)
-pub fn build_person_all_consolidated_context(all_data: &[PersonAllIndexData]) -> Result<Value> {
-    // Merge all sections from all columns, re-indexing section_index
+/// 全列の section をマージし section_index を振り直す (集約ページ共通)。
+fn merge_all_sections(all_data: &[PersonAllIndexData]) -> Vec<Value> {
     let mut all_sections: Vec<Value> = Vec::new();
     let mut section_index = 1;
 
@@ -82,12 +81,34 @@ pub fn build_person_all_consolidated_context(all_data: &[PersonAllIndexData]) ->
         }
     }
 
+    all_sections
+}
+
+/// Build context for the consolidated person_all.html page (公開中, all columns merged)
+pub fn build_person_all_consolidated_context(all_data: &[PersonAllIndexData]) -> Result<Value> {
+    let all_sections = merge_all_sections(all_data);
+    let kana_all = build_kana_all(&all_sections);
     // 集約ページのフッターも本家同様「あ」を現在列として強調する。
     let column_nav = build_column_nav(Some("a"));
-    let kana_all = build_kana_all(&all_sections);
 
     Ok(json!({
         "page_title": "公開中　作家リスト：全て | 青空文庫",
+        "bgcolor": crate::tailwind::bgcolor::DEFAULT,
+        "kana_all": kana_all,
+        "sections": all_sections,
+        "column_nav": column_nav,
+    }))
+}
+
+/// Build context for the consolidated person_all_all.html page (登録全作家, all columns merged).
+/// 本家 https://www.aozora.gr.jp/index_pages/person_all_all.html に相当する。
+pub fn build_person_all_all_context(all_data: &[PersonAllIndexData]) -> Result<Value> {
+    let all_sections = merge_all_sections(all_data);
+    let kana_all = build_kana_all(&all_sections);
+    let column_nav = build_column_nav(Some("a"));
+
+    Ok(json!({
+        "page_title": "登録全作家　作家リスト：全て | 青空文庫",
         "bgcolor": crate::tailwind::bgcolor::DEFAULT,
         "kana_all": kana_all,
         "sections": all_sections,
@@ -120,6 +141,52 @@ mod tests {
         assert!(!footer.contains("href=\"person_all_ka.html\""));
         // 公開中ページ (person_<col>.html) ではなく登録全作家ページへリンクする
         assert!(!footer.contains("href=\"person_sa.html\""));
+    }
+
+    /// 登録全作家 集約 (person_all_all.html) のコンテキスト: タイトル・あ current・人物カウント。
+    #[test]
+    fn person_all_all_context_is_registered_all() {
+        let path = format!(
+            "{}/tests/fixtures/person_all_index_data.json",
+            env!("CARGO_MANIFEST_DIR")
+        );
+        let data: PersonAllIndexData =
+            serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
+        let ctx = build_person_all_all_context(&[data]).unwrap();
+
+        assert_eq!(ctx["page_title"], "登録全作家　作家リスト：全て | 青空文庫");
+        assert_eq!(ctx["column_nav"][0]["column"], "a");
+        assert_eq!(ctx["column_nav"][0]["is_current"], true);
+        let person = &ctx["sections"][0]["people"][0];
+        assert!(person.get("published_count").is_some());
+        assert!(person.get("unpublished_count").is_some());
+    }
+
+    /// 実テンプレート (person_all_all.ntzr) をレンダリングし、本家相当の構造を確認する。
+    #[test]
+    fn person_all_all_renders_like_live() {
+        let templates_dir =
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../templates");
+        let registry = crate::generator::templates::TemplateRegistry::load(&templates_dir).unwrap();
+
+        let path = format!(
+            "{}/tests/fixtures/person_all_index_data.json",
+            env!("CARGO_MANIFEST_DIR")
+        );
+        let data: PersonAllIndexData =
+            serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
+        let ctx = build_person_all_all_context(&[data]).unwrap();
+        let html = registry.render("indexes/person_all_all", ctx).unwrap();
+
+        assert!(html.contains("登録全作家　作家リスト：全て"));
+        // 著者行は (公開中：N、作業中：M)
+        assert!(html.contains("、作業中："));
+        // フッターは登録全作家ページへリンクし「あ」を強調
+        assert!(html.contains("●作家リスト：全"));
+        assert!(html.contains("href=\"person_all_ka.html\""));
+        assert!(html.contains("<span class=\"text-red-500 font-bold\">[あ]</span>"));
+        // 公開中集約用の CSV ダウンロードリンクは持たない
+        assert!(!html.contains("list_person_all.zip"));
     }
 
     /// 公開中 集約フッター (person_all.html): ラベル「公開中」/ person_<col> リンク / あ強調。
