@@ -27,8 +27,10 @@ pub fn build_top_context(data: &TopPageData) -> Result<Value> {
         .topics
         .iter()
         .map(|t| {
+            let anchor = super::news_anchor(t.id);
             json!({
                 "id": t.id,
+                "anchor": anchor,
                 "title": &t.title,
                 "published_on": t.published_on.as_deref().unwrap_or(""),
                 "year": t.year.unwrap_or(0),

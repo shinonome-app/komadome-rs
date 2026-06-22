@@ -51,8 +51,11 @@ fn build_entries(entries: &[crate::data::models::NewsEntry]) -> Vec<Value> {
 
             let body_html = super::nl2br(&e.body);
 
+            let anchor = super::news_anchor(e.id);
+
             json!({
                 "id": e.id,
+                "anchor": anchor,
                 "title": e.title,
                 "published_on_display": published_on_display,
                 "body_html": body_html,

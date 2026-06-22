@@ -30,6 +30,10 @@ pub fn nl2br(s: &str) -> String {
     s.replace("\r\n", "<br>").replace('\n', "<br>")
 }
 
+pub fn news_anchor(id: i64) -> String {
+    format!("{id:06}")
+}
+
 /// Build the kana column footer navigation shared by the 作家リスト pages.
 ///
 /// Pass `Some(column)` to mark the current column with `is_current`; pass `None`
@@ -65,4 +69,17 @@ pub fn build_kana_all(sections: &[Value]) -> Vec<Value> {
             })
         })
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn news_anchor_zero_pads_id_to_six_digits() {
+        assert_eq!(news_anchor(537), "000537");
+        assert_eq!(news_anchor(101), "000101");
+        assert_eq!(news_anchor(1), "000001");
+        assert_eq!(news_anchor(1234567), "1234567");
+    }
 }
