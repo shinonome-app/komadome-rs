@@ -36,17 +36,15 @@ KOMADOME_TAILWIND_CONTENT="${BUILD_DIR}" tailwindcss \
   --minify
 
 # 公開サーバへ転送。
+# 追加・更新のみ（--delete はしない＝公開サーバ上の既存ファイルは消さない）。
+# 不要になったファイルの削除が必要なときは手動で行う。
 # 別管理の静的アセット(inter-font.css / Inter フォント / images / css)は
-# --delete で消さないよう除外する（tailwind.css は build/assets にあるので同期される）。
+# komadome-rs の生成物に含まれない＝転送対象にならないため、そのまま残る。
 #
 # 転送は DO_RSYNC=1 のときだけ行う（既定＝転送しない＝安全側）。
 # staging はこれを設定せず生成のみ、production で DO_RSYNC=1 にして公開サーバへ転送する。
 if [ "${DO_RSYNC:-0}" = "1" ] && [ -n "${RSYNC_SERVER_PATH:-}" ]; then
-  rsync -a --delete \
-    --exclude='/assets/inter-font.css' \
-    --exclude='/assets/Inter-*' \
-    --exclude='/images/' \
-    --exclude='/css/' \
+  rsync -a \
     -e "ssh -i ${HOME}/.ssh/id_rsync -o StrictHostKeyChecking=no" \
     "${BUILD_DIR}/" "${RSYNC_SERVER_PATH}"
   echo "[run-build] rsync done -> ${RSYNC_SERVER_PATH}"

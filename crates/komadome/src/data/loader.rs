@@ -4,35 +4,12 @@ use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 
-/// Load all records from a JSONL file
+/// Load all records from a JSONL file.
+///
+/// 空行スキップ・パース・エラーコンテキスト付与は [`JsonlIterator`] に一本化し、
+/// ここはその全件収集ラッパに徹する。
 pub fn load_jsonl<T: DeserializeOwned>(path: &Path) -> Result<Vec<T>> {
-    let file = File::open(path)
-        .with_context(|| format!("Failed to open JSONL file: {}", path.display()))?;
-
-    let reader = BufReader::new(file);
-    let mut records = Vec::new();
-
-    for (line_num, line) in reader.lines().enumerate() {
-        let line = line.with_context(|| {
-            format!("Failed to read line {} of {}", line_num + 1, path.display())
-        })?;
-
-        if line.trim().is_empty() {
-            continue;
-        }
-
-        let record: T = serde_json::from_str(&line).with_context(|| {
-            format!(
-                "Failed to parse JSON at line {} of {}",
-                line_num + 1,
-                path.display()
-            )
-        })?;
-
-        records.push(record);
-    }
-
-    Ok(records)
+    JsonlIterator::new(path)?.collect()
 }
 
 /// Iterator over JSONL records (for streaming large files)
@@ -100,11 +77,16 @@ pub fn count_jsonl_lines(path: &Path) -> Result<usize> {
         File::open(path).with_context(|| format!("Failed to open file: {}", path.display()))?;
 
     let reader = BufReader::new(file);
-    let count = reader
-        .lines()
-        .filter_map(|l| l.ok())
-        .filter(|l| !l.trim().is_empty())
-        .count();
+    let mut count = 0;
+    for (line_num, line) in reader.lines().enumerate() {
+        // 読み取りエラーは握り潰さず伝播する (load_jsonl と方針を揃える)。
+        let line = line.with_context(|| {
+            format!("Failed to read line {} of {}", line_num + 1, path.display())
+        })?;
+        if !line.trim().is_empty() {
+            count += 1;
+        }
+    }
 
     Ok(count)
 }
