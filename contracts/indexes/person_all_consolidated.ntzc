@@ -1,4 +1,9 @@
 bgcolor: scalar
+column_nav: []{
+  column: scalar
+  display: scalar
+  is_current: bool
+}
 page_title: scalar
 sections: []{
   kana_char: scalar
